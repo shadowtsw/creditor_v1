@@ -1,0 +1,82 @@
+/*
+HTML global
+*/
+html {
+  font-family: $font-chakra;
+  font-weight: $font-chakra-weight;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+Text sizes and color
+*/
+body {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  background-color: $body-primary-color;
+  font-family: $font-chakra;
+  color: $text-primary-color;
+
+  h1,
+  h2 {
+    font-weight: $font-chakra-weight;
+  }
+
+  h3,
+  h4,
+  p,
+  span {
+    color: $text-secondary-color;
+  }
+
+  h3,
+  h4 {
+    font-family: $font-baloon-family;
+    font-weight: $font-baloon-weight;
+  }
+  p[variant='mukta'],
+  span[variant='mukta'] {
+    font-family: $font-mukta-family;
+    font-weight: $font-mukta-weight;
+  }
+  p[variant='bai'],
+  span[variant='bai'] {
+    font-family: $font-bai-family;
+    font-weight: $font-bai-weight;
+  }
+}
+
+/*
+Buttons
+*/
+button {
+  font-family: $font-bai-family;
+  border-color: none;
+  border-radius: 0.5rem;
+}
+button[variant='neutral'] {
+  background-color: $neutral-color;
+  &:hover {
+    background-color: $neutral-hover;
+  }
+}
+button[variant='success'] {
+  background-color: $success-color;
+  &:hover {
+    background-color: $success-hover;
+  }
+}
+button[variant='warning'] {
+  background-color: $warning-color;
+  &:hover {
+    background-color: $warning-hover;
+  }
+}
+button[variant='danger'] {
+  background-color: $danger-color;
+  &:hover {
+    background-color: $danger-hover;
+  }
+}
