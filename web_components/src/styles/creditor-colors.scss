@@ -1,5 +1,17 @@
 @use "sass:color";
+@use "sass:map";
 
+$lightTheme: true;
+
+$lightMap: (
+  body-primary: #c5c5c7c2,
+);
+
+$darkMap: ();
+
+/*
+Fonts and backgrounds
+*/
 $body-primary-color: #c5c5c7c2;
 $body-secondary-color: white;
 
@@ -11,6 +23,12 @@ $border-color-light: white;
 
 $shadow-color-dark: black;
 $shadow-color-light: white;
+
+/*
+Buttons
+*/
+$b-color: white;
+$b-background-color: black;
 
 $neutral-hover: rgb(151, 151, 153);
 $neutral-color: rgb(197, 197, 199);

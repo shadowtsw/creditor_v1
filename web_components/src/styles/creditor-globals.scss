@@ -51,32 +51,63 @@ body {
 /*
 Buttons
 */
+$b-border-radius: 0.5rem;
+$b-border-size: 2px;
+$b-shadow-blur: 5px;
+$b-shadow-spread: 0px;
+
 button {
   font-family: $font-bai-family;
-  border-color: none;
-  border-radius: 0.5rem;
+  border-radius: $b-border-radius;
+  background-color: $b-background-color;
+  color: $b-color;
 }
+
 button[variant='neutral'] {
-  background-color: $neutral-color;
+  border: $b-border-size solid white;
+  box-shadow: 0 0 $b-shadow-blur $b-shadow-spread $neutral-color;
   &:hover {
+    color: $neutral-color;
+    border: 2px solid $neutral-hover;
+  }
+  &:active {
+    color: black;
     background-color: $neutral-hover;
   }
 }
 button[variant='success'] {
-  background-color: $success-color;
+  border: $b-border-size solid white;
+  box-shadow: 0 0 $b-shadow-blur $b-shadow-spread $success-color;
   &:hover {
+    color: $success-color;
+    border: 2px solid $success-hover;
+  }
+  &:active {
+    color: black;
     background-color: $success-hover;
   }
 }
 button[variant='warning'] {
-  background-color: $warning-color;
+  border: $b-border-size solid white;
+  box-shadow: 0 0 $b-shadow-blur $b-shadow-spread $warning-color;
   &:hover {
+    color: $warning-color;
+    border: 2px solid $warning-hover;
+  }
+  &:active {
+    color: black;
     background-color: $warning-hover;
   }
 }
 button[variant='danger'] {
-  background-color: $danger-color;
+  border: $b-border-size solid white;
+  box-shadow: 0 0 $b-shadow-blur $b-shadow-spread $danger-color;
   &:hover {
+    color: $danger-color;
+    border: 2px solid $danger-hover;
+  }
+  &:active {
+    color: black;
     background-color: $danger-hover;
   }
 }
