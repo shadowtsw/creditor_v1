@@ -1,0 +1,40 @@
+import { CostSplit } from '../misc/costsplit-enum';
+import { Currency } from '../misc/currency-enum';
+
+export interface Transfer {
+  _id: string;
+  iban: string;
+  uniqueID: string;
+  bookDate: Date;
+  valutaDate: Date;
+  value: number;
+  user: string;
+  account: string;
+  rebookedFrom: null | string;
+  rebookedTo: null | string;
+  isActive: boolean;
+  read: boolean;
+  currency: Currency;
+  bank: string;
+  recipient: string;
+  recipientIdent: string;
+  purpose: string;
+  comment: string;
+  category: Array<string>;
+  costSplit: CostSplit;
+  distributionKey: Array<{ key: string; value: number }>;
+  correctionFactor: number;
+  bookInfo: string;
+  bookText: string;
+  isEstimated: boolean;
+  estimatedFrom: Date | null;
+  estimatedUntil: Date | null;
+  estimatedDays: Array<Date> | null;
+  dateDay: number;
+  dateMonth: number;
+  dateYear: number;
+  createdAt: Date;
+  updatedAt: Date;
+  isFavourite: boolean;
+  isVirtual: boolean;
+}

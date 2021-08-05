@@ -111,3 +111,16 @@ button[variant='danger'] {
     background-color: $danger-hover;
   }
 }
+button[variant='link'] {
+  border: $b-border-size solid black;
+  box-shadow: 0 0 $b-shadow-blur $b-shadow-spread transparent;
+  &.active-link {
+    background-color: black;
+  }
+  &:hover:not(.active-link) {
+    box-shadow: 0 0 $b-shadow-blur $b-shadow-spread black;
+  }
+  &:active:focus {
+    background-color: black;
+  }
+}

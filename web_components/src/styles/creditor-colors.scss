@@ -4,7 +4,7 @@
 $lightTheme: true;
 
 $lightMap: (
-  body-primary: #c5c5c7c2,
+  body-primary: #d6d6da,
 );
 
 $darkMap: ();
@@ -12,7 +12,7 @@ $darkMap: ();
 /*
 Fonts and backgrounds
 */
-$body-primary-color: #c5c5c7c2;
+$body-primary-color: #fdfdfd;
 $body-secondary-color: white;
 
 $text-primary-color: black;
@@ -28,7 +28,7 @@ $shadow-color-light: white;
 Buttons
 */
 $b-color: white;
-$b-background-color: black;
+$b-background-color: rgb(68, 68, 68);
 
 $neutral-hover: rgb(151, 151, 153);
 $neutral-color: rgb(197, 197, 199);
@@ -41,3 +41,8 @@ $warning-color: rgba(255, 166, 0, 0.7);
 
 $danger-hover: rgba(255, 0, 0, 1);
 $danger-color: rgba(255, 0, 0, 0.7);
+
+/*
+Borders
+*/
+$border-color: rgb(68, 68, 68);
