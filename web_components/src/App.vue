@@ -46,17 +46,23 @@
     <div class="test-button-container">
       <div class="loading-box--small"></div>
     </div>
+    <p>{{ t('message.language') }}</p>
+    <p>{{ locale }}</p>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import CreditorButton from './components/creditor-buttons/CreditorButton.vue';
+import { translate } from './multilanguage';
 
 export default defineComponent({
   components: { CreditorButton },
   setup(props, context) {
+    const { t, locale } = translate();
     return {
+      t,
+      locale,
       myTitle: 'My biggest tile',
     };
   },
