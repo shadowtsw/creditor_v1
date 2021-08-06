@@ -11,12 +11,28 @@
       <span variant="bai">span: test 'Bai'</span>
     </div>
     <p></p>
-    <button variant="neutral">Neutral</button>
-    <button variant="success">Success</button>
-    <button variant="warning">Warning</button>
-    <button variant="danger">Danger</button>
-    <button variant="link">LINK</button>
-    <button variant="link" class="active-link">LINK ACTIVE</button>
+    <creditor-button text="Neutral" />
+    <creditor-button text="Neutral" textColor="white" />
+    <creditor-button text="Success" type="success" />
+    <creditor-button text="Success" type="success" textColor="white" />
+    <creditor-button text="Warning" type="warning" />
+    <creditor-button text="Warning" type="warning" textColor="white" />
+    <creditor-button text="Danger" type="danger" />
+    <creditor-button text="Danger" type="danger" textColor="white" />
+    <creditor-button text="Link" type="link" />
+    <creditor-button
+      text="Link-Active"
+      type="link"
+      textColor="white"
+      :active="true"
+    />
+    <creditor-button text="Link" type="link" textColor="white" />
+    <creditor-button
+      text="Link-Active"
+      type="link"
+      textColor="white"
+      :active="true"
+    />
     <p></p>
     <div class="border-class">Border</div>
     <p></p>
@@ -35,8 +51,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import CreditorButton from './components/creditor-buttons/CreditorButton.vue';
 
 export default defineComponent({
+  components: { CreditorButton },
   setup(props, context) {
     return {
       myTitle: 'My biggest tile',
