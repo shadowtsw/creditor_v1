@@ -1,0 +1,16 @@
+<template>
+  <div>
+    <div>Config</div>
+    <router-view></router-view>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+export default defineComponent({});
+</script>
+
+<style lang="scss">
+// @import './styles/import-libs.scss';
+</style>

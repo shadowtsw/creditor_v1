@@ -10,7 +10,7 @@ import CreditorButton from './components/creditor-buttons/CreditorButton.vue';
 
 //Initialise Application Instance
 import { ApplicationEnviroment } from './application-enviroment';
-const creditor = ApplicationEnviroment.instance;
+export const creditor = ApplicationEnviroment.instance;
 creditor.initialiseStart();
 
 //Vue app

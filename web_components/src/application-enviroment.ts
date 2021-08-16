@@ -1,13 +1,16 @@
 import { DataType } from './interfaces/enviroment/data-enums';
 import { Themes } from './interfaces/themes/theme-enums';
-import { DataBaseType } from './interfaces/database/database-interface';
+import { DataBaseTypes } from './interfaces/database/database-interface';
 
 export class ApplicationEnviroment {
   private _version: string;
   private _enviroment: string;
+
   private _dataModeSet: boolean;
   private _dataMode: DataType;
-  private _dataBase: DataBaseType;
+  private _dataBase: DataBaseTypes;
+  private _enviromentReady: boolean;
+
   private _theme: Themes;
   private _tutorial: boolean;
   private _config: boolean | null;
@@ -18,17 +21,28 @@ export class ApplicationEnviroment {
 
   private constructor() {
     this._tutorial = true;
-    this._version = process.env.VERSION || '1.0.0';
+    this._version = process.env.VUE_APP_VERSION || 'NOT SPECIFIED';
     this._enviroment = process.env.NODE_ENV || 'production';
+
     this._dataMode = DataType.UNSET;
     this._dataModeSet = false;
-    this._dataBase = null;
+    this._dataBase = DataBaseTypes.NULL;
+    this._enviromentReady = false;
+
     this._theme = Themes.DEFAULT;
     this._config = null;
-    this._autoSave = false;
+    this._autoSave = true;
     this._isNative = false;
 
     this.setup();
+  }
+
+  get envReady() {
+    return !!this._enviromentReady;
+  }
+
+  set envReady(value: boolean) {
+    this._enviromentReady = value;
   }
 
   static get instance() {
@@ -66,6 +80,7 @@ export class ApplicationEnviroment {
   private save() {
     //save settings to localstorage
     console.log('Saving settings');
+    window.localStorage.setItem('version', JSON.stringify(this._version));
     window.localStorage.setItem('auto-save', JSON.stringify(this._autoSave));
     window.localStorage.setItem('theme', this._theme);
     window.localStorage.setItem('data-mode', this._dataMode);
@@ -73,6 +88,12 @@ export class ApplicationEnviroment {
   }
   private setup() {
     //Load localstorage settings
+    const versionNumber = window.localStorage.getItem('version');
+    if (versionNumber && JSON.parse(versionNumber)) {
+      console.log('Version was found');
+    } else {
+      console.log('Version not found');
+    }
     const autoSave = window.localStorage.getItem('auto-save');
     if (autoSave && JSON.parse(autoSave)) {
       this._autoSave = JSON.parse(autoSave);
