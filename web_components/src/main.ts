@@ -18,7 +18,7 @@ export const creditor = ApplicationEnviroment.instance;
 creditor.initialiseStart();
 
 //Vue app
-createApp(ComponentsTemplate)
+createApp(App)
   .use(store)
   .use(router)
   .use(i18n)

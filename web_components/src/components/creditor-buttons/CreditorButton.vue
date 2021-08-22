@@ -56,6 +56,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '../../styles/creditor-fonts';
 @import '../../styles/creditor-colors';
+@import '../../styles/creditor-variables';
 @import '../../styles/creditor-globals';
 
 .creditor-button {
