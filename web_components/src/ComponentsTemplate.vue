@@ -36,18 +36,19 @@
     <p></p>
     <div class="border-class">Border</div>
     <p></p>
-    <div class="loading-box--large">
-      <div class="loading-box__text-container">
-        <p>LoadingBox</p>
-        <p>LoadingType</p>
-      </div>
-    </div>
+    <loading-backdrop :show="true">prepare App</loading-backdrop>
     <p>Test</p>
-    <div class="test-button-container">
-      <div class="loading-box--small"></div>
-    </div>
+    <loading-box><button>TESTMEBABY</button></loading-box>
     <p>{{ t('message.language') }}</p>
     <p>{{ locale }}</p>
+    <br />
+    <single-box
+      @checked-event="logThis($event)"
+      :hideBox="true"
+      class="boxtest"
+    >
+      Hier steht ne Menge Text</single-box
+    >
   </div>
 </template>
 
@@ -60,10 +61,15 @@ export default defineComponent({
   components: { CreditorButton },
   setup(props, context) {
     const { t, locale } = translate();
+
+    const logThis = (arg: boolean) => {
+      console.log('From Event', arg);
+    };
     return {
       t,
       locale,
       myTitle: 'My biggest tile',
+      logThis,
     };
   },
 });
@@ -77,12 +83,12 @@ export default defineComponent({
 * {
   // font-size: 2rem;
 }
-.border-class {
-  border: 2px solid rgb(68, 68, 68);
-  border-radius: 1px;
-}
+
 .test-button-container {
   border: 1px solid black;
   min-height: 2rem;
+}
+.boxtest {
+  width: 10rem;
 }
 </style>
