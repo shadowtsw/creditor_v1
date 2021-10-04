@@ -1,15 +1,15 @@
-import { DataType } from './interfaces/enviroment/data-enums';
+import { DataType } from './interfaces/environment/data-enums';
 import { Themes } from './interfaces/themes/theme-enums';
 import { DataBaseTypes } from './interfaces/database/database-interface';
 
-export class ApplicationEnviroment {
+export class ApplicationEnvironment {
   private _version: string;
-  private _enviroment: string;
+  private _environment: string;
 
   private _dataModeSet: boolean;
   private _dataMode: DataType;
   private _dataBase: DataBaseTypes;
-  private _enviromentReady: boolean;
+  private _environmentReady: boolean;
 
   private _theme: Themes;
   private _tutorial: boolean;
@@ -17,17 +17,17 @@ export class ApplicationEnviroment {
   private _autoSave: boolean;
   private _isNative: boolean;
 
-  private static runningInstance: ApplicationEnviroment | null;
+  private static runningInstance: ApplicationEnvironment | null;
 
   private constructor() {
     this._tutorial = true;
     this._version = process.env.VUE_APP_VERSION || 'NOT SPECIFIED';
-    this._enviroment = process.env.NODE_ENV || 'production';
+    this._environment = process.env.NODE_ENV || 'production';
 
     this._dataMode = DataType.UNSET;
     this._dataModeSet = false;
     this._dataBase = DataBaseTypes.NULL;
-    this._enviromentReady = false;
+    this._environmentReady = false;
 
     this._theme = Themes.DEFAULT;
     this._config = null;
@@ -38,16 +38,16 @@ export class ApplicationEnviroment {
   }
 
   get envReady() {
-    return !!this._enviromentReady;
+    return !!this._environmentReady;
   }
 
   set envReady(value: boolean) {
-    this._enviromentReady = value;
+    this._environmentReady = value;
   }
 
   static get instance() {
     if (!this.runningInstance) {
-      this.runningInstance = new ApplicationEnviroment();
+      this.runningInstance = new ApplicationEnvironment();
     }
     return this.runningInstance;
   }
@@ -55,8 +55,8 @@ export class ApplicationEnviroment {
   get version() {
     return this._version;
   }
-  get enviroment() {
-    return this._enviroment;
+  get environment() {
+    return this._environment;
   }
   get dataModeSet() {
     return this._dataModeSet;
@@ -129,24 +129,24 @@ export class ApplicationEnviroment {
     }
   }
 
-  initialiseStart() {
+  initializeStart() {
     if (!this._config) {
       if (this._autoSave || this._isNative) {
         this.save();
         this._config = true;
-        this.initialiseStart();
+        this.initializeStart();
       } else {
         console.log(`Stealth mode: no data will be saved`);
         console.log(`App is configured and running v${this.version}`);
-        console.log('Current stage:', this._enviroment);
+        console.log('Current stage:', this._environment);
       }
     } else {
       console.log(`App is configured and running v${this.version}`);
-      console.log('Current stage:', this._enviroment);
+      console.log('Current stage:', this._environment);
     }
   }
 
-  saveEnviroment() {
+  saveEnvironment() {
     this.save();
   }
 }

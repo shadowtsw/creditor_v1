@@ -1,5 +1,5 @@
 import { ref, reactive, computed } from 'vue';
-import { DataType } from '@/interfaces/enviroment/data-enums';
+import { DataType } from '@/interfaces/environment/data-enums';
 import { DataBaseTypes } from '@/interfaces/database/database-interface';
 
 interface AuthState {

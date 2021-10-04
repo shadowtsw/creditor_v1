@@ -13,9 +13,9 @@ import LoadingBackdrop from './components/loading-components/LoadingBackdrop.vue
 import LoadingBox from './components/loading-components/LoadingBox.vue';
 
 //Initialise Application Instance
-import { ApplicationEnviroment } from './application-enviroment';
-export const creditor = ApplicationEnviroment.instance;
-creditor.initialiseStart();
+import { ApplicationEnvironment } from './application-environment';
+export const creditor = ApplicationEnvironment.instance;
+creditor.initializeStart();
 
 //Vue app
 createApp(App)
