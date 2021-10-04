@@ -16,7 +16,7 @@ module.exports = {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'vue/html-quotes': ['error', 'double' | 'single', { 'avoidEscape': false }],
+    'vue/html-quotes': ['error', 'double', { 'avoidEscape': false }],
   },
   overrides: [
     {

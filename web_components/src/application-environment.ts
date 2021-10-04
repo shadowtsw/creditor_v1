@@ -1,10 +1,17 @@
 import { DataType } from './interfaces/environment/data-enums';
 import { Themes } from './interfaces/themes/theme-enums';
 import { DataBaseTypes } from './interfaces/database/database-interface';
+import { LogMe } from '@/helpers/logger-function';
+
+enum ApplicationValues {
+  VERSION_FALLBACK = 'error',
+  ENV_FALLBACK = 'production',
+  TITLE = 'Creditor',
+}
 
 export class ApplicationEnvironment {
-  private _version: string;
-  private _environment: string;
+  readonly _version: string;
+  readonly _environment: string;
 
   private _dataModeSet: boolean;
   private _dataMode: DataType;
@@ -17,12 +24,21 @@ export class ApplicationEnvironment {
   private _autoSave: boolean;
   private _isNative: boolean;
 
+  private _instanceIsLoading: boolean;
+
   private static runningInstance: ApplicationEnvironment | null;
 
   private constructor() {
     this._tutorial = true;
-    this._version = process.env.VUE_APP_VERSION || 'NOT SPECIFIED';
-    this._environment = process.env.NODE_ENV || 'production';
+    this._version =
+      process.env.VUE_APP_VERSION || ApplicationValues.VERSION_FALLBACK;
+    this._environment = process.env.NODE_ENV || ApplicationValues.ENV_FALLBACK;
+
+    if (this._version !== ApplicationValues.VERSION_FALLBACK) {
+      LogMe.setVersion(this._version);
+    }
+
+    LogMe.setTitle(ApplicationValues.TITLE);
 
     this._dataMode = DataType.UNSET;
     this._dataModeSet = false;
@@ -31,13 +47,15 @@ export class ApplicationEnvironment {
 
     this._theme = Themes.DEFAULT;
     this._config = null;
-    this._autoSave = true;
+    this._autoSave = false;
     this._isNative = false;
+
+    this._instanceIsLoading = true;
 
     this.setup();
   }
 
-  get envReady() {
+  get envReady(): boolean {
     return !!this._environmentReady;
   }
 
@@ -45,82 +63,95 @@ export class ApplicationEnvironment {
     this._environmentReady = value;
   }
 
-  static get instance() {
+  static get instance(): ApplicationEnvironment {
     if (!this.runningInstance) {
       this.runningInstance = new ApplicationEnvironment();
     }
     return this.runningInstance;
   }
 
-  get version() {
+  get version(): string {
     return this._version;
   }
-  get environment() {
+  get environment(): string {
     return this._environment;
   }
-  get dataModeSet() {
+  get dataModeSet(): boolean {
     return this._dataModeSet;
   }
-  get dataMode() {
+  get dataMode(): DataType {
     return this._dataMode;
   }
-  get dataBase() {
+  get dataBase(): DataBaseTypes {
     return this._dataBase;
   }
-  get theme() {
+  get theme(): string {
     return this._theme;
   }
-  get tutorial() {
+  get tutorial(): boolean {
     return this._tutorial;
   }
-  get autoSave() {
+  get autoSave(): boolean {
     return this._autoSave;
   }
-
-  private save() {
-    //save settings to localstorage
-    console.log('Saving settings');
-    window.localStorage.setItem('version', JSON.stringify(this._version));
-    window.localStorage.setItem('auto-save', JSON.stringify(this._autoSave));
-    window.localStorage.setItem('theme', this._theme);
-    window.localStorage.setItem('data-mode', this._dataMode);
-    window.localStorage.setItem('tutorial', JSON.stringify(this._tutorial));
+  get instanceIsLoading(): boolean {
+    return this._instanceIsLoading;
   }
-  private setup() {
-    //Load localstorage settings
+
+  private save(): void {
+    //save settings to localStorage
+    try {
+      window.localStorage.setItem('version', JSON.stringify(this._version));
+      window.localStorage.setItem('auto-save', JSON.stringify(this._autoSave));
+      window.localStorage.setItem('theme', this._theme);
+      window.localStorage.setItem('data-mode', this._dataMode);
+      window.localStorage.setItem('tutorial', JSON.stringify(this._tutorial));
+      LogMe.success('Basic Settings saved');
+    } catch (error) {
+      LogMe.error('Failed to save settings');
+    }
+  }
+
+  private setup(): void {
+    //Load localStorage settings
+    this._instanceIsLoading = true;
     const versionNumber = window.localStorage.getItem('version');
     if (versionNumber && JSON.parse(versionNumber)) {
-      console.log('Version was found');
+      LogMe.success('Version found');
     } else {
-      console.log('Version not found');
+      LogMe.error('Version not found');
     }
     const autoSave = window.localStorage.getItem('auto-save');
     if (autoSave && JSON.parse(autoSave)) {
       this._autoSave = JSON.parse(autoSave);
+      LogMe.success('Autosave enabled');
     } else {
-      console.log('Autosave disabled or not found');
+      LogMe.warning('Autosave disabled or not found');
     }
     const theme = window.localStorage.getItem('theme');
     if (theme) {
       if ((Object.values(Themes) as Array<string>).includes(theme)) {
         this._theme = theme as Themes;
+        LogMe.success('Theme loaded');
       }
     } else {
-      console.log('No theme was found, using default');
+      LogMe.warning('No theme was found, using default');
     }
     const dataMode = window.localStorage.getItem('data-mode');
     if (dataMode) {
       if ((Object.values(DataType) as Array<string>).includes(dataMode)) {
         this._dataMode = dataMode as DataType;
+        LogMe.success('Datamode was set');
       }
     } else {
-      console.log('No data mode was found');
+      LogMe.warning('No data mode was found');
     }
     const tutorial = window.localStorage.getItem('tutorial');
     if (tutorial && JSON.parse(tutorial)) {
       this._tutorial = JSON.parse(tutorial);
+      LogMe.success('Tutorial state loaded');
     } else {
-      console.log('Tutorial default start');
+      LogMe.info('Tutorial default start');
     }
     if (!autoSave && !theme && !dataMode && !tutorial) {
       this._config = false;
@@ -129,24 +160,28 @@ export class ApplicationEnvironment {
     }
   }
 
-  initializeStart() {
+  initializeStart(): void {
     if (!this._config) {
       if (this._autoSave || this._isNative) {
         this.save();
         this._config = true;
         this.initializeStart();
       } else {
-        console.log(`Stealth mode: no data will be saved`);
-        console.log(`App is configured and running v${this.version}`);
-        console.log('Current stage:', this._environment);
+        LogMe.warning(`Stealth mode: no data will be saved`);
+        LogMe.info(
+          `App is configured, but reset to basic configuration. Is running v${this.version}`
+        );
+        LogMe.info('Current stage:', this._environment);
+        this._instanceIsLoading = false;
       }
     } else {
-      console.log(`App is configured and running v${this.version}`);
-      console.log('Current stage:', this._environment);
+      LogMe.success(`App is configured and running v${this.version}`);
+      LogMe.info('Current stage:', this._environment);
+      this._instanceIsLoading = false;
     }
   }
 
-  saveEnvironment() {
+  saveEnvironment(): void {
     this.save();
   }
 }
