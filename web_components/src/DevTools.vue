@@ -12,20 +12,22 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted } from 'vue';
-import devToolsHandler from '@/dev-tools';
-import { LogMe } from '@/helpers/logger-function';
+import { defineComponent, onMounted } from "vue";
+import devToolsHandler from "@/dev-tools";
+import { LogMe } from "@/helpers/logger-function";
 
 export default defineComponent({
   setup(props, context) {
     onMounted(() => {
-      LogMe.mount('DevTools.vue mounted');
-      devtools.addFunction({
-        name: 'Dummy',
-        action: () => {
-          LogMe.debug('Dummy clicked');
-        },
-      });
+      LogMe.mount("DevTools.vue mounted");
+      if (devtools.getFunctions.value.length === 0) {
+        devtools.addFunction({
+          name: "Dummy",
+          action: () => {
+            LogMe.debug("Dummy clicked");
+          },
+        });
+      }
     });
     const devtools = devToolsHandler();
 

@@ -16,9 +16,14 @@ body {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
+  margin: 0;
   background-color: $body-primary-color;
   font-family: $font-chakra;
   color: $text-primary-color;
+  > * {
+    width: 100%;
+    height: 100%;
+  }
 
   h1,
   h2 {

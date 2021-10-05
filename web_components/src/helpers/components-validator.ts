@@ -5,7 +5,8 @@ export enum ValidComponents {
   EXISTING_USER = 'ExistingUser',
 }
 
-export type ValidComponentsStrings = keyof typeof ValidComponents;
+//FIXME:
+// export type ValidComponentsStrings = keyof typeof ValidComponents;
 
 export type ValidComponentsNames = Array<ValidComponents>;
 
@@ -16,7 +17,6 @@ export const validComponents = ref<ValidComponentsNames>([
 
 const useComponentValidator = () => {
   const validateComponentName = (name: ValidComponents) => {
-    console.log(validComponents.value);
     return validComponents.value.includes(name);
   };
 

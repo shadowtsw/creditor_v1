@@ -2,6 +2,7 @@ import { DataType } from './interfaces/environment/data-enums';
 import { Themes } from './interfaces/themes/theme-enums';
 import { DataBaseTypes } from './interfaces/database/database-interface';
 import { LogMe } from '@/helpers/logger-function';
+import authHandler from '@/store/state-manager/env_statehandler';
 
 enum ApplicationValues {
   VERSION_FALLBACK = 'error',
@@ -161,6 +162,7 @@ export class ApplicationEnvironment {
   }
 
   initializeStart(): void {
+    const env = authHandler();
     if (!this._config) {
       if (this._autoSave || this._isNative) {
         this.save();
@@ -173,11 +175,13 @@ export class ApplicationEnvironment {
         );
         LogMe.info('Current stage:', this._environment);
         this._instanceIsLoading = false;
+        env.setEnvReady();
       }
     } else {
       LogMe.success(`App is configured and running v${this.version}`);
       LogMe.info('Current stage:', this._environment);
       this._instanceIsLoading = false;
+      env.setEnvReady();
     }
   }
 
