@@ -13,8 +13,8 @@
 
 <script lang="ts">
 import { defineComponent, onMounted } from "vue";
-import devToolsHandler from "@/dev-tools";
-import { LogMe } from "@/helpers/logger-function";
+import devToolsHandler from "./dev-tools";
+import { LogMe } from "./helpers/logger-function";
 
 export default defineComponent({
   setup(props, context) {

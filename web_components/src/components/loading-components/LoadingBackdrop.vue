@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {
@@ -28,9 +28,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/creditor-fonts';
+@import "@/styles/creditor-fonts";
 
 .loading-box--large {
+  position: fixed;
+  top: calc(50% - 6rem);
+  left: calc(50% - 6rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,6 +47,7 @@ export default defineComponent({
   animation-iteration-count: infinite;
   animation-timing-function: linear;
   transform: rotateZ(45deg);
+  z-index: 1000;
   .loading-box__text-container {
     transform: rotateZ(-45deg);
     p {

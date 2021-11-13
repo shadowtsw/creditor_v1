@@ -1,12 +1,14 @@
 <template>
   <div class="welcome-main__container">
+    <!-- Topic part of welcome -->
     <h1 class="welcome-topic">creditor v1</h1>
     <h3 class="welcome-text" variant="chakra">
-      {{ t('welcome.text_row1') }}
+      {{ t("welcome.text_row1") }}
     </h3>
     <h4 class="welcome-text" variant="chakra">
-      {{ t('welcome.text_row2') }}
+      {{ t("welcome.text_row2") }}
     </h4>
+    <!-- Left selection part -->
     <div class="login-selection__container">
       <div
         :class="[
@@ -23,10 +25,10 @@
           v-model="selectionChoice"
         />
         <label variant="chakra" class="login-selection__label" for="new-user">{{
-          t('welcome.selection_choice1.label')
+          t("welcome.selection_choice1.label")
         }}</label>
         <p variant="mukta" class="selection-info-text">
-          {{ t('welcome.selection_choice1.info_text') }}
+          {{ t("welcome.selection_choice1.info_text") }}
         </p>
       </div>
       <div
@@ -47,13 +49,14 @@
           variant="chakra"
           class="login-selection__label"
           for="existing-user"
-          >{{ t('welcome.selection_choice2.label') }}</label
+          >{{ t("welcome.selection_choice2.label") }}</label
         >
         <p variant="mukta" class="selection-info-text">
-          {{ t('welcome.selection_choice2.info_text') }}
+          {{ t("welcome.selection_choice2.info_text") }}
         </p>
       </div>
     </div>
+    <!-- Result of selection shown on rigth side -->
     <div class="login-credentials__container">
       <component
         :is="currentComponent"
@@ -71,24 +74,24 @@ import {
   ref,
   onMounted,
   computed,
-} from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+} from "vue";
+import { useRouter, useRoute } from "vue-router";
 import useComponentValidator, {
   ValidComponents,
-} from '@/helpers/components-validator';
-import { ValidRoutes } from '@/helpers/route-validator';
-import { translate } from '@/multilanguage';
+} from "../helpers/components-validator";
+import { ValidRoutes } from "../helpers/route-validator";
+import { translate } from "../multilanguage";
 
 export default defineComponent({
   setup() {
     const { t, locale } = translate();
-    const selectionChoice = ref('');
+    const selectionChoice = ref("");
     const route = useRoute();
     const router = useRouter();
     const { validateComponentName } = useComponentValidator();
 
     onMounted(() => {
-      if (route.query.loadedModule && selectionChoice.value === '') {
+      if (route.query.loadedModule && selectionChoice.value === "") {
         selectionChoice.value = route.query.loadedModule as string;
       }
     });
@@ -119,7 +122,7 @@ export default defineComponent({
         );
       } else {
         return defineAsyncComponent(
-          () => import(`@/components/welcome-box/WelcomeBox.vue`)
+          () => import(`../components/welcome-box/WelcomeBox.vue`)
         );
       }
     });

@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { LogMe } from "@/helpers/logger-function";
+import { LogMe } from "../helpers/logger-function";
 import { defineComponent, onMounted } from "vue";
 
 export default defineComponent({
