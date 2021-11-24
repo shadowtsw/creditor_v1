@@ -4,7 +4,7 @@ type Naspa = Partial<Record<keyof IBankTransfer, string>>;
 
 export const sparkasse_naspa_v1: Naspa = {
   "uniqueID": "Auftragskonto",
-  "bic": "BIC (SWIFT-Code)",
+  "recipientBic": "BIC (SWIFT-Code)",
   "recipient": "Beguenstigter/Zahlungspflichtiger",
   "recipientIdent": "Glaeubiger ID",
   "recipientIban": "Kontonummer/IBAN",

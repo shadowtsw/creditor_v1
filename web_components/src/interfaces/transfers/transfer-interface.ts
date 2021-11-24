@@ -69,7 +69,7 @@ export type RebookingPropertiesMetaData = Record<
 export interface BasicProperties {
   uniqueID: string | null;
   iban: string | null;
-  bic: string | null;
+  recipientBic: string | null;
   bookDate: Date | null;
   valutaDate: Date | null;
   value: number | null;

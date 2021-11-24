@@ -15,7 +15,7 @@ export default class Transfer implements IBankTransfer {
   _id: string | null;
   _unique_key: string | null;
   iban: string | null;
-  bic: string | null;
+  recipientBic: string | null;
   uniqueID: string | null;
   bookDate: Date | null;
   valutaDate: Date | null;
@@ -59,7 +59,7 @@ export default class Transfer implements IBankTransfer {
     this._id = null;
     this._unique_key = null;
     this.iban = null;
-    this.bic = null;
+    this.recipientBic = null;
     this.uniqueID = null;
     this.bookDate = null;
     this.valutaDate = null;
@@ -104,7 +104,7 @@ export default class Transfer implements IBankTransfer {
 function createBasicProperties(): BasicProperties {
   const basicProperties = {
     iban: null,
-    bic: null,
+    recipientBic: null,
     uniqueID: null,
     bookDate: null,
     valutaDate: null,
