@@ -1,5 +1,5 @@
-import { CostSplit } from '../misc/costsplit-enum';
-import { Currency } from '../misc/currency-enum';
+import { CostSplit } from "../misc/costsplit-enum";
+import { Currency } from "../misc/currency-enum";
 
 export interface Mapping {
   mapName: string;
@@ -11,6 +11,7 @@ export interface Mapping {
     bic: string;
     recipient: string;
     recIdent: string;
+    recipientIban: string;
     iban: string;
     value: string;
     purpose: string;
@@ -19,6 +20,9 @@ export interface Mapping {
     currency: string;
     bookText: string;
     bookInfo: string;
+    mandatoryReference: string;
+    customerReference: string;
+    collectorReference: string;
   };
   defaultValues: {
     bank: string;
