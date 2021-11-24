@@ -1,0 +1,18 @@
+{
+  "uniqueID": "Auftragskonto",
+  "bank": "",
+  "bic": "BIC (SWIFT-Code)",
+  "recipient": "Beguenstigter/Zahlungspflichtiger",
+  "recIdent": "Glaeubiger ID",
+  "recipientIban": "Kontonummer/IBAN",
+  "value": "Betrag",
+  "purpose": "Verwendungszweck",
+  "bookDate": "Buchungstag",
+  "valutaDate": "Valutadatum",
+  "currency": "Waehrung",
+  "bookText": "Buchungstext",
+  "bookInfo": "",
+  "mandatoryReference": "Mandatsreferenz",
+  "customerReference": "Kundenreferenz (End-to-End)",
+  "collectorReference": "Sammlerreferenz"
+}
