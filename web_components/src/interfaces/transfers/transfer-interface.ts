@@ -1,3 +1,4 @@
+import { IPropertyMetaData } from "../meta/meta-data";
 import { CostSplit } from "../misc/costsplit-enum";
 import { Currency } from "../misc/currency-enum";
 
@@ -10,12 +11,22 @@ interface CustomTransferProperties {
   updatedAt: Date;
 }
 
+type CustomTransferPropertiesMetaData = Record<
+  keyof CustomTransferProperties,
+  IPropertyMetaData
+>;
+
 interface EstimateProperties {
   isEstimated: boolean;
   estimatedFrom: Date | null;
   estimatedUntil: Date | null;
   estimatedDays: Array<Date> | null;
 }
+
+type EstimatePropertiesMetaData = Record<
+  keyof EstimateProperties,
+  IPropertyMetaData
+>;
 
 interface SettingsProperties {
   _id: string | null;
@@ -27,6 +38,11 @@ interface SettingsProperties {
   isVirtual: boolean;
 }
 
+type SettingsPropertiesMetaData = Record<
+  keyof SettingsProperties,
+  IPropertyMetaData
+>;
+
 interface CostManagementProperties {
   category: Array<string> | Array<never>;
   costSplit: CostSplit | null;
@@ -34,10 +50,20 @@ interface CostManagementProperties {
   correctionFactor: number | null;
 }
 
+type CostManagementPropertiesMetaData = Record<
+  keyof CostManagementProperties,
+  IPropertyMetaData
+>;
+
 interface RebookingProperties {
   rebookedFrom: null | string;
   rebookedTo: null | string;
 }
+
+type RebookingPropertiesMetaData = Record<
+  keyof RebookingProperties,
+  IPropertyMetaData
+>;
 
 interface BasicProperties {
   uniqueID: string | null;
@@ -59,348 +85,23 @@ interface BasicProperties {
   collectorReference: string | null;
 }
 
+type BasicPropertiesMetaData = Record<keyof BasicProperties, IPropertyMetaData>;
+
+type AdditionalTransferPropertiesMetaData = CustomTransferPropertiesMetaData &
+  EstimatePropertiesMetaData &
+  SettingsPropertiesMetaData &
+  RebookingPropertiesMetaData &
+  CostManagementPropertiesMetaData;
+
 type AdditionalTransferProperties = CustomTransferProperties &
   EstimateProperties &
   SettingsProperties &
   RebookingProperties &
   CostManagementProperties;
 
+export type IBankTransferMetaData = BasicPropertiesMetaData &
+  AdditionalTransferPropertiesMetaData;
 export type IBankTransfer = BasicProperties & AdditionalTransferProperties;
-
-interface IPropertyMetaData {
-  EN: string;
-  DE: string;
-  visible: boolean;
-  printable: boolean;
-  readOnly: boolean;
-  pinSecured: boolean;
-}
-
-export const BankTransferPropertyMap: Record<
-  keyof IBankTransfer,
-  IPropertyMetaData
-> = {
-  _id: {
-    EN: "Database-ID",
-    DE: "Datenbank-ID",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  uniqueID: {
-    EN: "Account-ID",
-    DE: "Konto-ID",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  iban: {
-    EN: "IBAN",
-    DE: "IBAN",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  account: {
-    EN: "Name",
-    DE: "Name",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  _unique_key: {
-    EN: "Transfer-ID",
-    DE: "Transfer-ID",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  recipientIban: {
-    EN: "Recipient-IBAN",
-    DE: "Empfänger-IBAN",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  bookDate: {
-    EN: "book_date",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  valutaDate: {
-    EN: "valuta_date",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  value: {
-    EN: "value",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  user: {
-    EN: "user",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  rebookedFrom: {
-    EN: "rebooked_from",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  rebookedTo: {
-    EN: "rebooked_to",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  isActive: {
-    EN: "selected",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  readOnly: {
-    EN: "readOnlyonly",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  currency: {
-    EN: "currency",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  bank: {
-    EN: "bank_name",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  recipient: {
-    EN: "recipient",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  recipientIdent: {
-    EN: "creditor_identification_number",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  purpose: {
-    EN: "purpose",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  comment: {
-    EN: "comments",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  category: {
-    EN: "category",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  costSplit: {
-    EN: "cost_split",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  distributionKey: {
-    EN: "distribution_key",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  correctionFactor: {
-    EN: "correction_factor",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  bookInfo: {
-    EN: "book_info",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  bookText: {
-    EN: "book_text",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  isEstimated: {
-    EN: "is_estimated",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  estimatedFrom: {
-    EN: "estimated_start",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  estimatedUntil: {
-    EN: "estimated_end",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  estimatedDays: {
-    EN: "estimated_duration",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  dateDay: {
-    EN: "day",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  dateMonth: {
-    EN: "month",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  dateYear: {
-    EN: "year",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  createdAt: {
-    EN: "created_at",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  updatedAt: {
-    EN: "last_update",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  isFavorite: {
-    EN: "is_favourite",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  isVirtual: {
-    EN: "is_virtual",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  mandatoryReference: {
-    EN: "mandatory_ref",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  customerReference: {
-    EN: "customer_ref",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-  collectorReference: {
-    EN: "collector_ref",
-    DE: "",
-    visible: true,
-    printable: true,
-    readOnly: false,
-    pinSecured: false,
-  },
-};
 
 export default class Transfer implements IBankTransfer {
   _id: string | null;
