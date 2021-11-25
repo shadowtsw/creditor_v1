@@ -1,22 +1,23 @@
-import { Transfer } from '../transfers/transfer-interface';
-import { Mapping } from '../mappings/mapping-interface';
-import { Currency } from '../misc/currency-enum';
+import { IBankTransfer } from "../transfers/transfer-interface";
+import { Mapping } from "../mappings/mapping-interface";
+import { Currency } from "../misc/currency-enum";
 
-export interface Account {
-  _id: string;
-  bank: string;
-  iban: string;
-  swift_bic: string;
-  customName: string;
-  transfers: Array<Transfer | never>;
-  user: string;
+export interface IBankAccount {
+  _id: string | null;
+  _unique_key: string | null;
+  bank: string | null;
+  iban: string | null;
+  swift_bic: string | null;
+  customName: string | null;
+  transfers: Array<IBankTransfer | never>;
+  user: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  mapping: Mapping;
-  openingBalance: number;
-  openingBalanceDate: Date;
-  currency: Currency;
+  mappings: Array<Mapping | never>;
+  openingBalance: number | null;
+  openingBalanceDate: Date | null;
+  currency: Currency | null;
   isVirtual: boolean;
   isChild: boolean;
   relatedToParent: string | boolean;

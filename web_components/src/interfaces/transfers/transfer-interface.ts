@@ -36,7 +36,8 @@ export interface SettingsProperties {
   user: string | null;
   isFavorite: boolean;
   isVirtual: boolean;
-  version: string;
+  map_version: string;
+  isHidden: boolean;
 }
 
 export type SettingsPropertiesMetaData = Record<

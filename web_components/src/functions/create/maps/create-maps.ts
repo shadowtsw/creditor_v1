@@ -1,12 +1,22 @@
-export function createReversedMap(map: {}) {
-  let originalMap: { [index: string]: string } = { ...map };
-  let reversedMap: { [index: string]: string } = {};
+import {
+  DefaultValues,
+  GlobalMapping,
+  Mapping,
+} from "@/interfaces/mappings/mapping-interface";
 
-  let key: string;
-
-  for (key in originalMap) {
-    reversedMap[originalMap[key]] = key;
-  }
-
-  return reversedMap;
-}
+const createNewMap = (
+  mapName: string,
+  mapObject: GlobalMapping,
+  mapVersion: string,
+  defaultValueObject?: DefaultValues
+): Mapping => {
+  const newMap: Mapping = {
+    mapName: mapName,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    map_version: mapVersion,
+    mapping: mapObject,
+    defaultValues: defaultValueObject ? { ...defaultValueObject } : null,
+  };
+  return newMap;
+};

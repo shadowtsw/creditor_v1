@@ -1,3 +1,4 @@
+import { Mapping } from "@/interfaces/mappings/mapping-interface";
 import { CostSplit } from "@/interfaces/misc/costsplit-enum";
 import { Currency } from "@/interfaces/misc/currency-enum";
 import {
@@ -53,9 +54,10 @@ export default class Transfer implements IBankTransfer {
   mandatoryReference: string | null;
   customerReference: string | null;
   collectorReference: string | null;
-  version: string;
+  map_version: string;
+  isHidden: boolean;
 
-  constructor() {
+  constructor(map: Mapping) {
     this._id = null;
     this._unique_key = null;
     this.iban = null;
@@ -97,7 +99,8 @@ export default class Transfer implements IBankTransfer {
     this.mandatoryReference = null;
     this.customerReference = null;
     this.collectorReference = null;
-    this.version = version_string;
+    this.map_version = map.map_version;
+    this.isHidden = false;
   }
 }
 
@@ -125,7 +128,7 @@ function createBasicProperties(): BasicProperties {
 
   return basicProperties;
 }
-function createSettingsProperties(): SettingsProperties {
+function createSettingsProperties(mapVersion: string): SettingsProperties {
   const settingsProperties = {
     _id: null,
     _unique_key: null,
@@ -134,7 +137,8 @@ function createSettingsProperties(): SettingsProperties {
     user: null,
     isFavorite: false,
     isVirtual: false,
-    version: version_string,
+    map_version: mapVersion,
+    isHidden: false,
   };
 
   return settingsProperties;
@@ -165,7 +169,7 @@ function createCostManagementProperties(): CostManagementProperties {
   return costManagementProperties;
 }
 
-export function createBlankBankTransfer(): IBankTransfer {
+export function createBlankBankTransfer(map: Mapping): IBankTransfer {
   const blankBankTransfer = {
     comment: null,
     dateDay: null,
@@ -178,7 +182,7 @@ export function createBlankBankTransfer(): IBankTransfer {
   const blankTransfer: IBankTransfer = {
     ...blankBankTransfer,
     ...createBasicProperties(),
-    ...createSettingsProperties(),
+    ...createSettingsProperties(map.map_version),
     ...createRebookingProperties(),
     ...createEstimateProperties(),
     ...createCostManagementProperties(),

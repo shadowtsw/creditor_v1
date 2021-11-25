@@ -25,12 +25,12 @@ export const BankTransferPropertyMap: IBankTransferMetaData = {
     readOnly: false,
     pinSecured: false,
   },
-  version: {
-    EN: "Account-ID",
-    DE: "Konto-ID",
+  map_version: {
+    EN: "Map Version",
+    DE: "Map Version",
     visible: true,
     printable: true,
-    readOnly: false,
+    readOnly: true,
     pinSecured: false,
   },
   iban: {
@@ -122,8 +122,16 @@ export const BankTransferPropertyMap: IBankTransferMetaData = {
     pinSecured: false,
   },
   readOnly: {
-    EN: "readOnlyonly",
-    DE: "",
+    EN: "read only",
+    DE: "nur lesen",
+    visible: true,
+    printable: true,
+    readOnly: false,
+    pinSecured: false,
+  },
+  isHidden: {
+    EN: "is hidden",
+    DE: "ausgeblendet",
     visible: true,
     printable: true,
     readOnly: false,
