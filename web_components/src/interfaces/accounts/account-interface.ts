@@ -4,9 +4,10 @@ import { Currency } from "../misc/currency-enum";
 
 export interface IBankAccount {
   _id: string | null;
-  _unique_key: string | null;
-  bank: string | null;
-  iban: string | null;
+  _unique_key: string;
+  bank: string;
+  iban: string;
+  transferIbanToAccountIban: Array<string | never>;
   swift_bic: string | null;
   customName: string | null;
   transfers: Array<IBankTransfer | never>;

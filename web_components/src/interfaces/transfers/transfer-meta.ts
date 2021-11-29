@@ -41,6 +41,14 @@ export const BankTransferPropertyMap: IBankTransferMetaData = {
     readOnly: false,
     pinSecured: false,
   },
+  accountID: {
+    EN: "IBAN",
+    DE: "IBAN",
+    visible: true,
+    printable: true,
+    readOnly: false,
+    pinSecured: false,
+  },
   account: {
     EN: "Name",
     DE: "Name",

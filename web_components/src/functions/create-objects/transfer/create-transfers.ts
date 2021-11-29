@@ -1,3 +1,4 @@
+import { IBankAccount } from "@/interfaces/accounts/account-interface";
 import { Mapping } from "@/interfaces/mappings/mapping-interface";
 import { CostSplit } from "@/interfaces/misc/costsplit-enum";
 import { Currency } from "@/interfaces/misc/currency-enum";
@@ -16,6 +17,7 @@ export default class Transfer implements IBankTransfer {
   _id: string | null;
   _unique_key: string | null;
   iban: string | null;
+  accountID: string;
   recipientBic: string | null;
   uniqueID: string | null;
   bookDate: Date | null;
@@ -57,10 +59,11 @@ export default class Transfer implements IBankTransfer {
   map_version: string;
   isHidden: boolean;
 
-  constructor(map: Mapping) {
+  constructor(account: IBankAccount, map: Mapping) {
     this._id = null;
     this._unique_key = null;
     this.iban = null;
+    this.accountID = account._unique_key;
     this.recipientBic = null;
     this.uniqueID = null;
     this.bookDate = null;
@@ -104,10 +107,11 @@ export default class Transfer implements IBankTransfer {
   }
 }
 
-function createBasicProperties(): BasicProperties {
+function createBasicProperties(account: IBankAccount): BasicProperties {
   const basicProperties = {
     iban: null,
     recipientBic: null,
+    accountID: account._unique_key,
     uniqueID: null,
     bookDate: null,
     valutaDate: null,
@@ -169,7 +173,10 @@ function createCostManagementProperties(): CostManagementProperties {
   return costManagementProperties;
 }
 
-export function createBlankBankTransfer(map: Mapping): IBankTransfer {
+export function createBlankBankTransfer(
+  account: IBankAccount,
+  map: Mapping
+): IBankTransfer {
   const blankBankTransfer = {
     comment: null,
     dateDay: null,
@@ -181,7 +188,7 @@ export function createBlankBankTransfer(map: Mapping): IBankTransfer {
 
   const blankTransfer: IBankTransfer = {
     ...blankBankTransfer,
-    ...createBasicProperties(),
+    ...createBasicProperties(account),
     ...createSettingsProperties(map.map_version),
     ...createRebookingProperties(),
     ...createEstimateProperties(),
