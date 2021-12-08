@@ -1,9 +1,9 @@
 <template>
   <dev-tools v-if="isDev" class="dev-tools"></dev-tools>
-  <loading-backdrop v-if="isLoading" :show="isLoading"
+  <loading-backdrop v-show="isLoading"
     ><span>Prepare App</span></loading-backdrop
   >
-  <router-view v-else></router-view>
+  <router-view></router-view>
 </template>
 
 <script lang="ts">
@@ -22,7 +22,7 @@ import { useRouter } from "vue-router";
 import { LogMe } from "./helpers/logger-function";
 // import { creditor } from "./main";
 import devToolsHandler from "./dev-tools";
-import { ApplicationEnvironment } from "../src/store/appliaction/application-environment";
+import { ApplicationEnvironment } from "@/store/appliaction/application-environment";
 
 export default defineComponent({
   setup() {
