@@ -1,8 +1,10 @@
 <template>
-  <div v-if="show" :class="['loading-box--large', { error: error }]">
-    <div class="loading-box__text-container">
-      <p class="loading-title">creditor</p>
-      <p variant="mukta" class="loading-text"><slot></slot></p>
+  <div class="backdrop">
+    <div :class="['loading-box--large', { error: error }]">
+      <div class="loading-box__text-container">
+        <p class="loading-title">creditor</p>
+        <p variant="mukta" class="loading-text"><slot></slot></p>
+      </div>
     </div>
   </div>
 </template>
@@ -12,23 +14,26 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {
-    show: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     error: {
       type: Boolean,
       required: false,
       default: false,
     },
   },
-  // setup() {},
 });
 </script>
 
 <style lang="scss" scoped>
 @import "@/styles/creditor-fonts";
+@import "@/styles/creditor-colors";
+
+.backdrop {
+  position: absolute;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: $body-primary-color;
+}
 
 .loading-box--large {
   position: fixed;
