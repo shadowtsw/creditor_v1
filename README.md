@@ -1,2 +1,0 @@
-# creditor_v1
-Browser based banking-application with offline functionality, all you need to start is: nothing ! you can start from scratch by working with virtual offline accounts also as import xls or csv from your favourite online account. This app provides features like extending your existing transfers by many properties, sort and list it by label, keys or whatever, do some estimate calculation based on fix and variable transfers and much more. Easy to use with a real flat interface, not fancy or overwhelming, just focuse on things which are important.

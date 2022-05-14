@@ -1,7 +1,0 @@
-export enum DataType {
-  UNSET = '',
-  JSON = 'JSON',
-  DATABASE = 'DATABASE',
-  LOCALSTORAGE = 'LOCALSTORAGE',
-  CREDITOR_BACKEND = 'CREDITOR_BACKEND',
-}
