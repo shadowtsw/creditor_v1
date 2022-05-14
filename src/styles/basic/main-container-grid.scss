@@ -1,0 +1,36 @@
+#creditor_app {
+  display: grid;
+  grid-template-columns: 1fr 20px 1fr 20px 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 50px 20px 1fr 1fr 1fr 1fr 20px 50px;
+  gap: 0px 0px;
+  grid-template-areas:
+    "app_menue . version_info . nav_bar nav_bar nav_bar nav_bar nav_bar"
+    ". . . . . . . . ."
+    "account_window account_window account_window . main_window main_window main_window main_window main_window"
+    "account_window account_window account_window . main_window main_window main_window main_window main_window"
+    "account_window account_window account_window . main_window main_window main_window main_window main_window"
+    "account_window account_window account_window . main_window main_window main_window main_window main_window"
+    ". . . . . . . . ."
+    "history_list history_list history_list history_list history_list history_list history_list status_window status_window";
+  .app_menue {
+    grid-area: app_menue;
+  }
+  .version_info {
+    grid-area: version_info;
+  }
+  .nav_bar {
+    grid-area: nav_bar;
+  }
+  .account_window {
+    grid-area: account_window;
+  }
+  .main_window {
+    grid-area: main_window;
+  }
+  .history_list {
+    grid-area: history_list;
+  }
+  .status_window {
+    grid-area: status_window;
+  }
+}

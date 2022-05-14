@@ -1,0 +1,31 @@
+@import url("https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@400;500;700&family=Bai+Jamjuree:ital,wght@0,400;0,500;1,400;1,500&family=Baloo+Da+2:wght@400;500;600&family=Chakra+Petch:wght@400;500;600&family=Gruppo&family=Heebo:wght@300;400;600&family=Mukta:wght@300;400;600&display=swap");
+$font-chakra: "Chakra Petch", sans-serif;
+$font-chakra-weight: 400;
+
+$font-baloon-family: "Baloo Da 2", sans-serif;
+$font-baloon-weight: 400;
+
+$font-bai-family: "Bai Jamjuree", sans-serif;
+$font-bai-weight: 400;
+
+$font-mukta-family: "Mukta", sans-serif;
+$font-mukta-weight: 400;
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  font-family: $font-chakra;
+  //   font-weight: $font-chakra-weight;
+}
+
+#app {
+  margin: 0;
+  background-color: black;
+  color: white;
+  height: 100%;
+  width: 100%;
+  min-width: 1024px;
+  box-sizing: border-box;
+}

@@ -1,0 +1,33 @@
+{
+  "name": "offline-bank",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.1.1",
+    "@fortawesome/free-brands-svg-icons": "^6.1.1",
+    "@fortawesome/free-regular-svg-icons": "^6.1.1",
+    "@fortawesome/free-solid-svg-icons": "^6.1.1",
+    "@fortawesome/vue-fontawesome": "^3.0.0-5",
+    "@types/papaparse": "^5.3.2",
+    "comlink": "^4.3.1",
+    "papaparse": "^5.3.2",
+    "vue": "^3.2.25",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-alias": "^3.1.9",
+    "@vitejs/plugin-vue": "^2.3.0",
+    "sass": "^1.49.11",
+    "typescript": "^4.5.4",
+    "vite": "^2.9.0",
+    "vite-plugin-pwa": "^0.11.13",
+    "vue-tsc": "^0.29.8",
+    "vuex-module-decorators": "^2.0.0",
+    "workbox-precaching": "^6.5.2"
+  }
+}

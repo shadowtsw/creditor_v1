@@ -1,0 +1,59 @@
+@use "../variables.scss" as *;
+
+#creditor_app {
+  width: 100%;
+  height: 100%;
+  .app_menue {
+    border: {
+      right: $default-border-style;
+      bottom: $default-border-style;
+    }
+    border-bottom-right-radius: $default-border-radius;
+  }
+  .version_info {
+    border: {
+      left: $default-border-style;
+      right: $default-border-style;
+      bottom: $default-border-style;
+    }
+    border-bottom-left-radius: $default-border-radius;
+    border-bottom-right-radius: $default-border-radius;
+  }
+  .nav_bar {
+    border: {
+      left: $default-border-style;
+      bottom: $default-border-style;
+    }
+    border-bottom-left-radius: $default-border-radius;
+  }
+  .account_window {
+    height: 100%;
+    border: {
+      right: $default-border-style;
+      top: $default-border-style;
+      bottom: $default-border-style;
+    }
+    border-top-right-radius: $default-border-radius;
+    border-bottom-right-radius: $default-border-radius;
+  }
+  .main_window {
+    border: {
+      left: $default-border-style;
+      top: $default-border-style;
+      bottom: $default-border-style;
+    }
+    border-top-left-radius: $default-border-radius;
+    border-bottom-left-radius: $default-border-radius;
+  }
+  .history_list {
+    border: {
+      top: $default-border-style;
+    }
+  }
+  .status_window {
+    border: {
+      top: $default-border-style;
+      left: $default-border-style;
+    }
+  }
+}

@@ -1,0 +1,26 @@
+//Container styles
+%flex-default-center {
+  display: flex;
+  align-items: center;
+}
+%flex-center-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+//Font related
+%default-font-size {
+  font-size: 24px;
+}
+%clip-text {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+//Spacings
+%clean-padding-margin {
+  padding: 0;
+  margin: 0;
+}
