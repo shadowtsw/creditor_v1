@@ -14,9 +14,9 @@
       class="navbar-settings__container"
       :class="[
         'menue-point',
-        { 'active': settings.displayText === currentPage },
+        { 'active': settings && settings.displayText === currentPage },
       ]"
-      @click="setActivePage(settings.displayText)"
+      @click="setActivePage(settings ? settings.displayText : 'GetStarted')"
     >
       <i class="fa-solid fa-gear" />
     </div>

@@ -29,7 +29,7 @@ export default defineComponent({
       if (LoadingManager.message !== "Idle") {
         return `width: ${percentage.value}%`;
       } else {
-        return null;
+        return undefined;
       }
     });
 

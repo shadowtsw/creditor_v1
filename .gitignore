@@ -41,6 +41,9 @@ build/Release
 node_modules/
 jspm_packages/
 web_components/node_modules
+history/
+.history/
+history/*
 
 # TypeScript v1 declaration files
 typings/

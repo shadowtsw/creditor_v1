@@ -1,4 +1,4 @@
-import { IBasicTransfer } from "@/interfaces/transfers/transfers";
+import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
 import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
 export enum RequestEventDataType {
   GET_EXAMPLES = "reqGetExamples",

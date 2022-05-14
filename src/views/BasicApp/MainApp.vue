@@ -15,8 +15,11 @@
       <AccountList v-if="!showWelcomePage" />
       <div v-else>creditor_v1</div>
     </div>
-    <div class="main_window">
-      <component :is="component.component" :key="component.displayText" />
+    <div v-if="loadedComponent" class="main_window">
+      <component
+        :is="loadedComponent.component"
+        :key="loadedComponent.displayText"
+      />
     </div>
     <div class="history_list">
       <!-- <transition name="fade-classic" mode="out-in"> -->
@@ -83,9 +86,9 @@ export default defineComponent({
       return UserDataStore.firstStart;
     });
     //Load view
-    const component = computed(() => {
+    const loadedComponent = computed(() => {
       if (showWelcomePage.value) {
-        return { component: "Welcome" };
+        return { component: "Welcome", displayText: "Welcome" };
       }
       if (currentPage.value === "Settings") {
         return settings.value;
@@ -97,7 +100,7 @@ export default defineComponent({
 
     return {
       showWelcomePage,
-      component,
+      loadedComponent,
     };
   },
 });
