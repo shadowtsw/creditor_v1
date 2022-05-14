@@ -1,4 +1,4 @@
-import { IBasicAccountClassDB } from "@/interfaces/accounts/accounts";
+import { IBasicAccountConstructorConfig } from "@/interfaces/accounts/accounts";
 import { BasicDataField } from "@/interfaces/data-field/data-field-interface";
 import { AvailableTags, TagsObject } from "@/store/appData/app-data-types";
 import { DBSchema } from "idb";

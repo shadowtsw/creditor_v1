@@ -27,7 +27,7 @@
                 },
               ]"
               v-for="(monthvalue, month) in yearvalue"
-              :key="monthvalue"
+              :key="yearvalue.toString() + month"
               @click="changePage($event, year, month)"
             >
               {{ Number(month) + 1 }}
@@ -36,11 +36,13 @@
         </div>
       </div>
       <component
+        v-if="loadedComponent"
         class="transfers_mainwindow"
-        :is="component.component"
-        :key="component.displayText"
+        :is="loadedComponent.component"
+        :key="loadedComponent.displayText"
         :loadSubMenu="loadSubMenu"
       />
+      <div v-else>No Component loaded !</div>
     </div>
     <div v-if="showBackdrop" class="submenu__backdrop"></div>
     <div v-if="showBackdrop" class="submenu__window">
@@ -81,7 +83,7 @@ export default defineComponent({
   setup() {
     //PluginLoader
     const { currentPlugin, plugins, settings } = usePluginNavigator();
-    const component = computed(() => {
+    const loadedComponent = computed(() => {
       let target;
       if (currentPlugin.value === "Settings") {
         target = settings.value;
@@ -140,7 +142,7 @@ export default defineComponent({
     };
 
     return {
-      component,
+      loadedComponent,
       pages,
       currentPage,
       changePage,

@@ -1,4 +1,4 @@
-import { getFullTransferFields } from "@/interfaces/transfers/transfers-keys";
+import { getBasicTransferFields } from "@/interfaces/transfers/transfers-keys";
 import Papa from "papaparse";
 
 const parsingResult = [];
@@ -13,7 +13,7 @@ export function parseCSV(csv: File, fieldReadyCallback: Function) {
   };
 
   let isFirstRow = true;
-  console.log(getFullTransferFields());
+  console.log(getBasicTransferFields());
 
   Papa.parse(csv, {
     header: true,

@@ -2,7 +2,7 @@
   <div class="account-card">
     <div class="account-card__short-name">
       <p v-if="account.shortName._value">{{ account.shortName._value }}</p>
-      <p v-else>{{ account._ID._value }}</p>
+      <p v-else>{{ account._internalID._value }}</p>
     </div>
     <div class="account-card__details">
       <i class="details-icon fa-solid fa-circle-info"></i>

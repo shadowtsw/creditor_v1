@@ -10,12 +10,12 @@
 
 <script lang="ts">
 import { AppDataStore } from "@/store/appData/app-data";
-import { defineComponent, computed } from "vue";
+import { defineComponent, computed, PropType } from "vue";
 
 export default defineComponent({
   props: {
     closeSubMenu: {
-      type: Function,
+      type: Function as PropType<(event: Event) => void>,
       required: true,
     },
   },

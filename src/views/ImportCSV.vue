@@ -27,7 +27,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, reactive, ref } from "vue";
 import { parseCSV } from "@/worker/parse-csv";
-import { BasicTransferField } from "@/interfaces/transfers/transfers-keys";
+import { ITransferMapObject } from "@/interfaces/transfers/transfers-keys";
 
 export default defineComponent({
   setup() {
@@ -44,7 +44,7 @@ export default defineComponent({
     // const appFields =
     //   reactive<Array<{ displayName: string; key: string }>>(BasicTransferField);
 
-    const fileWatcher = (event: InputEvent) => {
+    const fileWatcher = (event: Event) => {
       const inputEvent = event.target as HTMLInputElement;
       if (inputEvent && inputEvent.files && inputEvent.files[0]) {
         fileReady.value = true;

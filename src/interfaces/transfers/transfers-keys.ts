@@ -1,38 +1,15 @@
 //TODO
-import { IBasicTransfer, IFullTransfer, IMediumTransfer } from "./transfers";
+import { IBasicTransferClass } from "./transfers";
 
-type BasicTransferKeys = keyof IBasicTransfer;
-
-export interface BasicTransferField {
+export interface ITransferMapObject {
   inputKey: string;
-  appKey: BasicTransferKeys;
-  displayName: string;
-}
-
-type MediumTransferKeys = keyof IMediumTransfer;
-
-interface MediumTransferField {
-  inputKey: string;
-  appKey: MediumTransferKeys;
-  displayName: string;
-}
-
-type FullTransferKeys = keyof IFullTransfer;
-
-interface FullTransferField {
-  inputKey: string;
-  appKey: FullTransferKeys;
+  appKey: keyof IBasicTransferClass;
   displayName: string;
 }
 
 //Cash keys
 export function getBasicTransferFields() {
-  const IBasicTransferFields: Array<BasicTransferField> = [
-    {
-      inputKey: "",
-      appKey: "ID",
-      displayName: "ID",
-    },
+  const IBasicTransferFields: Array<ITransferMapObject> = [
     {
       inputKey: "",
       appKey: "description",
@@ -63,14 +40,6 @@ export function getBasicTransferFields() {
       appKey: "distKey",
       displayName: "Distribution key",
     },
-  ];
-
-  return IBasicTransferFields;
-}
-//Featured accounts
-export function getMediumTransferFields() {
-  const IMediumTransferFields: Array<MediumTransferField> = [
-    ...getBasicTransferFields(),
     {
       inputKey: "",
       appKey: "provider",
@@ -88,13 +57,5 @@ export function getMediumTransferFields() {
     },
   ];
 
-  return IMediumTransferFields;
-}
-//Full bank accounts
-export function getFullTransferFields() {
-  const IFullTransferFields: Array<FullTransferField> = [
-    ...getMediumTransferFields(),
-  ];
-
-  return IFullTransferFields;
+  return IBasicTransferFields;
 }

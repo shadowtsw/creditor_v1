@@ -1,7 +1,11 @@
 <template>
   <h2>
     Create Transfer
-    {{ selectedAccount ? "[" + accountDetails.shortName._value + "]" : "" }}
+    {{
+      selectedAccount && accountDetails
+        ? "[" + accountDetails.shortName._value + "]"
+        : ""
+    }}
   </h2>
   <div v-if="!accountDetails">
     <p
@@ -17,10 +21,11 @@
     </p>
   </div>
   <TransferCreator
-    v-else
+    v-else-if="selectedAccount"
     :selectedAccount="selectedAccount"
     :accountDetails="accountDetails"
   />
+  <div v-else>An Error occured !</div>
 </template>
 
 <script lang="ts">

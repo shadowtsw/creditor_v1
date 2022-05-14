@@ -21,12 +21,13 @@
       </div>
     </div>
     <div
+      v-if="settings"
       class="transfers_settings__container"
       :class="[
         'plugin-point',
-        { 'active': settings.displayText === currentPlugin },
+        { 'active': settings && settings.displayText === currentPlugin },
       ]"
-      @click="setActivePlugin(settings.displayText)"
+      @click="setActivePlugin(settings ? settings.displayText : 'GetStarted')"
     >
       <i class="fa-solid fa-gear" />
     </div>
