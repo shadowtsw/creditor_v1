@@ -129,6 +129,10 @@ class AccountsTransfers extends VuexModule {
     return transfers;
   }
   public get pageTransfers() {
+    if (this._currentPage === null) {
+      return [];
+    }
+
     const transfersFromPath =
       this._pagination[this._currentPage.year][this._currentPage.month];
 
@@ -219,10 +223,7 @@ class AccountsTransfers extends VuexModule {
 
   private _pagination: { [index: number]: { [index: number]: Array<string> } } =
     {};
-  private _currentPage: { year: number; month: number } = {
-    year: 2019,
-    month: 11,
-  };
+  private _currentPage: { year: number; month: number } | null = null;
   public get currentPage() {
     return this._currentPage;
   }
@@ -266,6 +267,12 @@ class AccountsTransfers extends VuexModule {
     }
     if (!this._pagination[valutaDateYear].hasOwnProperty(valutaDateMonth)) {
       this._pagination[valutaDateYear][valutaDateMonth] = [];
+    }
+    if (this._currentPage === null) {
+      this._currentPage = {
+        month: valutaDateMonth,
+        year: valutaDateYear,
+      };
     }
     this._pagination[valutaDateYear][valutaDateMonth].push(
       payload._internalID._value

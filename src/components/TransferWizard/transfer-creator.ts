@@ -204,6 +204,8 @@ export const useTransferCreator = () => {
       ...{ bookDate: convertedBookDate || "" },
     };
 
+    console.log("constructor object", constructorObject);
+
     const newTransfer = new BasicTransfer(constructorObject);
 
     if (newTransfer._internalID._value !== "") {
