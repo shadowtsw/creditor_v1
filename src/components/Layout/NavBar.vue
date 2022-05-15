@@ -4,7 +4,10 @@
       <div
         v-for="menu in pages"
         :key="menu.displayText"
-        :class="['menue-point', { 'active': menu.displayText === currentPage }]"
+        :class="[
+          'menue-point',
+          { '--is-active': menu.displayText === currentPage },
+        ]"
         @click="setActivePage(menu.displayText)"
       >
         <span>{{ menu.displayText }}</span>
@@ -14,7 +17,7 @@
       class="navbar-settings__container"
       :class="[
         'menue-point',
-        { 'active': settings && settings.displayText === currentPage },
+        { '--is-active': settings && settings.displayText === currentPage },
       ]"
       @click="setActivePage(settings ? settings.displayText : 'GetStarted')"
     >
@@ -38,6 +41,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+// @use "@/styles/mixins";
+@use "@/styles/placeholders" as *;
+
 .navbar_wrapper {
   height: 100%;
   display: flex;
@@ -62,9 +68,7 @@ export default defineComponent({
       text-align: center;
       border: 1px solid transparent;
       border-radius: 5px;
-      &.active {
-        border: 1px solid white;
-      }
+      @extend %creditor-link;
     }
   }
   .navbar-settings__container {

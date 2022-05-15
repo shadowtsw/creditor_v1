@@ -30,12 +30,12 @@ export default defineComponent({
 
 .account_toolbar {
   height: 4.8rem;
-  border-bottom: $default-border-style;
+  border-bottom: 1px solid red;
   display: flex;
   flex-direction: column;
   .searchbar {
     height: 1.8rem;
-    border-bottom: $default-border-style;
+    border-bottom: 1px solid red;
     @extend %flex-default-center;
     .search-field {
       flex: 7;

@@ -1,6 +1,50 @@
-$test: red;
+/*
+Fonts and backgrounds
+*/
+$body-primary-color: #fdfdfd;
+$body-secondary-color: white;
 
-//Border
-$default-border-style: 2px solid white;
-$default-border-radius: 10px;
-$small-border-radius: 5px;
+$text-primary-color: black;
+$text-secondary-color: black;
+
+$border-color-dark: black;
+$border-color-light: white;
+
+$shadow-color-dark: black;
+$shadow-color-light: white;
+
+/*
+Buttons
+*/
+$b-color: white;
+$b-background-color: rgb(68, 68, 68);
+
+$neutral-hover: rgb(151, 151, 153);
+$neutral-color: rgb(197, 197, 199);
+
+$success-hover: rgba(0, 128, 0, 1);
+$success-color: rgba(0, 128, 0, 0.7);
+
+$warning-hover: rgba(255, 166, 0, 1);
+$warning-color: rgba(255, 166, 0, 0.7);
+
+$danger-hover: rgba(255, 0, 0, 1);
+$danger-color: rgba(255, 0, 0, 0.7);
+
+$b-border-radius: 0.5rem;
+$b-border-size: 2px;
+$b-shadow-blur: 5px;
+$b-shadow-spread: 0px;
+
+/*
+Borders
+*/
+$defaultBorderRadius: 10px;
+$defaultBorderSize: 2px;
+$borderSizeSmall: 1px;
+
+/*
+Spacings
+*/
+$defaultPaddingSize: 0.3rem;
+$defaultMarginSize: 0.3rem;

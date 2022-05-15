@@ -58,7 +58,7 @@ export default defineComponent({
 
 .account-card {
   width: 90%;
-  border: $default-border-style;
+  border: 1px solid red;
   margin-top: 0.6rem;
   margin-bottom: 0.6rem;
   min-height: 200px;

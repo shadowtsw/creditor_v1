@@ -72,7 +72,7 @@ export default defineComponent({
         @extend %flex-default-center;
         justify-content: flex-start;
         height: 3rem;
-        border-bottom: $default-border-style;
+        border-bottom: 1px solid red;
         .line__show-details {
           width: 1.5rem;
           color: white;
@@ -102,7 +102,7 @@ export default defineComponent({
         }
       }
       .list-entry__details {
-        border-bottom: $default-border-style;
+        border-bottom: 1px solid red;
       }
     }
   }

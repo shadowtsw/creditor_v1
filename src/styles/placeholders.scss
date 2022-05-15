@@ -1,3 +1,4 @@
+@use "./variables" as *;
 //Container styles
 %flex-default-center {
   display: flex;
@@ -23,4 +24,62 @@
 %clean-padding-margin {
   padding: 0;
   margin: 0;
+}
+%default-padding {
+  padding: $defaultPaddingSize;
+}
+
+%default-transition {
+  transition: all 0.2s ease;
+}
+
+//Elements
+%creditor-link {
+  &:hover {
+    box-shadow: 0px 0px 2px 2px var(--text-color) inset;
+  }
+  &.--is-active {
+    // border: 1px solid var(--text-color);
+    background-color: var(--active);
+    color: var(--secondary-color);
+    box-shadow: 0 0 4px 1px var(--secondary-color) inset;
+    text-shadow: 1px 1px 3px var(--secondary-color);
+  }
+  transition: all 0.2s ease;
+}
+
+//Borders
+%default-border-top {
+  border-top: $defaultBorderSize solid var(--border-color);
+}
+%default-border-right {
+  border-right: $defaultBorderSize solid var(--border-color);
+}
+%default-border-bottom {
+  border-bottom: $defaultBorderSize solid var(--border-color);
+}
+%default-border-left {
+  border-left: $defaultBorderSize solid var(--border-color);
+}
+%small-border {
+  border: $borderSizeSmall solid var(--border-color);
+}
+
+//Box-Shadow
+%box-shadow-top-left {
+  box-shadow: -3px -3px 6px -2px var(--border-color);
+}
+%box-shadow-bottom-right {
+  box-shadow: 3px 3px 6px -2px var(--border-color);
+}
+%box-shadow-bottom-left {
+  box-shadow: -3px 3px 6px -2px var(--border-color);
+}
+%box-shadow-left-right {
+  box-shadow: 3px 0 6px -2px var(--border-color),
+    -3px 0 6px -2px var(--border-color);
+}
+%box-shadow-top-bottom {
+  box-shadow: 0 3px 6px -2px var(--border-color),
+    0 -3px 6px -2px var(--border-color);
 }

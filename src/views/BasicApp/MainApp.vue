@@ -105,8 +105,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss">
-@use "@/styles/basic/main-container-styles.scss";
-@use "@/styles/basic/main-container-grid.scss";
-</style>

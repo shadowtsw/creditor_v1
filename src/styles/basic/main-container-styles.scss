@@ -1,59 +1,49 @@
-@use "../variables.scss" as *;
+@use "@/styles/variables" as *;
+@use "@/styles/placeholders" as *;
 
 #creditor_app {
   width: 100%;
   height: 100%;
   .app_menue {
-    border: {
-      right: $default-border-style;
-      bottom: $default-border-style;
-    }
-    border-bottom-right-radius: $default-border-radius;
+    @extend %box-shadow-bottom-right;
+    border-bottom-right-radius: $defaultBorderRadius;
   }
   .version_info {
-    border: {
-      left: $default-border-style;
-      right: $default-border-style;
-      bottom: $default-border-style;
-    }
-    border-bottom-left-radius: $default-border-radius;
-    border-bottom-right-radius: $default-border-radius;
+    @extend %box-shadow-left-right;
+    @extend %box-shadow-top-bottom;
+    border-bottom-left-radius: $defaultBorderRadius;
+    border-bottom-right-radius: $defaultBorderRadius;
   }
   .nav_bar {
-    border: {
-      left: $default-border-style;
-      bottom: $default-border-style;
-    }
-    border-bottom-left-radius: $default-border-radius;
+    @extend %box-shadow-bottom-left;
+    border-bottom-left-radius: $defaultBorderRadius;
   }
   .account_window {
     height: 100%;
-    border: {
-      right: $default-border-style;
-      top: $default-border-style;
-      bottom: $default-border-style;
-    }
-    border-top-right-radius: $default-border-radius;
-    border-bottom-right-radius: $default-border-radius;
+    background: radial-gradient(
+      circle,
+      var(--inner-background) 60%,
+      var(--outer-background) 100%
+    );
+    @extend %small-border;
+    border-top-right-radius: $defaultBorderRadius;
+    border-bottom-right-radius: $defaultBorderRadius;
+    @extend %default-padding;
   }
   .main_window {
-    border: {
-      left: $default-border-style;
-      top: $default-border-style;
-      bottom: $default-border-style;
-    }
-    border-top-left-radius: $default-border-radius;
-    border-bottom-left-radius: $default-border-radius;
+    border-top-left-radius: $defaultBorderRadius;
+    border-bottom-left-radius: $defaultBorderRadius;
+    @extend %default-padding;
   }
   .history_list {
-    border: {
-      top: $default-border-style;
-    }
+    @extend %box-shadow-top-bottom;
+    border-top-right-radius: $defaultBorderRadius;
   }
   .status_window {
-    border: {
-      top: $default-border-style;
-      left: $default-border-style;
-    }
+    // border: {
+    //   top: 1px solid red;
+    //   left: 1px solid red;
+    // }
+    // @extend %box-shadow-top-left;
   }
 }

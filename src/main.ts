@@ -3,7 +3,13 @@ import App from "./App.vue";
 import store from "./store/index";
 
 //Structure style sheets
+import "./styles/globals.scss";
+import "./styles/variables.scss";
+import "./styles/placeholders.scss";
+import "./styles/mixins.scss";
 import "./styles/basic/app-styles.scss";
+import "./styles/basic/main-container-grid.scss";
+import "./styles/basic/main-container-styles.scss";
 
 //vue-app/src/main.js
 import { library } from "@fortawesome/fontawesome-svg-core";

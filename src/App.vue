@@ -1,7 +1,7 @@
 <template>
   <transition name="fade-classic" mode="out-in">
     <Login v-if="!isLoggedIn" :login="login" />
-    <MainApp v-else />
+    <MainApp theme="light" v-else />
   </transition>
 </template>
 
