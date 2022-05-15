@@ -37,6 +37,7 @@
 %creditor-link {
   &:hover {
     box-shadow: 0px 0px 2px 2px var(--text-color) inset;
+    cursor: pointer;
   }
   &.--is-active {
     // border: 1px solid var(--text-color);
@@ -45,10 +46,30 @@
     box-shadow: 0 0 4px 1px var(--secondary-color) inset;
     text-shadow: 1px 1px 3px var(--secondary-color);
   }
-  transition: all 0.2s ease;
+  @extend %default-transition;
+}
+%creditor-action {
+  &:hover {
+    cursor: pointer;
+    color: var(--secondary-color);
+    animation: pulse 0.5s alternate infinite;
+  }
+  @extend %default-transition;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(0.9);
+  }
+  to {
+    transform: scale(1.1);
+  }
 }
 
 //Borders
+%default-border-radius {
+  border-radius: $defaultBorderRadius;
+}
 %default-border-top {
   border-top: $defaultBorderSize solid var(--border-color);
 }
@@ -82,4 +103,11 @@
 %box-shadow-top-bottom {
   box-shadow: 0 3px 6px -2px var(--border-color),
     0 -3px 6px -2px var(--border-color);
+}
+//TODO: Remove ?
+%box-shadow-left-right-blue {
+  box-shadow: 3px 0 6px -2px blue, -3px 0 6px -2px blue;
+}
+%box-shadow-top-bottom-blue {
+  box-shadow: 0 3px 6px -2px blue, 0 -3px 6px -2px blue;
 }

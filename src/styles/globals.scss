@@ -13,6 +13,16 @@ $secondaryTextColor: rgb(221, 221, 221);
 $primaryAsActive: #fdfdfd0d;
 $secondaryAsActive: #504f4f0b;
 
+$successTextColor: rgb(77, 116, 77);
+$successTextColorBright: rgb(131, 194, 131);
+$successColor: rgba(0, 128, 0, 0.17);
+$successColorBright: rgba(0, 128, 0, 0.17);
+
+$dangerTextColor: rgb(116, 77, 77);
+$dangerTextColorBright: rgb(233, 168, 168);
+$dangerColor: rgba(128, 0, 0, 0.17);
+$dangerColorBright: rgba(238, 6, 6, 0.17);
+
 [theme="light"] {
   --primary-color: #{$primaryColor};
   --secondary-color: #{$secondaryColor};
@@ -21,6 +31,12 @@ $secondaryAsActive: #504f4f0b;
   --outer-background: #{$secondaryAsBackground};
   --inner-background: #{$primaryAsBackground};
   --active: #{primaryAsActive};
+
+  --success-text: #{$successTextColor};
+  --success-background: #{$successColor};
+
+  --danger-text: #{$dangerTextColor};
+  --danger-background: #{$dangerColor};
 }
 [theme="dark"] {
   --primary-color: #{$secondaryColor};
@@ -30,6 +46,12 @@ $secondaryAsActive: #504f4f0b;
   --outer-background: #{$primaryAsBackground};
   --inner-background: #{$secondaryAsBackground};
   --active: #{secondaryAsActive};
+
+  --success-text: #{$successTextColorBright};
+  --success-background: #{$successColorBright};
+
+  --danger-text: #{$dangerTextColorBright};
+  --danger-background: #{$dangerColorBright};
 }
 
 // button,

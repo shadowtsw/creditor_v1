@@ -32,11 +32,9 @@ export default defineComponent({
 </script>
 <style lang="scss">
 @use "@/styles/placeholders.scss" as *;
-// @use "@/styles/variables.scss" as *;
 
 .account_wrapper {
   height: calc(100% - 4.8rem - 2px);
-  background-color: grey;
   overflow-y: scroll;
   @extend %flex-default-center;
   justify-content: flex-start;
