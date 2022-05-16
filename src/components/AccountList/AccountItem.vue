@@ -59,13 +59,19 @@
         v-if="!showLastMonth"
         class="account-card__funds"
         @click="toggleSaldoView"
+        title="Click to switch to last month"
       >
         <p class="saldo-title">Saldo</p>
         <p class="saldo-value">
           {{ currentBalance }}{{ account.currency._value }}
         </p>
       </div>
-      <div v-else class="account-card__funds" @click="toggleSaldoView">
+      <div
+        title="Click to switch to last month"
+        v-else
+        class="account-card__funds"
+        @click="toggleSaldoView"
+      >
         <p class="saldo-title --small">Last Month</p>
         <p class="saldo-value">9.000.000.000</p>
       </div>
@@ -379,6 +385,9 @@ export default defineComponent({
     padding: 0;
     margin: 0 0.3rem;
     font-size: 1.2rem;
+    &:hover {
+      cursor: pointer;
+    }
   }
 }
 </style>
