@@ -202,6 +202,7 @@ export const useTransferCreator = () => {
       ...{ _internalType: accountType.value },
       ...{ valutaDate: convertedValutaDate },
       ...{ bookDate: convertedBookDate || "" },
+      ...{ value: Number(remainingParams.value) },
     };
 
     console.log("constructor object", constructorObject);

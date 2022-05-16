@@ -120,6 +120,9 @@ class AccountsTransfers extends VuexModule {
    * Transfers
    */
   private _transfers: { [index: string]: IBasicTransferClass } = {};
+  public get transfersAsObject() {
+    return this._transfers;
+  }
   public get allTransfers() {
     const transfers: Array<IBasicTransferClass> = [];
     const allTransfers = this._transfers;
