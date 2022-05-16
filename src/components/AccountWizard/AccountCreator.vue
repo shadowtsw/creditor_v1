@@ -1,5 +1,14 @@
 <template>
-  <h2>Create CashAccount</h2>
+  <h2>
+    Create
+    {{
+      accountType === "CASH"
+        ? "Cash"
+        : accountType === "BANK_ACCOUNT"
+        ? "Bank"
+        : "Digital"
+    }}Account
+  </h2>
   <span>INFO</span>
   <div v-if="!showSuccess && !showError">
     <div>

@@ -30,6 +30,7 @@
     @extend %default-padding;
   }
   .main_window {
+    border: 2px solid green;
     border-top-left-radius: $defaultBorderRadius;
     border-bottom-left-radius: $defaultBorderRadius;
     @extend %default-padding;

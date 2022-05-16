@@ -73,7 +73,9 @@
         @click="toggleSaldoView"
       >
         <p class="saldo-title --small">Last Month</p>
-        <p class="saldo-value">9.000.000.000</p>
+        <p class="saldo-value">
+          {{ lastBalance }}{{ account.currency._value }}
+        </p>
       </div>
     </transition>
   </div>
@@ -198,15 +200,21 @@ export default defineComponent({
     });
 
     const currentBalance = computed(() => {
-      //Get current date
+      return accountTransfers.value.reduce((acc, curr) => {
+        return acc + curr.value._value;
+      }, props.account.openingBalance._value);
+    });
+
+    const lastBalance = computed(() => {
       const date = new Date();
-      // const currentMonth = date.getMonth();
-      // date.setMonth(currentMonth - 1);
-      // date.setDate(1);
-      const relatedTime = date.getTime();
+      const currentMonth = date.getMonth();
+      const currentYear = date.getFullYear();
 
       return accountTransfers.value.reduce((acc, curr) => {
-        if (curr.valutaDate._value < relatedTime) {
+        if (
+          curr.valutaDate._dateMetaInformation.year <= currentYear &&
+          curr.valutaDate._dateMetaInformation.month < currentMonth
+        ) {
           return acc + curr.value._value;
         } else {
           return acc;
@@ -224,6 +232,7 @@ export default defineComponent({
       outgoingLast,
       outgoingCurrent,
       currentBalance,
+      lastBalance,
     };
   },
 });
@@ -335,13 +344,13 @@ export default defineComponent({
     @extend %flex-center-center;
     flex-direction: column;
     .funds-change-icon {
-      font-size: 1.9rem;
+      font-size: 1.7rem;
     }
     .funds-change {
       padding: 0;
       margin: 0;
     }
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
   .account-card__outgoing {
     box-shadow: 0 0 15px 10px var(--danger-background) inset;
@@ -354,13 +363,13 @@ export default defineComponent({
     @extend %flex-center-center;
     flex-direction: column;
     .funds-change-icon {
-      font-size: 1.9rem;
+      font-size: 1.7rem;
     }
     .funds-change {
       padding: 0;
       margin: 0;
     }
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 }
 
