@@ -264,6 +264,7 @@ export class BasicAccount implements IBasicAccountClass {
 
 export interface AccountTransferValidationResultObject {
   shortNameError: string | null;
+  currencyError: string | null;
   openingBalanceError: string | null;
   openingBalanceDateError: string | null;
   providerError: string | null;

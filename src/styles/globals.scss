@@ -23,6 +23,9 @@ $dangerTextColorBright: rgb(233, 168, 168);
 $dangerColor: rgba(128, 0, 0, 0.17);
 $dangerColorBright: rgba(238, 6, 6, 0.17);
 
+$infoColor: rgb(79, 79, 219);
+$infoColorBright: rgb(147, 147, 216);
+
 [theme="light"] {
   --primary-color: #{$primaryColor};
   --secondary-color: #{$secondaryColor};
@@ -37,6 +40,8 @@ $dangerColorBright: rgba(238, 6, 6, 0.17);
 
   --danger-text: #{$dangerTextColor};
   --danger-background: #{$dangerColor};
+
+  --info-color: #{$infoColor};
 }
 [theme="dark"] {
   --primary-color: #{$secondaryColor};
@@ -52,44 +57,6 @@ $dangerColorBright: rgba(238, 6, 6, 0.17);
 
   --danger-text: #{$dangerTextColorBright};
   --danger-background: #{$dangerColorBright};
+
+  --info-color: #{$infoColorBright};
 }
-
-// button,
-// input,
-// label {
-//   font-family: $font-mukta-family;
-//   font-weight: $font-mukta-weight;
-// }
-
-// button[variant='chakra'],
-// input[variant='chakra'],
-// label[variant='chakra'] {
-//   font-family: $font-chakra;
-//   font-weight: $font-chakra-weight;
-// }
-
-// /*
-// Borders
-// */
-
-// .bordered {
-//   border: 2px solid rgb(68, 68, 68);
-//   border-radius: 5px;
-// }
-// .bordered--small {
-//   border: 1px solid rgb(68, 68, 68);
-//   border-radius: $defaultBorderRadius;
-// }
-
-// /*
-// Selections
-// */
-// .selection--active {
-//   background-color: darken(#fdfdfd, 6%);
-//   border-radius: $defaultBorderRadius;
-// }
-// .selection-text--active {
-//   font-weight: 500;
-//   // h-shadow v-shadow blur-radius color
-//   text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.452);
-// }

@@ -7,10 +7,11 @@ import {
   IBasicAccountConstructorKeys,
 } from "@/interfaces/accounts/accounts";
 import { AccountTransferStore } from "@/store/data/data-store";
-import { generateCreditorAccountID } from "@/utils/id-generator";
+// import { generateCreditorAccountID } from "@/utils/id-generator";
 import { useValidator } from "@/utils/validator";
 import { computed, reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";
+import ErrorMessages from "@/utils/error-messages";
 
 export const useAccountCreator = () => {
   const { validString, validNumber, validDate } = useValidator();
@@ -32,55 +33,56 @@ export const useAccountCreator = () => {
     accountNumber: "",
   });
 
-  //ErrorMessages
-  const errorMessages = {
-    STRING: "Must be at least 3 characters",
-    NUMBER: "Not a valid number",
-    DATE: "Please provide a valid format DD-MM-YYYY",
-  };
-
   //Validator
   const validateResult: AccountTransferValidationResultObject = {
     get shortNameError() {
       if (!validString(preConfiguredObject.shortName)) {
-        return errorMessages.STRING;
+        return ErrorMessages.STRING;
+      }
+      return null;
+    },
+    get currencyError() {
+      if (
+        !Object.values(CurrencyValues).includes(preConfiguredObject.currency)
+      ) {
+        return ErrorMessages.STRING;
       }
       return null;
     },
     get openingBalanceError() {
       if (!validNumber(preConfiguredObject.openingBalance)) {
-        return errorMessages.NUMBER;
+        return ErrorMessages.NUMBER;
       }
       return null;
     },
     get openingBalanceDateError() {
       if (!validDate(preConfiguredObject.openingBalanceDate)) {
-        return errorMessages.DATE;
+        return ErrorMessages.DATE;
       }
       return null;
     },
     get providerError() {
       if (!validString(preConfiguredObject.provider)) {
-        return errorMessages.STRING;
+        return ErrorMessages.STRING;
       }
       return null;
     },
     get accountNumberError() {
       if (!validString(preConfiguredObject.accountNumber)) {
-        return errorMessages.STRING;
+        return ErrorMessages.STRING;
       }
       return null;
     },
   };
 
   //Currency
-  const currency = ref<CurrencyValues>(CurrencyValues.EUR);
-  const getCurrency = computed(() => {
-    return currency.value;
-  });
-  const setCurrency = (payload: CurrencyValues) => {
-    currency.value = payload;
-  };
+  // const currency = ref<CurrencyValues>(CurrencyValues.EUR);
+  // const getCurrency = computed(() => {
+  //   return currency.value;
+  // });
+  // const setCurrency = (payload: CurrencyValues) => {
+  //   currency.value = payload;
+  // };
 
   const hasErrors = (): boolean => {
     const addGeneralValidation = (
@@ -97,7 +99,8 @@ export const useAccountCreator = () => {
       return (
         initialValue ||
         !!validationObject.openingBalanceError ||
-        !!validationObject.openingBalanceDateError
+        !!validationObject.openingBalanceDateError ||
+        !!validationObject.currencyError
       );
     };
 
@@ -218,8 +221,8 @@ export const useAccountCreator = () => {
     resetBankAccountValues,
     preConfiguredObject,
     validateResult,
-    getCurrency,
-    setCurrency,
+    // getCurrency,
+    // setCurrency,
     createAccount,
     hasErrors,
     reset,

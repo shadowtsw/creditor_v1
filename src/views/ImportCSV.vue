@@ -3,7 +3,12 @@
   <h2>Import CSV</h2>
   <div>
     <p>Please choose related CSV-File</p>
-    <input type="file" @change="fileWatcher" ref="dataInput" />
+    <input
+      type="file"
+      @change="fileWatcher"
+      ref="dataInput"
+      class="file-uploader"
+    />
     <p v-if="fileReady">File ready to convert</p>
     <button v-if="fileReady" @click="sendToCSVParser">Start</button>
     <ul v-if="fieldsReady">

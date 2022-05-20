@@ -1,9 +1,9 @@
 <template>
-  <div>
+  <div class="forms-wrapper" v-if="!showSuccess && !showError">
     <!-- REQUIRED -->
     <div
       :class="[
-        'dev',
+        'field-wrapper',
         { '--try-danger': !showInfo && validateResult.valueError },
       ]"
     >
@@ -20,7 +20,7 @@
     </div>
     <div
       :class="[
-        'dev',
+        'field-wrapper',
         { '--try-danger': !showInfo && validateResult.purposeError },
       ]"
     >
@@ -37,7 +37,7 @@
     </div>
     <div
       :class="[
-        'dev',
+        'field-wrapper',
         { '--try-danger': !showInfo && validateResult.valutaDateError },
       ]"
     >
@@ -55,89 +55,98 @@
       }}</span>
     </div>
     <!-- OPTIONAL -->
-    <div :class="['dev']">
+    <div :class="['field-wrapper']">
       <label for="shortName">Name: </label>
       <input
         type="text"
         v-model.trim="preConfiguredObject.shortName"
         name="shortName"
       />
-      <span v-if="showInfo">Name, shortname or alias</span>
+      <span>Name, shortname or alias</span>
     </div>
-    <div :class="['dev']">
+    <div :class="['field-wrapper']">
       <label for="description">Description: </label>
       <input
         type="text"
         v-model.trim="preConfiguredObject.description"
         name="description"
       />
-      <span v-if="showInfo">Description</span>
+      <span>Description</span>
     </div>
-    <div :class="['dev']">
+    <div :class="['field-wrapper']">
       <label for="tags">Tags: </label>
       <input type="text" v-model.trim="preConfiguredObject.tags" name="tags" />
-      <span v-if="showInfo">Tags</span>
+      <span>Tags</span>
     </div>
-    <div :class="['dev']">
+    <div :class="['field-wrapper']">
       <label for="distKey">DistKey: </label>
       <input
         type="text"
         v-model.trim="preConfiguredObject.distKey"
         name="distKey"
       />
-      <span v-if="showInfo">distKey</span>
+      <span>distKey</span>
     </div>
-    <div :class="['dev']">
+
+    <div :class="['field-wrapper']">
       <label for="currency">Currency: </label>
-      <input
-        type="text"
-        v-model="preConfiguredObject.currency"
-        name="currency"
-      />
-    </div>
-  </div>
-  <div v-if="accountDetails._internalType._value !== 'CASH'">
-    <!-- REQUIRED -->
-    <div
-      :class="[
-        'dev',
-        { '--try-danger': !showInfo && validateResult.providerError },
-      ]"
-    >
-      <label for="provider">Provider: </label>
-      <input
-        type="text"
-        v-model.trim="preConfiguredObject.provider"
-        name="provider"
-      />
-      <span v-if="showInfo || !validateResult.providerError"
-        >Credited value</span
+      <select name="currency" v-model="preConfiguredObject.currency">
+        <option disabled value="">Please select one</option>
+        <option v-for="currency in currencies" :key="currency">
+          {{ currency }}
+        </option>
+      </select>
+      <span v-if="showInfo || !validateResult.currencyError"
+        >Please select the currency</span
       >
-      <span v-else-if="!showInfo && validateResult.providerError">{{
-        validateResult.providerError
+      <span v-else-if="!showInfo && validateResult.currencyError">{{
+        validateResult.currencyError
       }}</span>
     </div>
-  </div>
-  <div v-if="accountDetails._internalType._value === 'BANK_ACCOUNT'">
-    <!-- REQUIRED -->
-    <div
-      :class="[
-        'dev',
-        { '--try-danger': !showInfo && validateResult.bookDateError },
-      ]"
-    >
-      <label for="bookDate">Book date: </label>
-      <input
-        type="text"
-        v-model.trim="preConfiguredObject.bookDate"
-        name="bookDate"
-      />
-      <span v-if="showInfo || !validateResult.bookDateError"
-        >Credited value</span
+    <!-- </div> -->
+    <div v-if="accountDetails._internalType._value !== 'CASH'">
+      <!-- REQUIRED -->
+      <div
+        :class="[
+          'field-wrapper',
+          { '--try-danger': !showInfo && validateResult.providerError },
+        ]"
       >
-      <span v-else-if="!showInfo && validateResult.bookDateError">{{
-        validateResult.bookDateError
-      }}</span>
+        <label for="provider">Provider: </label>
+        <input
+          type="text"
+          v-model.trim="preConfiguredObject.provider"
+          name="provider"
+        />
+        <span v-if="showInfo || !validateResult.providerError"
+          >Credited value</span
+        >
+        <span v-else-if="!showInfo && validateResult.providerError">{{
+          validateResult.providerError
+        }}</span>
+      </div>
+    </div>
+    <div v-if="accountDetails._internalType._value === 'BANK_ACCOUNT'">
+      <!-- REQUIRED -->
+      <div
+        :class="[
+          'field-wrapper',
+          { '--try-danger': !showInfo && validateResult.bookDateError },
+        ]"
+      >
+        <label for="bookDate">Book date: </label>
+        <input
+          type="text"
+          v-model.trim="preConfiguredObject.bookDate"
+          name="bookDate"
+        />
+        <span v-if="showInfo || !validateResult.bookDateError"
+          >Credited value</span
+        >
+        <span v-else-if="!showInfo && validateResult.bookDateError">{{
+          validateResult.bookDateError
+        }}</span>
+      </div>
     </div>
   </div>
   <div v-else-if="showSuccess && !showError">
@@ -149,7 +158,7 @@
     <button @click="editValues">Give it another try</button>
   </div>
   <button v-if="!showSuccess && !showError" @click="startCreateTransfer">
-    startCreateTransfer
+    <span>Add Transfer</span>
   </button>
 </template>
 
@@ -197,25 +206,17 @@ export default defineComponent({
       hasErrors,
       preConfiguredObject,
       validateResult,
-      getCurrency,
-      setCurrency,
       createTransfer,
       resetDigitalAccountValues,
       resetBankAccountValues,
       reset,
     } = useTransferCreator();
 
-    const showInfo = ref<boolean>(true);
-
-    //TODO NOTE: CURRENCY
-    const currency = computed({
-      get(): CurrencyValues {
-        return getCurrency.value;
-      },
-      set(value: CurrencyValues) {
-        setCurrency(value);
-      },
+    const currencies = computed(() => {
+      return Object.values(CurrencyValues);
     });
+
+    const showInfo = ref<boolean>(true);
 
     //Confirmation
     const showSuccess = ref<boolean>(false);
@@ -253,7 +254,7 @@ export default defineComponent({
     return {
       preConfiguredObject,
       validateResult,
-      currency,
+      currencies,
       startCreateTransfer,
       showInfo,
       showSuccess,

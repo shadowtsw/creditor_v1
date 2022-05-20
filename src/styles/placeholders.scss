@@ -111,3 +111,72 @@
 %box-shadow-top-bottom-blue {
   box-shadow: 0 3px 6px -2px blue, 0 -3px 6px -2px blue;
 }
+
+//Headers
+%h2-header-spacing {
+  margin: {
+    top: 0.3rem;
+    bottom: 0.3rem;
+  }
+}
+%h3-header-spacing {
+  margin: {
+    top: 0.3rem;
+    bottom: 0.3rem;
+  }
+}
+
+//Form fields
+%field-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  border: 1px solid var(--text-color);
+  padding: 0.2rem;
+  &:first-child {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+  &:last-child {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+  &.--try-danger {
+    // border: 2px solid red;
+    background-color: var(--danger-background);
+    color: var(--danger-text);
+    border-color: var(--danger-text);
+    span {
+      color: var(--danger-text);
+    }
+  }
+
+  label {
+    width: 40%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+  }
+  input,
+  select {
+    width: 60%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    text-align: center;
+    border-radius: 2px;
+    background-color: var(--outer-background);
+    color: var(--secondary-color);
+  }
+  span {
+    width: 100%;
+    margin: 0 auto;
+    height: 1rem;
+    font-size: 0.8rem;
+    color: var(--info-color);
+  }
+
+  @extend %default-transition;
+}

@@ -32,3 +32,43 @@ body {
   background-color: var(--primary-color);
   color: var(--text-color);
 }
+
+h2 {
+  margin: 0;
+  padding: 0.3rem 0;
+}
+
+button,
+input,
+label {
+  font-family: $font-mukta-family;
+  font-weight: $font-mukta-weight;
+}
+
+.file-uploader input[type="button"],
+button {
+  outline: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--primary-color);
+  border-radius: 5px;
+  border: 2px solid var(--text-color);
+  color: var(--text-color);
+  &:hover {
+    background-color: var(--secondary-color) !important;
+    color: var(--primary-color) !important;
+    cursor: pointer;
+  }
+  span {
+    font-size: 1.1rem;
+  }
+}
+
+.success-message {
+  color: var(--success-text);
+}
+
+.failed-message {
+  color: var(--danger-text);
+}

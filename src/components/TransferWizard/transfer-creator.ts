@@ -12,6 +12,7 @@ import { useValidator } from "@/utils/validator";
 import { computed, reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";
 import { AccountTransferStore } from "@/store/data/data-store";
+import ErrorMessages from "@/utils/error-messages";
 
 export const useTransferCreator = () => {
   const { validString, validNumber, validDate } = useValidator();
@@ -45,68 +46,69 @@ export const useTransferCreator = () => {
     preConfiguredObject.provider = provider;
   };
 
-  //ErrorMessages
-  const errorMessages = {
-    STRING: "Must be at least 3 characters",
-    NUMBER: "Not a valid number",
-    DATE: "Please provide a valid format DD-MM-YYYY",
-  };
-
   //TODO: FROM HERE - NEXT->VALIDATOR
   //Validator
   const validateResult: TransferValidationResultObject = {
     get shortNameError() {
       if (!validString(preConfiguredObject.shortName)) {
-        return errorMessages.STRING;
+        return ErrorMessages.STRING;
+      }
+      return null;
+    },
+    get currencyError() {
+      if (
+        !Object.values(CurrencyValues).includes(preConfiguredObject.currency)
+      ) {
+        return ErrorMessages.STRING;
       }
       return null;
     },
     get valueError() {
       if (!validNumber(preConfiguredObject.value)) {
-        return errorMessages.NUMBER;
+        return ErrorMessages.NUMBER;
       }
       return null;
     },
     get purposeError() {
       if (!validString(preConfiguredObject.purpose)) {
-        return errorMessages.STRING;
+        return ErrorMessages.STRING;
       }
       return null;
     },
     get valutaDateError() {
       if (!validDate(preConfiguredObject.valutaDate)) {
-        return errorMessages.DATE;
+        return ErrorMessages.DATE;
       }
       return null;
     },
     get bookDateError() {
       if (!validDate(preConfiguredObject.bookDate)) {
-        return errorMessages.DATE;
+        return ErrorMessages.DATE;
       }
       return null;
     },
     get providerError() {
       if (!validString(preConfiguredObject.provider)) {
-        return errorMessages.STRING;
+        return ErrorMessages.STRING;
       }
       return null;
     },
     get accountNumberError() {
       if (!validString(preConfiguredObject.accountNumber)) {
-        return errorMessages.STRING;
+        return ErrorMessages.STRING;
       }
       return null;
     },
   };
 
   //Currency
-  const currency = ref<CurrencyValues>(CurrencyValues.EUR);
-  const getCurrency = computed(() => {
-    return currency.value;
-  });
-  const setCurrency = (payload: CurrencyValues) => {
-    currency.value = payload;
-  };
+  // const currency = ref<CurrencyValues>(CurrencyValues.EUR);
+  // const getCurrency = computed(() => {
+  //   return currency.value;
+  // });
+  // const setCurrency = (payload: CurrencyValues) => {
+  //   currency.value = payload;
+  // };
 
   const hasErrors = (): boolean => {
     const addGeneralValidation = (
@@ -263,8 +265,8 @@ export const useTransferCreator = () => {
     resetBankAccountValues,
     preConfiguredObject,
     validateResult,
-    getCurrency,
-    setCurrency,
+    // getCurrency,
+    // setCurrency,
     setAccountDetails,
     createTransfer,
     hasErrors,

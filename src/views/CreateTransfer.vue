@@ -1,31 +1,38 @@
 <template>
-  <h2>
-    Create Transfer
-    {{
-      selectedAccount && accountDetails
-        ? "[" + accountDetails.shortName._value + "]"
-        : ""
-    }}
-  </h2>
-  <div v-if="!accountDetails">
-    <p
-      v-for="account in accounts"
-      :key="account._internalID._value"
-      @click="setAccount(account._internalID._value)"
-    >
-      {{ account.shortName._value }}-[{{
-        account.accountNumber._value
-          ? account.accountNumber._value
-          : account.shortName._value
-      }}{{ account.provider._value ? " - " + account.provider._value : "" }}]
-    </p>
+  <div class="create-transfer">
+    <h2>
+      Create Transfer
+      {{
+        selectedAccount && accountDetails
+          ? "[" + accountDetails.shortName._value + "]"
+          : ""
+      }}
+    </h2>
+    <div v-if="!accountDetails" class="account-selector">
+      <p
+        v-for="account in accounts"
+        :key="account._internalID._value"
+        @click="setAccount(account._internalID._value)"
+      >
+        <span>{{ account.shortName._value }} - </span>
+        <span
+          >[{{
+            account.accountNumber._value
+              ? account.accountNumber._value
+              : account.shortName._value
+          }}{{
+            account.provider._value ? " - " + account.provider._value : ""
+          }}]</span
+        >
+      </p>
+    </div>
+    <TransferCreator
+      v-else-if="selectedAccount"
+      :selectedAccount="selectedAccount"
+      :accountDetails="accountDetails"
+    />
+    <div v-else>An Error occured !</div>
   </div>
-  <TransferCreator
-    v-else-if="selectedAccount"
-    :selectedAccount="selectedAccount"
-    :accountDetails="accountDetails"
-  />
-  <div v-else>An Error occured !</div>
 </template>
 
 <script lang="ts">
@@ -68,4 +75,53 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+@use "@/styles/placeholders";
+.create-transfer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+  h2 {
+    align-self: flex-start;
+  }
+  .account-selector {
+    margin-top: 2rem;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    p {
+      min-width: 5rem;
+      border-radius: 5px;
+      margin: 0 0.3rem;
+      border: 1px solid var(--text-color);
+      @extend %creditor-link;
+      padding: 0.3rem;
+      &:first-child {
+        margin-left: unset;
+      }
+      span:first-child {
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+    }
+  }
+  .forms-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    width: 80%;
+    .field-wrapper {
+      width: 100%;
+      @extend %field-wrapper;
+      box-sizing: border-box;
+    }
+  }
+  button {
+    width: 100%;
+    height: 1.6rem;
+  }
+}
+</style>

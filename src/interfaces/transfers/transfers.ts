@@ -381,4 +381,5 @@ export interface TransferValidationResultObject {
   bookDateError: string | null;
   providerError: string | null;
   accountNumberError: string | null;
+  currencyError: string | null;
 }

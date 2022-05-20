@@ -1,161 +1,205 @@
 <template>
-  <h2>
-    Create
-    {{
-      accountType === "CASH"
-        ? "Cash"
-        : accountType === "BANK_ACCOUNT"
-        ? "Bank"
-        : "Digital"
-    }}Account
-  </h2>
-  <span>INFO</span>
-  <div v-if="!showSuccess && !showError">
-    <div>
-      <!-- <div
-        v-if="accountType === 'CASH'"
-        :class="[
-          'dev',
-          { '--try-danger': !showInfo && validateResult.IDError },
-        ]"
-      >
-        <label for="customID">Unique Identifier: </label>
-        <input
-          type="text"
-          v-model.trim="preConfiguredObject._ID"
-          name="customID"
-        />
-        <span v-if="showInfo || !validateResult.IDError"
-          >Needed to uniquely identify your account</span
+  <div class="account-creator">
+    <h2 class="account-creator__header">
+      Create
+      {{
+        accountType === "CASH"
+          ? "Cash"
+          : accountType === "BANK_ACCOUNT"
+          ? "Bank"
+          : "Digital"
+      }}Account
+    </h2>
+    <div class="forms-wrapper" v-if="!showSuccess && !showError">
+      <!-- <div class="scroll-container" > -->
+      <h3 class="basic-header">Basic Details</h3>
+      <div class="basic-details__wrapper">
+        <!-- BASIC STARTS -->
+        <div
+          :class="[
+            'field-wrapper',
+            'dev',
+            { '--try-danger': !showInfo && validateResult.shortNameError },
+          ]"
         >
-        <span v-else-if="!showInfo && validateResult.IDError">{{
-          validateResult.IDError
-        }}</span>
-      </div> -->
-      <div
-        :class="[
-          'dev',
-          { '--try-danger': !showInfo && validateResult.shortNameError },
-        ]"
-      >
-        <label for="shortName">Name: </label>
-        <input
-          type="text"
-          v-model.trim="preConfiguredObject.shortName"
-          name="shortName"
-        />
-        <span v-if="showInfo || !validateResult.shortNameError"
-          >Display custom name</span
+          <label for="shortName">Name: </label>
+          <input
+            type="text"
+            v-model.trim="preConfiguredObject.shortName"
+            name="shortName"
+          />
+          <span v-if="showInfo || !validateResult.shortNameError"
+            >Display custom name</span
+          >
+          <span v-else-if="!showInfo && validateResult.shortNameError">{{
+            validateResult.shortNameError
+          }}</span>
+        </div>
+        <div :class="['field-wrapper']">
+          <label for="currency">Currency: </label>
+          <select name="currency" v-model="preConfiguredObject.currency">
+            <option disabled value="">Please select one</option>
+            <option v-for="currency in currencies" :key="currency">
+              {{ currency }}
+            </option>
+          </select>
+          <span v-if="showInfo || !validateResult.currencyError"
+            >Please select the currency</span
+          >
+          <span v-else-if="!showInfo && validateResult.currencyError">{{
+            validateResult.currencyError
+          }}</span>
+        </div>
+        <div
+          :class="[
+            'field-wrapper',
+            'dev',
+            { '--try-danger': !showInfo && validateResult.openingBalanceError },
+          ]"
         >
-        <span v-else-if="!showInfo && validateResult.shortNameError">{{
-          validateResult.shortNameError
-        }}</span>
-      </div>
-      <div :class="['dev']">
-        <label for="currency">Currency: </label>
-        <input
-          type="text"
-          v-model="preConfiguredObject.currency"
-          name="currency"
-        />
-      </div>
-      <div
-        :class="[
-          'dev',
-          { '--try-danger': !showInfo && validateResult.openingBalanceError },
-        ]"
-      >
-        <label for="openingBalance">Opening Balance: </label>
-        <input
-          type="text"
-          v-model.number="preConfiguredObject.openingBalance"
-          name="openingBalance"
-        />
-        <span v-if="showInfo || !validateResult.openingBalanceError"
-          >Starting value</span
+          <label for="openingBalance">Opening Balance: </label>
+          <input
+            type="text"
+            v-model.number="preConfiguredObject.openingBalance"
+            name="openingBalance"
+          />
+          <span v-if="showInfo || !validateResult.openingBalanceError"
+            >Starting value</span
+          >
+          <span v-else-if="!showInfo && validateResult.openingBalanceError">{{
+            validateResult.openingBalanceError
+          }}</span>
+        </div>
+        <div
+          :class="[
+            'field-wrapper',
+            'dev',
+            {
+              '--try-danger':
+                !showInfo && validateResult.openingBalanceDateError,
+            },
+          ]"
         >
-        <span v-else-if="!showInfo && validateResult.openingBalanceError">{{
-          validateResult.openingBalanceError
-        }}</span>
+          <label for="openingBalanceDate">Date of opening</label>
+          <input
+            type="text"
+            v-model.trim="preConfiguredObject.openingBalanceDate"
+            name="openingBalanceDate"
+            placeholder="dd-mm-yyyy"
+          />
+          <span v-if="showInfo || !validateResult.openingBalanceDateError"
+            >Date for starting value</span
+          >
+          <span
+            v-else-if="!showInfo && validateResult.openingBalanceDateError"
+            >{{ validateResult.openingBalanceDateError }}</span
+          >
+        </div>
+        <!-- BASIC ENDS -->
       </div>
-      <div
-        :class="[
-          'dev',
-          {
-            '--try-danger': !showInfo && validateResult.openingBalanceDateError,
-          },
-        ]"
-      >
-        <label for="openingBalanceDate">Date of opening</label>
-        <input
-          type="text"
-          v-model.trim="preConfiguredObject.openingBalanceDate"
-          name="openingBalanceDate"
-          placeholder="dd-mm-yyyy"
-        />
-        <span v-if="showInfo || !validateResult.openingBalanceDateError"
-          >Date for starting value</span
+      <transition name="fade-classic" mode="out-in">
+        <h3
+          v-if="
+            accountType === 'DIGITAL_ACCOUNT' || accountType === 'BANK_ACCOUNT'
+          "
+          class="digital-header"
         >
-        <span v-else-if="!showInfo && validateResult.openingBalanceDateError">{{
-          validateResult.openingBalanceDateError
-        }}</span>
-      </div>
+          Digital Details
+        </h3>
+      </transition>
+      <transition name="fade-classic" mode="out-in">
+        <div
+          v-if="
+            accountType === 'DIGITAL_ACCOUNT' || accountType === 'BANK_ACCOUNT'
+          "
+          class="digital-details__wrapper"
+        >
+          <!-- DIGITAL STARTS -->
+          <div>
+            <div
+              :class="[
+                'field-wrapper',
+                'dev',
+                { '--try-danger': !showInfo && validateResult.providerError },
+              ]"
+            >
+              <label for="provider">Provider: </label>
+              <input
+                type="text"
+                v-model.trim="preConfiguredObject.provider"
+                name="provider"
+              />
+              <span v-if="showInfo || !validateResult.providerError"
+                >Provider of Account</span
+              >
+              <span v-else-if="!showInfo && validateResult.providerError">{{
+                validateResult.providerError
+              }}</span>
+            </div>
+            <div
+              :class="[
+                'field-wrapper',
+                'dev',
+                {
+                  '--try-danger':
+                    !showInfo && validateResult.accountNumberError,
+                },
+              ]"
+            >
+              <label for="accountNumber">Account No.: </label>
+              <input
+                type="text"
+                v-model.trim="preConfiguredObject.accountNumber"
+                name="accountNumber"
+              />
+              <span v-if="showInfo || !validateResult.accountNumberError"
+                >AccountNo.</span
+              >
+              <span
+                v-else-if="!showInfo && validateResult.accountNumberError"
+                >{{ validateResult.accountNumberError }}</span
+              >
+            </div>
+          </div>
+          <!-- DIGITAL ENDS -->
+        </div>
+      </transition>
+      <transition name="fade-classic" mode="out-in">
+        <h3 v-if="accountType === 'BANK_ACCOUNT'" class="bank-header">
+          Basic Details
+        </h3>
+      </transition>
+      <transition name="fade-classic" mode="out-in">
+        <div
+          v-if="accountType === 'BANK_ACCOUNT'"
+          class="bank-details__wrapper"
+        >
+          <!-- BANK STARTS -->
+          <div>
+            <div>Bank account</div>
+          </div>
+          <div>
+            <div>Bank account</div>
+          </div>
+          <div>
+            <div>Bank account</div>
+          </div>
+          <!-- BANK ENDS -->
+        </div>
+      </transition>
     </div>
-    <div
-      v-if="accountType === 'DIGITAL_ACCOUNT' || accountType === 'BANK_ACCOUNT'"
-    >
-      <div
-        :class="[
-          'dev',
-          { '--try-danger': !showInfo && validateResult.providerError },
-        ]"
-      >
-        <label for="provider">Provider: </label>
-        <input
-          type="text"
-          v-model.trim="preConfiguredObject.provider"
-          name="provider"
-        />
-        <span v-if="showInfo || !validateResult.providerError"
-          >Date for starting value</span
-        >
-        <span v-else-if="!showInfo && validateResult.providerError">{{
-          validateResult.providerError
-        }}</span>
-      </div>
-      <div
-        :class="[
-          'dev',
-          { '--try-danger': !showInfo && validateResult.accountNumberError },
-        ]"
-      >
-        <label for="accountNumber">Account No.: </label>
-        <input
-          type="text"
-          v-model.trim="preConfiguredObject.accountNumber"
-          name="accountNumber"
-        />
-        <span v-if="showInfo || !validateResult.accountNumberError"
-          >AccountNo.</span
-        >
-        <span v-else-if="!showInfo && validateResult.accountNumberError">{{
-          validateResult.accountNumberError
-        }}</span>
-      </div>
+    <div v-else-if="showSuccess && !showError">
+      <p class="success-message">Account added successful</p>
+      <button @click="addMoreAccounts">Add more Accounts</button>
     </div>
-    <div v-if="accountType === 'BANK_ACCOUNT'">Bank account</div>
+    <div v-else-if="showError">
+      <p class="failed-message">{{ errorMessage }}</p>
+      <button @click="editValues">Give it another try</button>
+    </div>
+    <button v-if="!showSuccess && !showError" @click="startCreateAccount">
+      <span>Create Account</span>
+    </button>
   </div>
-  <div v-else-if="showSuccess && !showError">
-    <p>Account added successful</p>
-    <button @click="addMoreAccounts">Add more Accounts</button>
-  </div>
-  <div v-else-if="showError">
-    <p>{{ errorMessage }}</p>
-    <button @click="editValues">Give it another try</button>
-  </div>
-  <button v-if="!showSuccess && !showError" @click="startCreateAccount">
-    createAccount
-  </button>
 </template>
 
 <script lang="ts">
@@ -198,6 +242,9 @@ export default defineComponent({
         resetBankAccountValues();
       }
     });
+    const currencies = computed(() => {
+      return Object.values(CurrencyValues);
+    });
 
     //AccountObject
     const {
@@ -205,8 +252,6 @@ export default defineComponent({
       hasErrors,
       preConfiguredObject,
       validateResult,
-      getCurrency,
-      setCurrency,
       createAccount,
       resetDigitalAccountValues,
       resetBankAccountValues,
@@ -214,16 +259,6 @@ export default defineComponent({
     } = useAccountCreator();
 
     const showInfo = ref<boolean>(true);
-
-    //TODO NOTE: CURRENCY
-    const currency = computed({
-      get(): CurrencyValues {
-        return getCurrency.value;
-      },
-      set(value: CurrencyValues) {
-        setCurrency(value);
-      },
-    });
 
     //Confirmation
     const showSuccess = ref<boolean>(false);
@@ -262,8 +297,8 @@ export default defineComponent({
     return {
       preConfiguredObject,
       validateResult,
-      currency,
       startCreateAccount,
+      currencies,
       showInfo,
       showSuccess,
       addMoreAccounts,
@@ -276,9 +311,55 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.dev {
-  &.--try-danger {
-    border: 2px solid red;
+@use "@/styles/placeholders";
+
+.account-creator {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+  .account-creator__header {
+    @extend %h2-header-spacing;
+    align-self: flex-start;
+  }
+  .forms-wrapper {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    overflow: auto;
+    .basic-details__wrapper,
+    .digital-details__wrapper,
+    .bank-details__wrapper {
+      @extend %default-border-radius;
+      @extend %default-padding;
+      max-width: 65%;
+      margin: 0 auto;
+    }
+    .field-wrapper {
+      width: 100%;
+      @extend %field-wrapper;
+      box-sizing: border-box;
+    }
+    .basic-header {
+      @extend %h3-header-spacing;
+      padding: 0 0.3rem;
+    }
+    .digital-header {
+      @extend %h3-header-spacing;
+      padding: 0 0.3rem;
+    }
+    .bank-header {
+      @extend %h3-header-spacing;
+      padding: 0 0.3rem;
+    }
+  }
+  button {
+    width: 100%;
+    height: 1.6rem;
+    margin-top: 0.6rem;
   }
 }
 </style>

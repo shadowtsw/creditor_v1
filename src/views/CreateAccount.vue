@@ -1,24 +1,26 @@
 <template>
-  <h2>Choose Account Type</h2>
-  <div class="create-account__account-list-container">
-    <div
-      v-for="type in accountTypes"
-      :key="type.accountType"
-      @click="setCurrentType(type.accountType)"
-      class="account-list__entry"
-      :class="[{ '--is-active': type.accountType === currentSelectedType }]"
-    >
-      <p>
-        {{ type.displayName }}
-      </p>
-      <p class="info-text">{{ type.info }}</p>
+  <div class="create-account">
+    <h2 class="create-account__header">Choose Account Type</h2>
+    <div class="create-account__account-list-container">
+      <div
+        v-for="type in accountTypes"
+        :key="type.accountType"
+        @click="setCurrentType(type.accountType)"
+        class="account-list__entry"
+        :class="[{ '--is-active': type.accountType === currentSelectedType }]"
+      >
+        <p>
+          {{ type.displayName }}
+        </p>
+        <p class="info-text">{{ type.info }}</p>
+      </div>
     </div>
-  </div>
-  <div v-if="currentSelectedType">
-    <AccountCreator :accountType="currentSelectedType" />
-  </div>
-  <div class="choose-account" v-else>
-    <p>Please choose account type</p>
+    <div class="account-creator__wrapper" v-if="currentSelectedType">
+      <AccountCreator :accountType="currentSelectedType" />
+    </div>
+    <div class="choose-account" v-else>
+      <p>Please choose account type</p>
+    </div>
   </div>
 </template>
 
@@ -47,7 +49,7 @@ export default defineComponent({
       {
         displayName: "Bank Account",
         accountType: BasicAccountTypes.BANK_ACCOUNT,
-        info: "IBAN/SWIFT CAMT-Format",
+        info: "IBAN/SWIFT CAMT-Format -> IMPORT CSV ONLY",
       },
     ]);
     const currentSelectedType = ref<BasicAccountTypes | null>(null);
@@ -67,31 +69,55 @@ export default defineComponent({
 @use "@/styles/placeholders";
 @use "@/styles/variables" as *;
 
-.create-account__account-list-container {
+.create-account {
+  height: 100%;
   display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
   flex-wrap: nowrap;
-  justify-content: space-around;
-  .account-list__entry {
-    width: 25%;
-    text-align: center;
-    @extend %default-border-radius;
-    @extend %creditor-link;
-    font-size: 1.2rem;
-    padding: $defaultPaddingSize;
+  .create-account__header {
+    align-self: flex-start;
+  }
+  .create-account__account-list-container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    padding: 0.6rem 0;
+    .account-list__entry {
+      width: 25%;
+      text-align: center;
+      @extend %default-border-radius;
+      @extend %creditor-link;
+      font-size: 1.2rem;
+      padding: $defaultPaddingSize;
 
-    p {
-      @extend %clean-padding-margin;
-    }
+      p {
+        @extend %clean-padding-margin;
+      }
 
-    .info-text {
-      margin-top: $defaultPaddingSize;
-      font-size: 0.9rem;
+      .info-text {
+        margin-top: $defaultPaddingSize;
+        font-size: 0.9rem;
+      }
     }
   }
-}
 
-.choose-account {
-  margin: 1rem auto;
-  text-align: center;
+  .account-creator__wrapper {
+    width: 100%;
+    h2 {
+      margin: 0;
+      padding: 0.3rem;
+      padding-bottom: 0.6rem;
+    }
+    flex: 1;
+    min-height: 0;
+    background-color: rgba(166, 165, 165, 0.08);
+  }
+
+  .choose-account {
+    margin: 1rem auto;
+    text-align: center;
+  }
 }
 </style>
