@@ -20,6 +20,7 @@ import {
   watch,
   computed,
   onMounted,
+  PropType,
 } from "vue";
 import TransferLine from "./ListPlugin/TransferLine.vue";
 import { AccountTransferStore } from "@/store/data/data-store";
@@ -32,7 +33,9 @@ export default defineComponent({
   },
   props: {
     loadSubMenu: {
-      type: Function,
+      type: Function as PropType<
+        (menu: "TagMenu" | "DistMenu", context?: string) => void
+      >,
       required: false,
     },
   },
@@ -59,26 +62,48 @@ export default defineComponent({
 @use "@/styles/variables.scss" as *;
 
 .list-plugin-container {
-  //   width: 100%;
-  //   height: 100%;
   list-style: none;
+  color: var(--text-color);
+
   .list-container {
     height: 100%;
     overflow-y: auto;
     padding: 0;
     margin: 0;
     .list-entry {
+      list-style: none;
+      width: 96%;
+      margin: 0.3rem auto;
+      // &:first-child {
+      //   margin-top: 0.3rem;
+      // }
+      @extend %box-shadow-top-bottom;
+      @extend %box-shadow-left-right;
+      @extend %small-border-radius;
+
+      &:hover {
+        @extend %box-shadow-top-bottom-blue;
+        @extend %box-shadow-left-right-blue;
+        @extend %highlight-background;
+      }
+
+      &.--active {
+        @extend %small-border;
+      }
+
       .list-entry__line {
         @extend %flex-default-center;
         justify-content: flex-start;
         height: 3rem;
-        border-bottom: 1px solid red;
+        &.--active {
+          @extend %default-border-bottom;
+        }
         .line__show-details {
           width: 1.5rem;
-          color: white;
+          color: var(--text-color);
           &.--active {
             > * {
-              color: yellow;
+              color: var(--info-color);
             }
           }
         }
@@ -102,7 +127,7 @@ export default defineComponent({
         }
       }
       .list-entry__details {
-        border-bottom: 1px solid red;
+        @extend %highlight-background;
       }
     }
   }

@@ -1,4 +1,11 @@
 @use "./variables" as *;
+
+%dev {
+  background-color: black;
+  color: white;
+  border: 1px solid red;
+}
+
 //Container styles
 %flex-default-center {
   display: flex;
@@ -70,6 +77,9 @@
 %default-border-radius {
   border-radius: $defaultBorderRadius;
 }
+%small-border-radius {
+  border-radius: $smallBorderRadius;
+}
 %default-border-top {
   border-top: $defaultBorderSize solid var(--border-color);
 }
@@ -106,10 +116,12 @@
 }
 //TODO: Remove ?
 %box-shadow-left-right-blue {
-  box-shadow: 3px 0 6px -2px blue, -3px 0 6px -2px blue;
+  box-shadow: 3px 0 6px -2px var(--info-color),
+    -3px 0 6px -2px var(--info-color);
 }
 %box-shadow-top-bottom-blue {
-  box-shadow: 0 3px 6px -2px blue, 0 -3px 6px -2px blue;
+  box-shadow: 0 3px 6px -2px var(--info-color),
+    0 -3px 6px -2px var(--info-color);
 }
 
 //Headers
@@ -179,4 +191,10 @@
   }
 
   @extend %default-transition;
+}
+
+//Backgrounds
+%highlight-background {
+  border-radius: $smallBorderRadius;
+  background-color: var(--highlight-background);
 }

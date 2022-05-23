@@ -26,6 +26,9 @@ $dangerColorBright: rgba(238, 6, 6, 0.17);
 $infoColor: rgb(79, 79, 219);
 $infoColorBright: rgb(147, 147, 216);
 
+$highlightBackgroundLight: rgba(166, 165, 165, 0.08);
+$highlightBackgroundDark: rgba(166, 165, 165, 0.08);
+
 [theme="light"] {
   --primary-color: #{$primaryColor};
   --secondary-color: #{$secondaryColor};
@@ -42,6 +45,8 @@ $infoColorBright: rgb(147, 147, 216);
   --danger-background: #{$dangerColor};
 
   --info-color: #{$infoColor};
+
+  --highlight-background: #{$highlightBackgroundLight};
 }
 [theme="dark"] {
   --primary-color: #{$secondaryColor};
@@ -59,4 +64,6 @@ $infoColorBright: rgb(147, 147, 216);
   --danger-background: #{$dangerColorBright};
 
   --info-color: #{$infoColorBright};
+
+  --highlight-background: #{$highlightBackgroundDark};
 }

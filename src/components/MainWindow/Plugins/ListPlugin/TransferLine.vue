@@ -1,6 +1,6 @@
 <template>
-  <li class="list-entry">
-    <div class="list-entry__line">
+  <li class="list-entry" :class="[{ '--active': showDetails }]">
+    <div class="list-entry__line" :class="[{ '--active': showDetails }]">
       <div
         class="line__show-details"
         @click="toggleDetails"
@@ -50,7 +50,9 @@ export default defineComponent({
       required: true,
     },
     loadSubMenu: {
-      type: Function,
+      type: Function as PropType<
+        (menu: "TagMenu" | "DistMenu", context?: string) => void
+      >,
       required: false,
     },
   },

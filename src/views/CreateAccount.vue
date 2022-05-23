@@ -35,6 +35,7 @@ export default defineComponent({
   },
   setup() {
     onMounted(async () => {});
+    console.log("");
     const accountTypes = reactive([
       {
         displayName: "Cash",
@@ -112,7 +113,7 @@ export default defineComponent({
     }
     flex: 1;
     min-height: 0;
-    background-color: rgba(166, 165, 165, 0.08);
+    @extend %highlight-background;
   }
 
   .choose-account {

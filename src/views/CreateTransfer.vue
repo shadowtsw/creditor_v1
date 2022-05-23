@@ -94,7 +94,7 @@ export default defineComponent({
     flex-wrap: wrap;
     p {
       min-width: 5rem;
-      border-radius: 5px;
+      @extend %small-border-radius;
       margin: 0 0.3rem;
       border: 1px solid var(--text-color);
       @extend %creditor-link;
@@ -111,12 +111,19 @@ export default defineComponent({
   .forms-wrapper {
     flex: 1;
     min-height: 0;
-    overflow: hidden;
-    width: 80%;
+    overflow-y: auto;
+    width: 100%;
     .field-wrapper {
-      width: 100%;
+      width: 80%;
+      margin: 0 auto;
       @extend %field-wrapper;
       box-sizing: border-box;
+      &:first-child {
+        margin-top: 0.6rem;
+      }
+      &:last-child {
+        margin-bottom: 0.6rem;
+      }
     }
   }
   button {

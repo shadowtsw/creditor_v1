@@ -66,7 +66,9 @@ export default defineComponent({
       required: true,
     },
     loadSubMenu: {
-      type: Function,
+      type: Function as PropType<
+        (menu: "TagMenu" | "DistMenu", context?: string) => void
+      >,
       required: false,
     },
     entryID: {
@@ -107,11 +109,11 @@ export default defineComponent({
     //Submenu
     const loadMenu = (menu: "TagMenu" | "DistMenu") => {
       const meta = {
-        menu,
+        menu: menu,
         context: props.entryID,
       };
       if (props.loadSubMenu) {
-        props.loadSubMenu(meta);
+        props.loadSubMenu(menu, props.entryID);
       }
     };
 

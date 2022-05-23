@@ -66,6 +66,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+@use "@/styles/placeholders";
+
 .transfers_toolbar {
   height: 4.8rem;
   border-bottom: 2px solid white;
@@ -102,7 +104,7 @@ export default defineComponent({
         }
         text-align: center;
         border: 1px solid transparent;
-        border-radius: 5px;
+        @extend %small-border-radius;
         &.active {
           border: 1px solid white;
         }
@@ -118,7 +120,7 @@ export default defineComponent({
     }
     text-align: center;
     border: 1px solid transparent;
-    border-radius: 5px;
+    @extend %small-border-radius;
     &.active {
       border: 1px solid white;
     }

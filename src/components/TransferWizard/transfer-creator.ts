@@ -101,15 +101,6 @@ export const useTransferCreator = () => {
     },
   };
 
-  //Currency
-  // const currency = ref<CurrencyValues>(CurrencyValues.EUR);
-  // const getCurrency = computed(() => {
-  //   return currency.value;
-  // });
-  // const setCurrency = (payload: CurrencyValues) => {
-  //   currency.value = payload;
-  // };
-
   const hasErrors = (): boolean => {
     const addGeneralValidation = (
       initialValue: boolean,
@@ -176,6 +167,8 @@ export const useTransferCreator = () => {
         );
         break;
     }
+
+    console.log("basicValidation", basicValidation);
 
     return basicValidation;
   };

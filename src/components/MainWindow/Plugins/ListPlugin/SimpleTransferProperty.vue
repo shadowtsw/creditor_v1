@@ -50,6 +50,10 @@ export default defineComponent({
       type: Object as PropType<BasicDataField & { _value: any }>,
       required: true,
     },
+    entryID: {
+      type: String,
+      required: true,
+    },
   },
   setup(props) {
     const boundValue = ref<null | any>(null);

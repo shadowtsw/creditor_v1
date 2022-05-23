@@ -4,11 +4,13 @@
     <div class="transfers_content">
       <div class="time_pagination">
         <div
+          v-if="currentPage"
           class="pagination-year"
           v-for="(yearvalue, year) in pages"
           :key="year"
         >
           <p
+            v-if="currentPage"
             :class="[
               'pagination-year__value',
               { '--is-active': Number(year) === currentPage.year },
@@ -18,12 +20,13 @@
           </p>
           <ul class="pagination-month__container">
             <li
+              v-if="currentPage"
               :class="[
                 'pagination-month__value',
                 {
                   '--is-active':
-                    Number(month) === currentPage.month &&
-                    Number(year) === currentPage.year,
+                    Number(month) === currentPage?.month &&
+                    Number(year) === currentPage?.year,
                 },
               ]"
               v-for="(monthvalue, month) in yearvalue"
@@ -34,6 +37,7 @@
             </li>
           </ul>
         </div>
+        <div v-else>Empty Transfers !</div>
       </div>
       <component
         v-if="loadedComponent"

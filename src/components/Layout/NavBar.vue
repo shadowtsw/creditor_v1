@@ -67,7 +67,7 @@ export default defineComponent({
       }
       text-align: center;
       border: 1px solid transparent;
-      border-radius: 5px;
+      @extend %small-border-radius;
       @extend %creditor-link;
     }
   }
@@ -79,7 +79,7 @@ export default defineComponent({
     align-items: center;
     text-align: center;
     border: 1px solid transparent;
-    border-radius: 5px;
+    @extend %small-border-radius;
     &.active {
       border: 1px solid white;
     }

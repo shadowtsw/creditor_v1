@@ -8,7 +8,6 @@
       <SimpleTransferProperty
         :property="property"
         :value="value"
-        :loadSubMenu="loadSubMenu"
         :entryID="entry._internalID._value"
       />
     </div>
@@ -46,7 +45,9 @@ export default defineComponent({
       required: true,
     },
     loadSubMenu: {
-      type: Function,
+      type: Function as PropType<
+        (menu: "TagMenu" | "DistMenu", context?: string) => void
+      >,
       required: false,
     },
   },
@@ -99,9 +100,18 @@ export default defineComponent({
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
+  font-size: 0.8rem;
   .list-entry__property-container {
-    width: 50%;
-    margin: 0.3rem 0;
+    box-sizing: border-box;
+    width: calc(50% - 1px - 0.6rem);
+    margin: 0.3rem;
+    @extend %small-border;
+    border-color: var(--outer-background);
+    @extend %small-border-radius;
+    height: 29px;
+    > * {
+      height: 100%;
+    }
     // .container-wrapper {
     //   display: flex;
     //   justify-content: flex-start;
@@ -124,8 +134,15 @@ export default defineComponent({
     // }
   }
   .list-entry__complex-property-container {
-    width: 100%;
-    margin: 0.3rem 0;
+    width: calc(100% - 1px - 0.6rem);
+    box-sizing: border-box;
+    margin: 0.3rem;
+    @extend %small-border;
+    border-color: var(--outer-background);
+    @extend %small-border-radius;
+    > * {
+      height: 100%;
+    }
     // .container-wrapper {
     //   display: flex;
     //   justify-content: flex-start;
@@ -146,6 +163,16 @@ export default defineComponent({
     //     text-align: center;
     //   }
     // }
+  }
+  input,
+  input:active,
+  input:focus {
+    border: none;
+    outline: none;
+    border: 1px solid transparent;
+  }
+  input:focus {
+    border: 1px solid var(--info-color);
   }
 }
 </style>

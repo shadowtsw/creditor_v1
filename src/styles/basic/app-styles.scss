@@ -1,3 +1,5 @@
+@use "@/styles/variables";
+@use "@/styles/placeholders";
 @import url("https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@400;500;700&family=Bai+Jamjuree:ital,wght@0,400;0,500;1,400;1,500&family=Baloo+Da+2:wght@400;500;600&family=Chakra+Petch:wght@400;500;600&family=Gruppo&family=Heebo:wght@300;400;600&family=Mukta:wght@300;400;600&display=swap");
 $font-chakra: "Chakra Petch", sans-serif;
 $font-chakra-weight: 400;
@@ -52,7 +54,7 @@ button {
   justify-content: center;
   align-items: center;
   background-color: var(--primary-color);
-  border-radius: 5px;
+  @extend %small-border-radius;
   border: 2px solid var(--text-color);
   color: var(--text-color);
   &:hover {
