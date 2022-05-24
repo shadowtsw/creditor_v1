@@ -43,6 +43,7 @@ import {
   defineAsyncComponent,
   onMounted,
   onBeforeUnmount,
+  watch,
 } from "vue";
 
 //Main modules
@@ -63,6 +64,7 @@ import Welcome from "@/views/Welcome.vue";
 import { AccountTransferStore } from "@/store/data/data-store";
 import { workerProvider } from "@/worker/worker-provider";
 import { UserDataStore } from "@/store/user/user-data";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
 
 // const importPage = importPages();
 
@@ -79,8 +81,46 @@ export default defineComponent({
     ...importPages(),
   },
   setup() {
+    onMounted(() => {
+      UserDataStore.initAppStateData();
+    });
+    const {
+      activateCreateTransfers,
+      hideCreateTransfers,
+      activateTransferList,
+      hideTransferList,
+      currentPage,
+      pages,
+      settings,
+    } = usePageNavigator();
+
+    // Watch accounts
+    const accountsLength = computed(() => {
+      return AccountTransferStore.allAccounts.length;
+    });
+    //Watch transfers
+    const transfersLength = computed(() => {
+      return AccountTransferStore.allTransfers.length;
+    });
+    watch(accountsLength, (newVal, oldVal) => {
+      console.log("accountsLength", newVal, oldVal);
+      if (newVal > 0) {
+        activateCreateTransfers();
+      } else {
+        hideCreateTransfers();
+      }
+    });
+    watch(transfersLength, (newVal, oldVal) => {
+      console.log("transfersLength", newVal, oldVal);
+      if (newVal > 0) {
+        activateTransferList();
+      } else {
+        hideTransferList();
+      }
+    });
+    //
     //Main view management
-    const { currentPage, pages, settings } = usePageNavigator();
+
     //Show welcome page
     const showWelcomePage = computed(() => {
       return UserDataStore.firstStart;

@@ -1,3 +1,6 @@
+import IndexedDBAppStateStoreManager from "./indexedDB/app-state-indexeddb";
+import IndexedDBCustomDataManager from "./indexedDB/custom-data-indexeddb";
+
 import { createApp } from "vue";
 import App from "./App.vue";
 import store from "./store/index";
@@ -21,7 +24,11 @@ library.add(fab);
 import { far } from "@fortawesome/free-regular-svg-icons";
 library.add(far);
 import { dom } from "@fortawesome/fontawesome-svg-core";
+
 dom.watch();
+
+IndexedDBAppStateStoreManager.initDB();
+IndexedDBCustomDataManager.initDB();
 
 createApp(App)
   .component("font-awesome-icon", FontAwesomeIcon)

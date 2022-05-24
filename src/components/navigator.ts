@@ -5,22 +5,30 @@ import {
   defaultStartPage,
   defaultStartPlugin,
 } from "@/views/BasicApp/default-start-parameter";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
 
 //Converts dictionary for use in vue components
 const pluginMap = ref<Array<DictionaryEntryObject>>([]);
 const pageMap = ref<Array<DictionaryEntryObject>>([]);
 
 //converts dictionary
-function convertComponentsRegistration() {
+async function convertComponentsRegistration() {
   for (const entry in componentDictionary) {
+    console.log("IndexedDBAppStateStoreManager", IndexedDBAppStateStoreManager);
+    const dbVisibleState =
+      (await IndexedDBAppStateStoreManager.getPage(
+        componentDictionary[entry].component
+      )) || null;
+    console.log("dbVisibleState", dbVisibleState);
     const obj: DictionaryEntryObject = {
       displayText: componentDictionary[entry].displayText,
       component: componentDictionary[entry].component,
       type: componentDictionary[entry].type,
-      active:
-        componentDictionary[entry].active !== undefined
-          ? componentDictionary[entry].active
-          : true,
+      active: dbVisibleState
+        ? dbVisibleState.value
+        : componentDictionary[entry].active !== undefined
+        ? componentDictionary[entry].active
+        : true,
       index: componentDictionary[entry].index,
       path: componentDictionary[entry].path,
     };
@@ -64,6 +72,10 @@ const currentPlugin = ref<string>(defaultStartPlugin);
 export const usePageNavigator = () => {
   //Load view
   const setActivePage = (pageName: string) => {
+    IndexedDBAppStateStoreManager.setState({
+      property: "currentPage",
+      value: pageName,
+    });
     currentPage.value = pageName;
   };
 
@@ -85,6 +97,10 @@ export const usePageNavigator = () => {
       return entry.component === "ImportCSV";
     });
     if (target) {
+      IndexedDBAppStateStoreManager.setPage({
+        pageName: "ImportCSV",
+        value: true,
+      });
       target.active = true;
     }
   };
@@ -94,15 +110,10 @@ export const usePageNavigator = () => {
       return entry.component === "CreateAccount";
     });
     if (target) {
-      target.active = true;
-    }
-  };
-
-  const activateTransfers = () => {
-    const target = pageMap.value.find((entry) => {
-      return entry.component === "Transfers";
-    });
-    if (target) {
+      IndexedDBAppStateStoreManager.setPage({
+        pageName: "CreateAccount",
+        value: true,
+      });
       target.active = true;
     }
   };
@@ -112,6 +123,10 @@ export const usePageNavigator = () => {
       return entry.component === "CreateTransfer";
     });
     if (target) {
+      IndexedDBAppStateStoreManager.setPage({
+        pageName: "CreateTransfer",
+        value: true,
+      });
       target.active = true;
     }
   };
@@ -121,6 +136,10 @@ export const usePageNavigator = () => {
       return entry.component === "Transfers";
     });
     if (target) {
+      IndexedDBAppStateStoreManager.setPage({
+        pageName: "Transfers",
+        value: true,
+      });
       target.active = true;
     }
   };
@@ -130,6 +149,10 @@ export const usePageNavigator = () => {
       return entry.component === "Transfers";
     });
     if (target) {
+      IndexedDBAppStateStoreManager.setPage({
+        pageName: "Transfers",
+        value: false,
+      });
       target.active = false;
     }
   };
@@ -139,6 +162,10 @@ export const usePageNavigator = () => {
       return entry.component === "CreateTransfer";
     });
     if (target) {
+      IndexedDBAppStateStoreManager.setPage({
+        pageName: "CreateTransfer",
+        value: false,
+      });
       target.active = false;
     }
   };
@@ -161,7 +188,6 @@ export const usePageNavigator = () => {
     //Tutorials
     activateImportCSV,
     activateCreateAccount,
-    activateTransfers,
     activateCreateTransfers,
     hideCreateTransfers,
     activateTransferList,
@@ -172,6 +198,10 @@ export const usePageNavigator = () => {
 export const usePluginNavigator = () => {
   //Load view
   const setActivePlugin = (pageName: string) => {
+    IndexedDBAppStateStoreManager.setState({
+      property: "currentPlugin",
+      value: pageName,
+    });
     currentPlugin.value = pageName;
   };
   //User configuration, hide unnecessary tabs
@@ -180,6 +210,10 @@ export const usePluginNavigator = () => {
       return entry.displayText === entryDisplayName;
     });
     if (target) {
+      IndexedDBAppStateStoreManager.setPlugin({
+        pluginName: target.component,
+        value: value,
+      });
       target.active = value;
     }
   };

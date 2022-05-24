@@ -5,6 +5,7 @@
 </template>
 
 <script lang="ts">
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
 import { UserDataStore } from "@/store/user/user-data";
 import { defineComponent, onMounted } from "vue";
 
@@ -15,6 +16,10 @@ export default defineComponent({
     });
 
     const closeWelcome = () => {
+      IndexedDBAppStateStoreManager.setState({
+        property: "showAppStartWelcome",
+        value: false,
+      });
       UserDataStore.showAppStartWelcome(false);
     };
 

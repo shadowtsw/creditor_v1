@@ -1,3 +1,4 @@
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
 import {
   Module,
   VuexModule,
@@ -29,6 +30,21 @@ class UserData extends VuexModule {
   @Action
   showAppStartWelcome(payload: boolean) {
     this.setFirstStart(payload);
+  }
+
+  //INIT
+  @Action
+  async initAppStateData() {
+    const requestState = await IndexedDBAppStateStoreManager.getState(
+      "showAppStartWelcome"
+    );
+    if (
+      requestState &&
+      "value" in requestState &&
+      typeof requestState.value === "boolean"
+    ) {
+      this.showAppStartWelcome(requestState.value);
+    }
   }
 }
 
