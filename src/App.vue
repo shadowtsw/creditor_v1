@@ -17,8 +17,6 @@ import { AccountTransferStore } from "./store/data/data-store";
 import { usePageNavigator } from "./components/navigator";
 import IndexedDBAppStateStoreManager from "./indexedDB/app-state-indexeddb";
 
-console.log("DBManager", DBManager);
-
 export default defineComponent({
   components: {
     Login,

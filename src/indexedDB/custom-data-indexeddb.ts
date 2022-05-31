@@ -71,11 +71,18 @@ export class IndexedDBCustomDataManager {
       }
     );
 
-    this._custom_data.add("tags", {
-      id: `default_group_v${appDatabase.currentVersion}`,
-      groupname: "default",
-      tags: [],
-    });
+    const defaultTags = this._custom_data.get(
+      "tags",
+      `default_group_v${appDatabase.currentVersion}`
+    );
+
+    if (!defaultTags) {
+      this._custom_data.add("tags", {
+        id: `default_group_v${appDatabase.currentVersion}`,
+        groupname: "default",
+        tags: [],
+      });
+    }
   }
   /*
    *Generic functions
@@ -83,12 +90,12 @@ export class IndexedDBCustomDataManager {
   public async addTagAndGroup(payload: {
     groupname: string;
     tag?: string | Array<string>;
-  }) {
+  }): Promise<boolean> {
     if (!this._custom_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        console.log(err);
       }
     }
 
@@ -120,23 +127,26 @@ export class IndexedDBCustomDataManager {
             newTagsGroup.tags = payload.tag;
           }
           customDataDB.add("tags", newTagsGroup);
+          return Promise.resolve(true);
         } else {
-          console.log("Result is given");
           throw new Error(`Group ${payload.groupname} already exists`);
         }
       } catch (err) {
-        console.log(err);
+        throw new Error("Failed to add group or tag");
       }
     } else {
       throw new Error("Database error");
     }
   }
-  public async addTagToGroup(payload: { groupname: string; tag: string }) {
+  public async addTagToGroup(payload: {
+    groupname: string;
+    tag: string;
+  }): Promise<boolean> {
     if (!this._custom_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        console.log(err);
       }
     }
 
@@ -154,6 +164,7 @@ export class IndexedDBCustomDataManager {
             newTags.push(payload.tag);
             originalResult.tags = newTags;
             customDataDB.put("tags", originalResult);
+            return Promise.resolve(true);
           } else {
             throw new Error("Tag already exists");
           }
@@ -161,18 +172,21 @@ export class IndexedDBCustomDataManager {
           throw new Error(`Collection in tags: ${payload.groupname} not found`);
         }
       } catch (err) {
-        console.log(err);
+        throw new Error("Failed to add tag to group");
       }
     } else {
       throw new Error("Database error");
     }
   }
-  public async deleteTagFromGroup(payload: { groupname: string; tag: string }) {
+  public async deleteTagFromGroup(payload: {
+    groupname: string;
+    tag: string;
+  }): Promise<boolean> {
     if (!this._custom_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        console.log(err);
       }
     }
 
@@ -191,6 +205,7 @@ export class IndexedDBCustomDataManager {
             });
             originalResult.tags = newTags;
             customDataDB.put("tags", originalResult);
+            return Promise.resolve(true);
           } else {
             throw new Error("Tag doesn't exist");
           }
@@ -198,7 +213,7 @@ export class IndexedDBCustomDataManager {
           throw new Error(`Collection in tags: ${payload.groupname} not found`);
         }
       } catch (err) {
-        console.log(err);
+        throw new Error("Failed to delete group");
       }
     } else {
       throw new Error("Database error");
@@ -208,12 +223,12 @@ export class IndexedDBCustomDataManager {
     originGroupname: string;
     targetGroupname: string;
     tag: string;
-  }) {
+  }): Promise<boolean> {
     if (!this._custom_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        console.log(err);
       }
     }
 
@@ -253,20 +268,21 @@ export class IndexedDBCustomDataManager {
           newTags.push(payload.tag);
           targetResult.tags = newTags;
           customDataDB.put("tags", targetResult);
+          return Promise.resolve(true);
         }
       } catch (err) {
-        console.log(err);
+        throw new Error("Failed to move tag");
       }
     } else {
       throw new Error("Database error");
     }
   }
-  public async deleteGroup(groupname: string) {
+  public async deleteGroup(groupname: string): Promise<boolean> {
     if (!this._custom_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        console.log(err);
       }
     }
 
@@ -274,8 +290,9 @@ export class IndexedDBCustomDataManager {
       const customDataDB = this._custom_data;
       try {
         customDataDB.delete("tags", groupname);
+        return Promise.resolve(true);
       } catch (err) {
-        console.log(err);
+        throw new Error("Failed to delete group");
       }
     } else {
       throw new Error("Database error");
@@ -284,12 +301,12 @@ export class IndexedDBCustomDataManager {
   public async updateGroupName(payload: {
     oldGroupName: string;
     newGroupName: string;
-  }) {
+  }): Promise<boolean> {
     if (!this._custom_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        console.log(err);
       }
     }
 
@@ -305,10 +322,13 @@ export class IndexedDBCustomDataManager {
         if (targetGroup) {
           targetGroup.groupname = payload.newGroupName;
           customDataDB.put("tags", targetGroup);
+          return Promise.resolve(true);
         } else {
           throw new Error("Group not found");
         }
-      } catch (err) {}
+      } catch (err) {
+        throw new Error("Failed to update group name");
+      }
     } else {
       throw new Error("Database error");
     }

@@ -192,7 +192,6 @@ export default defineComponent({
   },
   setup(props) {
     onMounted(async () => {
-      console.log("accountDetails", props.accountDetails);
       setAccountType(props.accountDetails._internalType._value);
       setAccountDetails(
         props.accountDetails._internalID._value,
@@ -230,12 +229,11 @@ export default defineComponent({
       }
       try {
         const createResult = await createTransfer();
-        console.log("createResult", createResult);
         if (createResult) {
           showSuccess.value = true;
         }
       } catch (err) {
-        console.log("err", err);
+        console.log(err);
         showError.value = true;
         if (err instanceof Error) {
           errorMessage.value = err.message;

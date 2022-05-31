@@ -34,18 +34,23 @@ class UserData extends VuexModule {
 
   //INIT
   @Action
-  async initAppStateData() {
-    const requestState = await IndexedDBAppStateStoreManager.getState(
-      "showAppStartWelcome"
-    );
-    if (
-      requestState &&
-      "value" in requestState &&
-      typeof requestState.value === "boolean"
-    ) {
-      this.showAppStartWelcome(requestState.value);
+  async initAppStateData(): Promise<boolean> {
+    try {
+      const requestState = await IndexedDBAppStateStoreManager.getState(
+        "showAppStartWelcome"
+      );
+      if (
+        requestState &&
+        "value" in requestState &&
+        typeof requestState.value === "boolean"
+      ) {
+        this.showAppStartWelcome(requestState.value);
+      }
+      return Promise.resolve(true);
+    } catch (err) {
+      return Promise.reject(err);
     }
   }
 }
-
+//TODO: rename store ?
 export const UserDataStore = getModule(UserData);

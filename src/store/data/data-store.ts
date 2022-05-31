@@ -7,12 +7,21 @@ import {
 } from "vuex-module-decorators";
 import store from "..";
 
-import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
-import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
+import {
+  BasicAccount,
+  IBasicAccountClass,
+} from "@/interfaces/accounts/accounts";
+import {
+  BasicTransfer,
+  IBasicTransferClass,
+} from "@/interfaces/transfers/transfers";
 import * as Comlink from "comlink";
 import { RequestEventDataType } from "./worker-types";
 import { AppDataStore } from "../appData/app-data";
 import { ExampleWorker } from "./worker-types";
+import IndexedDBAccountStoreManager from "@/indexedDB/account-database";
+import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
+import { DataFieldType } from "@/interfaces/data-field/data-field-interface";
 
 @Module({
   dynamic: true,
@@ -24,6 +33,8 @@ class AccountsTransfers extends VuexModule {
   /*
    * Accounts
    */
+
+  //OBJECT & GETTER
   private _accounts: { [index: string]: IBasicAccountClass } = {};
   public get allAccounts(): Array<IBasicAccountClass | never> {
     const accounts: Array<IBasicAccountClass> = [];
@@ -33,6 +44,81 @@ class AccountsTransfers extends VuexModule {
     }
     return accounts;
   }
+  //OBJECT & GETTER
+
+  //ADD-ACCOUNT
+  @Mutation
+  private addAccount(payload: IBasicAccountClass) {
+    this._accounts[payload._internalID._value] = payload;
+  }
+  @Action({ rawError: true })
+  async commitAddAccount(payload: IBasicAccountClass): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
+        try {
+          await IndexedDBAccountStoreManager.addAccount(payload);
+          this.addAccount(payload);
+          resolve(true);
+        } catch (err) {
+          throw new Error("Failed to add transfer to DB");
+        }
+      } else {
+        throw new Error("Account already exists");
+      }
+    });
+  }
+  @Action({ rawError: true })
+  async commitAddAccountFromDB(payload: IBasicAccountClass): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
+        try {
+          // await IndexedDBAccountStoreManager.addAccount(payload);
+          this.addAccount(payload);
+          resolve(true);
+        } catch (err) {
+          throw new Error("Failed to add transfer to DB");
+        }
+      } else {
+        throw new Error("Account already exists");
+      }
+    });
+  }
+  //ADD-ACCOUNT
+
+  //DELETE-ACCOUNT
+  @Mutation
+  private deleteAccount(accountID: string) {
+    delete this._accounts[accountID];
+  }
+  @Action({ rawError: true })
+  async commitDeleteAccount(accountID: string): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      if (this._accounts.hasOwnProperty(accountID)) {
+        try {
+          //TODO
+          //DELETE TRANSFERS FROM PAGINATION
+
+          //DELETE ALL TRANSFERS
+          await IndexedDBTransferStoreManager.deleteManyTransfers(
+            this._accounts[accountID].transfers._value
+          );
+          //DELETE ACCOUNT FROM DB
+          await IndexedDBAccountStoreManager.deleteAccount(accountID);
+          //DELETE ACCOUNT FROM STORE
+          this.deleteAccount(accountID);
+          resolve(true);
+        } catch (err) {
+          throw new Error("Failed to delete account from DB");
+        }
+      } else {
+        throw new Error("Account not found");
+      }
+    });
+  }
+  //DELETE-ACCOUNT
+
+  //*-----------------------------------FINISHED
+
   public get selectedAccounts() {
     const selectedAccounts = [];
     const allAccounts = this._accounts;
@@ -50,34 +136,17 @@ class AccountsTransfers extends VuexModule {
   }) {
     this._accounts[payload.accountID].isSelected._value = payload.selected;
   }
-  @Mutation
-  private addAccount(payload: IBasicAccountClass) {
-    this._accounts[payload._internalID._value] = payload;
-  }
   @Action
   commitAccountSelected(payload: { accountID: string; selected: boolean }) {
     if (this._accounts.hasOwnProperty(payload.accountID)) {
       this.setAccountSelected(payload);
     }
   }
-  @Action({ rawError: true })
-  async commitAddAccount(payload: IBasicAccountClass): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
-        console.log("is new");
-        this.addAccount(payload);
-        resolve(true);
-      } else {
-        console.log("exists");
-        reject(new Error("Account already exists"));
-      }
-    });
-  }
+
   //!Interact with transfer
   //
   @Mutation
   private connectTransfer(payload: { accountID: string; transferID: string }) {
-    console.log("Inside ConnectTransfer", payload);
     this._accounts[payload.accountID].transfers._value.push(payload.transferID);
   }
   @Mutation
@@ -100,16 +169,42 @@ class AccountsTransfers extends VuexModule {
     transferID: string;
   }) {
     if (this._accounts.hasOwnProperty(payload.accountID)) {
-      this.connectTransfer(payload);
+      if (
+        !this._accounts[payload.accountID].transfers._value.includes(
+          payload.transferID
+        )
+      ) {
+        IndexedDBAccountStoreManager.addTransferToAccount({
+          accountID: payload.accountID,
+          transferID: payload.transferID,
+        })
+          .then((_) => {
+            this.connectTransfer(payload);
+          })
+          .catch((err) => {
+            throw new Error("Failed to add transfer to account");
+          });
+      } else {
+        throw new Error("Transfer already added to account!");
+      }
     }
   }
   @Action
-  private deleteTransferFromAccount(payload: {
+  private async deleteTransferFromAccount(payload: {
     accountID: string;
     transferID: string;
   }) {
     if (this._accounts.hasOwnProperty(payload.accountID)) {
-      this.disconnectTransfer(payload);
+      await IndexedDBAccountStoreManager.removeTransferFromAccount({
+        accountID: payload.accountID,
+        transferID: payload.transferID,
+      })
+        .then((_) => {
+          this.disconnectTransfer(payload);
+        })
+        .catch((err) => {
+          throw new Error();
+        });
     }
   }
   /*
@@ -174,6 +269,24 @@ class AccountsTransfers extends VuexModule {
       }
     });
   }
+  @Action({ rawError: true })
+  async commitAddTransferFromDB(
+    payload: IBasicTransferClass
+  ): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
+        this.addTransferToPage(payload);
+        // this.addTransferToAccount({
+        //   accountID: payload._accountID._value,
+        //   transferID: payload._internalID._value,
+        // });
+        this.addTransfer(payload);
+        resolve(true);
+      } else {
+        reject(new Error("Transfer already exists"));
+      }
+    });
+  }
   private _openedTransfers: Array<string> = [];
   public get isOpened() {
     return this._openedTransfers;
@@ -183,7 +296,6 @@ class AccountsTransfers extends VuexModule {
     transferId: string;
     selected: boolean;
   }) {
-    console.log(this._transfers[payload.transferId]);
     this._transfers[payload.transferId].isSelected._value = payload.selected;
   }
   @Mutation
@@ -214,9 +326,7 @@ class AccountsTransfers extends VuexModule {
   }
   @Action
   commitTransferSelected(payload: { transferId: string; selected: boolean }) {
-    console.log("Payload", payload);
     if (this._transfers.hasOwnProperty(payload.transferId)) {
-      console.log(this._transfers[payload.transferId]);
       this.setTransferSelected(payload);
     }
   }
@@ -347,58 +457,81 @@ class AccountsTransfers extends VuexModule {
       if (!hasTransfer) {
         newPagination[year][month].push(id);
       }
-
-      console.log(hasTransfer);
     }
-
-    console.log("NewPagination", newPagination);
 
     this.setPagination(newPagination);
   }
-  @Action
-  async initializeSampleStore() {
-    console.log("Store initialized");
 
-    const newWorker: Worker = new Worker(
-      new URL("./example-worker.ts", import.meta.url),
-      {
-        type: "module",
-      }
-    );
+  // @Action
+  // async initializeSampleStore() {
+  //   const newWorker: Worker = new Worker(
+  //     new URL("./example-worker.ts", import.meta.url),
+  //     {
+  //       type: "module",
+  //     }
+  //   );
 
-    const get: ExampleWorker = Comlink.wrap(newWorker);
+  //   const get: ExampleWorker = Comlink.wrap(newWorker);
 
-    const accountStore: Array<IBasicAccountClass> = await get.examples(3, 50);
+  //   const accountStore: Array<IBasicAccountClass> = await get.examples(3, 50);
 
-    accountStore.forEach((account) => {
-      account.transfers._value.forEach((transfer) => {
-        if (typeof transfer !== "string") {
-          this._transfers[transfer._internalID._value] = transfer;
-        }
+  //   accountStore.forEach((account) => {
+  //     account.transfers._value.forEach((transfer) => {
+  //       if (typeof transfer !== "string") {
+  //         this._transfers[transfer._internalID._value] = transfer;
+  //       }
+  //     });
+
+  //     account.transfers._value = account.transfers._value.map((transfer) => {
+  //       if (typeof transfer !== "string") {
+  //         return transfer._internalID._value;
+  //       } else {
+  //         return transfer;
+  //       }
+  //     });
+
+  //     this._accounts[account._internalID._value] = account;
+  //   });
+
+  //   const tags = await get.getTags;
+
+  //   tags.forEach((tag) => {
+  //     AppDataStore.addDefaultTag(tag);
+  //   });
+
+  //   newWorker.terminate();
+
+  //   return true;
+  // }
+
+  //!INIT
+  @Action({ rawError: true })
+  async initAccounts(): Promise<boolean> {
+    try {
+      const accounts = await IndexedDBAccountStoreManager.getAllAccounts();
+
+      accounts.forEach((account) => {
+        const existingAccount = new BasicAccount(account);
+        this.commitAddAccountFromDB(existingAccount);
       });
 
-      account.transfers._value = account.transfers._value.map((transfer) => {
-        if (typeof transfer !== "string") {
-          return transfer._internalID._value;
-        } else {
-          return transfer;
-        }
+      return Promise.resolve(true);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+  @Action({ rawError: true })
+  async initTransfers(): Promise<boolean> {
+    try {
+      const transfers = await IndexedDBTransferStoreManager.getAllTransfers();
+      transfers.forEach((transfer) => {
+        const existingTransfer = new BasicTransfer(transfer);
+        this.commitAddTransferFromDB(existingTransfer);
       });
-
-      this._accounts[account._internalID._value] = account;
-    });
-
-    const tags = await get.getTags;
-
-    console.log("tags", tags);
-
-    tags.forEach((tag) => {
-      AppDataStore.addDefaultTag(tag);
-    });
-
-    newWorker.terminate();
-
-    return true;
+      return Promise.resolve(true);
+    } catch (err) {
+      return Promise.reject(err);
+    }
   }
 }
 

@@ -27,13 +27,13 @@
         <div class="account-card__income">
           <i class="funds-change-icon fa-solid fa-arrow-down"></i>
           <p class="funds-change">
-            {{ incomeCurrent }}{{ account.currency._value }}
+            {{ summary.currentMonth.income }}{{ account.currency._value }}
           </p>
         </div>
         <div class="account-card__outgoing">
           <i class="funds-change-icon fa-solid fa-arrow-up"></i>
           <p class="funds-change">
-            {{ outgoingCurrent }}{{ account.currency._value }}
+            {{ summary.currentMonth.outgoing }}{{ account.currency._value }}
           </p>
         </div>
       </div>
@@ -42,13 +42,13 @@
         <div class="account-card__income">
           <i class="funds-change-icon fa-solid fa-arrow-down"></i>
           <p class="funds-change">
-            {{ incomeLast }}{{ account.currency._value }}
+            {{ summary.lastMonth.income }}{{ account.currency._value }}
           </p>
         </div>
         <div class="account-card__outgoing">
           <i class="funds-change-icon fa-solid fa-arrow-up"></i>
           <p class="funds-change">
-            {{ outgoingLast }}{{ account.currency._value }}
+            {{ summary.lastMonth.outgoing }}{{ account.currency._value }}
           </p>
         </div>
       </div>
@@ -63,7 +63,7 @@
       >
         <p class="saldo-title">Saldo</p>
         <p class="saldo-value">
-          {{ currentBalance }}{{ account.currency._value }}
+          {{ summary.currentMonth.balance }}{{ account.currency._value }}
         </p>
       </div>
       <div
@@ -74,7 +74,7 @@
       >
         <p class="saldo-title --small">Last Month</p>
         <p class="saldo-value">
-          {{ lastBalance }}{{ account.currency._value }}
+          {{ summary.lastMonth.balance }}{{ account.currency._value }}
         </p>
       </div>
     </transition>
@@ -85,7 +85,7 @@
 import { defineComponent, onMounted, computed, PropType, ref } from "vue";
 import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
 import { AccountTransferStore } from "@/store/data/data-store";
-import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
+import { AccountCalcData } from "@/worker/message-interfaces/db-worker";
 
 export default defineComponent({
   props: {
@@ -93,8 +93,16 @@ export default defineComponent({
       type: Object as PropType<IBasicAccountClass>,
       required: true,
     },
+    summary: {
+      type: Object as PropType<AccountCalcData>,
+      required: true,
+    },
   },
   setup(props) {
+    onMounted(async () => {
+      console.log("Account-Card mounted");
+    });
+
     const isSelected = computed({
       get: () => props.account.isSelected._value,
       set: (value) => {
@@ -111,128 +119,10 @@ export default defineComponent({
       showLastMonth.value = !showLastMonth.value;
     };
 
-    const accountTransfers = computed(
-      (): Array<IBasicTransferClass | never> => {
-        const ownTransfers: Array<IBasicTransferClass | never> = [];
-        props.account.transfers._value.forEach((entry) => {
-          if (typeof entry === "string") {
-            ownTransfers.push(AccountTransferStore.transfersAsObject[entry]);
-          }
-        });
-        return ownTransfers;
-      }
-    );
-
-    const currentMonthTransfers = computed(() => {
-      const date = new Date();
-      const currentMonth = date.getMonth();
-      const relatedYear = date.getFullYear();
-
-      const filteredTransfers: Array<IBasicTransferClass | never> = [];
-      accountTransfers.value.forEach((entry) => {
-        if (
-          entry.valutaDate._dateMetaInformation.month === currentMonth &&
-          entry.valutaDate._dateMetaInformation.year === relatedYear
-        ) {
-          filteredTransfers.push(entry);
-        }
-      });
-      return filteredTransfers;
-    });
-
-    const lastMonthTransfers = computed(() => {
-      const date = new Date();
-      const currentMonth = date.getMonth();
-      date.setMonth(currentMonth - 1);
-      const lastMonth = date.getMonth();
-      const relatedYear = date.getFullYear();
-
-      const filteredTransfers: Array<IBasicTransferClass | never> = [];
-      accountTransfers.value.forEach((entry) => {
-        if (
-          entry.valutaDate._dateMetaInformation.month === lastMonth &&
-          entry.valutaDate._dateMetaInformation.year === relatedYear
-        ) {
-          filteredTransfers.push(entry);
-        }
-      });
-      return filteredTransfers;
-    });
-
-    const incomeCurrent = computed(() => {
-      return currentMonthTransfers.value.reduce((acc, curr) => {
-        if (curr.value._value >= 0) {
-          return acc + curr.value._value;
-        } else {
-          return acc;
-        }
-      }, 0);
-    });
-
-    const incomeLast = computed(() => {
-      return lastMonthTransfers.value.reduce((acc, curr) => {
-        if (curr.value._value >= 0) {
-          return acc + curr.value._value;
-        } else {
-          return acc;
-        }
-      }, 0);
-    });
-
-    const outgoingCurrent = computed(() => {
-      return currentMonthTransfers.value.reduce((acc, curr) => {
-        if (curr.value._value < 0) {
-          return acc + curr.value._value;
-        } else {
-          return acc;
-        }
-      }, 0);
-    });
-
-    const outgoingLast = computed(() => {
-      return lastMonthTransfers.value.reduce((acc, curr) => {
-        if (curr.value._value < 0) {
-          return acc + curr.value._value;
-        } else {
-          return acc;
-        }
-      }, 0);
-    });
-
-    const currentBalance = computed(() => {
-      return accountTransfers.value.reduce((acc, curr) => {
-        return acc + curr.value._value;
-      }, props.account.openingBalance._value);
-    });
-
-    const lastBalance = computed(() => {
-      const date = new Date();
-      const currentMonth = date.getMonth();
-      const currentYear = date.getFullYear();
-
-      return accountTransfers.value.reduce((acc, curr) => {
-        if (
-          curr.valutaDate._dateMetaInformation.year <= currentYear &&
-          curr.valutaDate._dateMetaInformation.month < currentMonth
-        ) {
-          return acc + curr.value._value;
-        } else {
-          return acc;
-        }
-      }, props.account.openingBalance._value);
-    });
-
     return {
       isSelected: isSelected,
       showLastMonth,
       toggleSaldoView,
-      accountTransfers,
-      incomeCurrent,
-      incomeLast,
-      outgoingLast,
-      outgoingCurrent,
-      currentBalance,
-      lastBalance,
     };
   },
 });

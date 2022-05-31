@@ -115,7 +115,6 @@ export default defineComponent({
       year: number | string,
       month: number | string
     ) => {
-      console.log(event, year, month);
       AccountTransferStore.commitCurrentPage({
         year: Number(year),
         month: Number(month),

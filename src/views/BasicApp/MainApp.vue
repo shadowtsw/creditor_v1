@@ -81,8 +81,16 @@ export default defineComponent({
     ...importPages(),
   },
   setup() {
-    onMounted(() => {
-      UserDataStore.initAppStateData();
+    onMounted(async () => {
+      try {
+        //Init User & App states
+        await UserDataStore.initAppStateData();
+        //Init Account data
+        await AccountTransferStore.initAccounts();
+        await AccountTransferStore.initTransfers();
+      } catch (err) {
+        console.info("WARNING: ERROR during Init()", err);
+      }
     });
     const {
       activateCreateTransfers,
@@ -98,20 +106,18 @@ export default defineComponent({
     const accountsLength = computed(() => {
       return AccountTransferStore.allAccounts.length;
     });
-    //Watch transfers
-    const transfersLength = computed(() => {
-      return AccountTransferStore.allTransfers.length;
-    });
     watch(accountsLength, (newVal, oldVal) => {
-      console.log("accountsLength", newVal, oldVal);
       if (newVal > 0) {
         activateCreateTransfers();
       } else {
         hideCreateTransfers();
       }
     });
+    //Watch transfers
+    const transfersLength = computed(() => {
+      return AccountTransferStore.allTransfers.length;
+    });
     watch(transfersLength, (newVal, oldVal) => {
-      console.log("transfersLength", newVal, oldVal);
       if (newVal > 0) {
         activateTransferList();
       } else {
@@ -119,6 +125,7 @@ export default defineComponent({
       }
     });
     //
+
     //Main view management
 
     //Show welcome page
@@ -133,9 +140,17 @@ export default defineComponent({
       if (currentPage.value === "Settings") {
         return settings.value;
       }
-      return pages.value.find(
+      const targetPage = pages.value.find(
         (entry) => entry.displayText === currentPage.value
       );
+      if (
+        (targetPage && "active" in targetPage && !targetPage.active) ||
+        !targetPage
+      ) {
+        //In case of stored page is not active during load or page wasn´t found
+        return pages.value.find((entry) => entry.displayText === "Get Started");
+      }
+      return targetPage;
     });
 
     return {

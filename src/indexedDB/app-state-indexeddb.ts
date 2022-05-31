@@ -66,7 +66,6 @@ class IndexedDBAppStateManager {
       {
         upgrade(db) {
           if (!db.objectStoreNames.contains("appState")) {
-            console.log("appState starts");
             const store = db.createObjectStore("appState", {
               keyPath: "property",
             });
@@ -74,7 +73,6 @@ class IndexedDBAppStateManager {
           }
 
           if (!db.objectStoreNames.contains("visiblePages")) {
-            console.log("visiblePages starts");
             const store = db.createObjectStore("visiblePages", {
               keyPath: "pageName",
             });
@@ -84,7 +82,6 @@ class IndexedDBAppStateManager {
           }
 
           if (!db.objectStoreNames.contains("visiblePlugins")) {
-            console.log("visiblePages starts");
             const store = db.createObjectStore("visiblePlugins", {
               keyPath: "pluginName",
             });
@@ -106,12 +103,12 @@ class IndexedDBAppStateManager {
   public async setState(payload: {
     property: string;
     value: string | boolean;
-  }) {
+  }): Promise<boolean> {
     if (!this._app_state_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        throw new Error(`Failed to init DB:${err}`);
       }
     }
 
@@ -124,6 +121,7 @@ class IndexedDBAppStateManager {
         } else {
           await appState.add("appState", payload);
         }
+        return Promise.resolve(true);
       } catch (err) {
         throw new Error(`Failed to add state: ${err}`);
       }
@@ -137,7 +135,7 @@ class IndexedDBAppStateManager {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        throw new Error(`Failed to init DB:${err}`);
       }
     }
 
@@ -158,12 +156,15 @@ class IndexedDBAppStateManager {
     }
   }
 
-  public async setPage(payload: { pageName: string; value: boolean }) {
+  public async setPage(payload: {
+    pageName: string;
+    value: boolean;
+  }): Promise<boolean> {
     if (!this._app_state_data) {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        throw new Error(`Failed to init DB:${err}`);
       }
     }
 
@@ -179,6 +180,7 @@ class IndexedDBAppStateManager {
         } else {
           await appState.add("visiblePages", payload);
         }
+        return Promise.resolve(true);
       } catch (err) {
         throw new Error(`Failed to add visibility to page: ${err}`);
       }
@@ -192,14 +194,13 @@ class IndexedDBAppStateManager {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        throw new Error(`Failed to init DB:${err}`);
       }
     }
 
     if (this._app_state_data) {
       const appState = this._app_state_data;
       try {
-        console.log("GET", pageName);
         const stateResult = await appState.get("visiblePages", pageName);
         if (stateResult) {
           return stateResult;
@@ -219,7 +220,7 @@ class IndexedDBAppStateManager {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        throw new Error(`Failed to init DB:${err}`);
       }
     }
 
@@ -238,6 +239,7 @@ class IndexedDBAppStateManager {
       } catch (err) {
         throw new Error(`Failed to add visibility to plugin: ${err}`);
       }
+      return Promise.resolve(true);
     } else {
       throw new Error("Database not found");
     }
@@ -248,7 +250,7 @@ class IndexedDBAppStateManager {
       try {
         await this.initDB();
       } catch (err) {
-        console.log("ERR", err);
+        throw new Error(`Failed to init DB:${err}`);
       }
     }
 

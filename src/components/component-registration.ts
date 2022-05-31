@@ -89,7 +89,6 @@ export const importPages = () => {
 
   for (const page in Pages) {
     const { component, path } = Pages[page];
-    console.log("Component", component);
     importer[component] = defineAsyncComponent(
       () => import(`../views/${component}.vue`)
     );

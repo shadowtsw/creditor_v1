@@ -21,14 +21,8 @@ export default defineComponent({
   },
   setup() {
     const defaultTags = computed(() => {
-      console.log(
-        "AppDataStore.defaultGroup?.tags;",
-        AppDataStore.defaultGroup?.tags
-      );
       return AppDataStore.defaultGroup?.tags;
     });
-
-    console.log("defaultTags", defaultTags);
 
     return {
       defaultTags,

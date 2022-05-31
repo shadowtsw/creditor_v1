@@ -35,7 +35,6 @@ export default defineComponent({
   },
   setup() {
     onMounted(async () => {});
-    console.log("");
     const accountTypes = reactive([
       {
         displayName: "Cash",

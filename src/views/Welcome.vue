@@ -19,8 +19,13 @@ export default defineComponent({
       IndexedDBAppStateStoreManager.setState({
         property: "showAppStartWelcome",
         value: false,
-      });
-      UserDataStore.showAppStartWelcome(false);
+      })
+        .then((_) => {
+          UserDataStore.showAppStartWelcome(false);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     };
 
     return {

@@ -14,12 +14,11 @@ const pageMap = ref<Array<DictionaryEntryObject>>([]);
 //converts dictionary
 async function convertComponentsRegistration() {
   for (const entry in componentDictionary) {
-    console.log("IndexedDBAppStateStoreManager", IndexedDBAppStateStoreManager);
     const dbVisibleState =
       (await IndexedDBAppStateStoreManager.getPage(
         componentDictionary[entry].component
       )) || null;
-    console.log("dbVisibleState", dbVisibleState);
+
     const obj: DictionaryEntryObject = {
       displayText: componentDictionary[entry].displayText,
       component: componentDictionary[entry].component,
@@ -32,6 +31,7 @@ async function convertComponentsRegistration() {
       index: componentDictionary[entry].index,
       path: componentDictionary[entry].path,
     };
+
     const index = componentDictionary[entry].index;
 
     if (componentDictionary[entry].type === "Plugin") {
@@ -75,8 +75,13 @@ export const usePageNavigator = () => {
     IndexedDBAppStateStoreManager.setState({
       property: "currentPage",
       value: pageName,
-    });
-    currentPage.value = pageName;
+    })
+      .then((_) => {
+        currentPage.value = pageName;
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   //User configuration, hide unnecessary tabs
@@ -100,8 +105,13 @@ export const usePageNavigator = () => {
       IndexedDBAppStateStoreManager.setPage({
         pageName: "ImportCSV",
         value: true,
-      });
-      target.active = true;
+      })
+        .then((_) => {
+          target.active = true;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   };
 
@@ -113,8 +123,13 @@ export const usePageNavigator = () => {
       IndexedDBAppStateStoreManager.setPage({
         pageName: "CreateAccount",
         value: true,
-      });
-      target.active = true;
+      })
+        .then((_) => {
+          target.active = true;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   };
 
@@ -126,8 +141,13 @@ export const usePageNavigator = () => {
       IndexedDBAppStateStoreManager.setPage({
         pageName: "CreateTransfer",
         value: true,
-      });
-      target.active = true;
+      })
+        .then((_) => {
+          target.active = true;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   };
 
@@ -139,8 +159,13 @@ export const usePageNavigator = () => {
       IndexedDBAppStateStoreManager.setPage({
         pageName: "Transfers",
         value: true,
-      });
-      target.active = true;
+      })
+        .then((_) => {
+          target.active = true;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   };
 
@@ -152,8 +177,13 @@ export const usePageNavigator = () => {
       IndexedDBAppStateStoreManager.setPage({
         pageName: "Transfers",
         value: false,
-      });
-      target.active = false;
+      })
+        .then((_) => {
+          target.active = false;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   };
 
@@ -165,8 +195,13 @@ export const usePageNavigator = () => {
       IndexedDBAppStateStoreManager.setPage({
         pageName: "CreateTransfer",
         value: false,
-      });
-      target.active = false;
+      })
+        .then((_) => {
+          target.active = false;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   };
 
@@ -201,8 +236,13 @@ export const usePluginNavigator = () => {
     IndexedDBAppStateStoreManager.setState({
       property: "currentPlugin",
       value: pageName,
-    });
-    currentPlugin.value = pageName;
+    })
+      .then((_) => {
+        currentPlugin.value = pageName;
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
   //User configuration, hide unnecessary tabs
   const setTabVisibility = (entryDisplayName: string, value: boolean) => {
@@ -213,8 +253,13 @@ export const usePluginNavigator = () => {
       IndexedDBAppStateStoreManager.setPlugin({
         pluginName: target.component,
         value: value,
-      });
-      target.active = value;
+      })
+        .then((_) => {
+          target.active = value;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   };
 

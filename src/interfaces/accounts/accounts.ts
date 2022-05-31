@@ -28,8 +28,11 @@ export interface IBasicAccountClass {
   _internalID: BasicDataField & {
     readonly _value: string;
   };
+  // transfers: BasicDataField & {
+  //   _value: Array<IBasicTransferClass | string | never>;
+  // };
   transfers: BasicDataField & {
-    _value: Array<IBasicTransferClass | string | never>;
+    _value: Array<string | never>;
   };
   _internalType: BasicDataField & {
     readonly _value: IBasicAccountClassTypes;
@@ -140,8 +143,11 @@ export class BasicAccount implements IBasicAccountClass {
   accountNumber: BasicDataField & {
     readonly _value: string;
   };
+  // transfers: BasicDataField & {
+  //   _value: Array<IBasicTransferClass | string | never>;
+  // };
   transfers: BasicDataField & {
-    _value: Array<IBasicTransferClass | string | never>;
+    _value: Array<string | never>;
   };
   openingBalance: BasicDataField & {
     _value: number;
@@ -164,101 +170,117 @@ export class BasicAccount implements IBasicAccountClass {
   isSelected: BasicDataField & {
     _value: boolean;
   };
-  constructor(payload: IBasicAccountConstructorConfig) {
-    (this._internalID = {
-      _value: generateCreditorAccountID(payload),
-      _type: DataFieldType.ID,
-      _displayName: "internalID",
-      ...getAccountConfig(payload._internalType, "_internalID"),
-    }),
-      (this._internalType = {
-        _value: payload._internalType,
+  constructor(payload: IBasicAccountConstructorConfig | IBasicAccountClass) {
+    if ("_internalID" in payload) {
+      this._internalID = payload._internalID;
+      this._internalType = payload._internalType;
+      this.shortName = payload.shortName;
+      this.provider = payload.provider;
+      this.accountNumber = payload.accountNumber;
+      this.transfers = payload.transfers;
+      this.openingBalance = payload.openingBalance;
+      this.openingBalanceDate = payload.openingBalanceDate;
+      this.createdAt = payload.createdAt;
+      this.updatedAt = payload.updatedAt;
+      this.currency = payload.currency;
+      this.isSelected = payload.isSelected;
+    } else {
+      (this._internalID = {
+        _value: generateCreditorAccountID(payload),
         _type: DataFieldType.ID,
-        _displayName: "internalType",
-        ...getAccountConfig(payload._internalType, "_internalType"),
+        _displayName: "internalID",
+        ...getAccountConfig(payload._internalType, "_internalID"),
       }),
-      (this.shortName = {
-        _value: payload.shortName,
-        _type: DataFieldType.STRING,
-        _displayName: "Shortname",
-        ...getAccountConfig(payload._internalType, "shortName"),
-      }),
-      (this.provider = {
-        _value: payload.provider,
-        _type: DataFieldType.STRING,
-        _displayName: "Bank/Account",
-        ...getAccountConfig(payload._internalType, "provider"),
-      }),
-      (this.accountNumber = {
-        _value: payload.accountNumber,
-        _type: DataFieldType.STRING,
-        _displayName: "IBAN/AccountNo.",
-        ...getAccountConfig(payload._internalType, "accountNumber"),
-      }),
-      (this.transfers = {
-        _value: [] as Array<IBasicTransferClass>,
-        _type: DataFieldType.TRANSFERLIST,
-        _displayName: "Transfers",
-        ...getAccountConfig(payload._internalType, "transfers"),
-      }),
-      (this.openingBalance = {
-        _value: payload.openingBalance || 0,
-        _type: DataFieldType.NUMBER,
-        _displayName: "Opening balance",
-        ...getAccountConfig(payload._internalType, "openingBalance"),
-      }),
-      (this.openingBalanceDate = {
-        _value: payload.openingBalanceDate.getTime(),
-        _dateMetaInformation: {
-          isoString:
-            payload.openingBalanceDate.toISOString() ||
-            new Date().toISOString(),
-          weekDay: payload.openingBalanceDate.getDay() || new Date().getDay(),
-          month: payload.openingBalanceDate.getMonth() || new Date().getMonth(),
-          year:
-            payload.openingBalanceDate.getFullYear() ||
-            new Date().getFullYear(),
-        },
-        _type: DataFieldType.NUMBER,
-        _displayName: "Opening balance date",
-        ...getAccountConfig(payload._internalType, "openingBalanceDate"),
-      }),
-      (this.createdAt = {
-        _value: new Date().getTime(),
-        _dateMetaInformation: {
-          isoString: new Date().toISOString(),
-          weekDay: new Date().getDay(),
-          month: new Date().getMonth(),
-          year: new Date().getFullYear(),
-        },
-        _type: DataFieldType.NUMBER,
-        _displayName: "Created at",
-        ...getAccountConfig(payload._internalType, "createdAt"),
-      }),
-      (this.updatedAt = {
-        _value: new Date().getTime() || new Date().getTime(),
-        _dateMetaInformation: {
-          isoString: new Date().toISOString() || new Date().toISOString(),
-          weekDay: new Date().getDay() || new Date().getDay(),
-          month: new Date().getMonth() || new Date().getMonth(),
-          year: new Date().getFullYear() || new Date().getFullYear(),
-        },
-        _type: DataFieldType.NUMBER,
-        _displayName: "Updated at",
-        ...getAccountConfig(payload._internalType, "updatedAt"),
-      }),
-      (this.currency = {
-        _value: payload.currency,
-        _type: DataFieldType.CURRENCY,
-        _displayName: "Currency",
-        ...getAccountConfig(payload._internalType, "currency"),
-      }),
-      (this.isSelected = {
-        _value: true,
-        _type: DataFieldType.CHECKBOX,
-        _displayName: "Selected",
-        ...getAccountConfig(payload._internalType, "isSelected"),
-      });
+        (this._internalType = {
+          _value: payload._internalType,
+          _type: DataFieldType.ID,
+          _displayName: "internalType",
+          ...getAccountConfig(payload._internalType, "_internalType"),
+        }),
+        (this.shortName = {
+          _value: payload.shortName,
+          _type: DataFieldType.STRING,
+          _displayName: "Shortname",
+          ...getAccountConfig(payload._internalType, "shortName"),
+        }),
+        (this.provider = {
+          _value: payload.provider,
+          _type: DataFieldType.STRING,
+          _displayName: "Bank/Account",
+          ...getAccountConfig(payload._internalType, "provider"),
+        }),
+        (this.accountNumber = {
+          _value: payload.accountNumber,
+          _type: DataFieldType.STRING,
+          _displayName: "IBAN/AccountNo.",
+          ...getAccountConfig(payload._internalType, "accountNumber"),
+        }),
+        (this.transfers = {
+          _value: [] as Array<string>,
+          _type: DataFieldType.TRANSFERLIST,
+          _displayName: "Transfers",
+          ...getAccountConfig(payload._internalType, "transfers"),
+        }),
+        (this.openingBalance = {
+          _value: payload.openingBalance || 0,
+          _type: DataFieldType.NUMBER,
+          _displayName: "Opening balance",
+          ...getAccountConfig(payload._internalType, "openingBalance"),
+        }),
+        (this.openingBalanceDate = {
+          _value: payload.openingBalanceDate.getTime(),
+          _dateMetaInformation: {
+            isoString:
+              payload.openingBalanceDate.toISOString() ||
+              new Date().toISOString(),
+            weekDay: payload.openingBalanceDate.getDay() || new Date().getDay(),
+            month:
+              payload.openingBalanceDate.getMonth() || new Date().getMonth(),
+            year:
+              payload.openingBalanceDate.getFullYear() ||
+              new Date().getFullYear(),
+          },
+          _type: DataFieldType.NUMBER,
+          _displayName: "Opening balance date",
+          ...getAccountConfig(payload._internalType, "openingBalanceDate"),
+        }),
+        (this.createdAt = {
+          _value: new Date().getTime(),
+          _dateMetaInformation: {
+            isoString: new Date().toISOString(),
+            weekDay: new Date().getDay(),
+            month: new Date().getMonth(),
+            year: new Date().getFullYear(),
+          },
+          _type: DataFieldType.NUMBER,
+          _displayName: "Created at",
+          ...getAccountConfig(payload._internalType, "createdAt"),
+        }),
+        (this.updatedAt = {
+          _value: new Date().getTime() || new Date().getTime(),
+          _dateMetaInformation: {
+            isoString: new Date().toISOString() || new Date().toISOString(),
+            weekDay: new Date().getDay() || new Date().getDay(),
+            month: new Date().getMonth() || new Date().getMonth(),
+            year: new Date().getFullYear() || new Date().getFullYear(),
+          },
+          _type: DataFieldType.NUMBER,
+          _displayName: "Updated at",
+          ...getAccountConfig(payload._internalType, "updatedAt"),
+        }),
+        (this.currency = {
+          _value: payload.currency,
+          _type: DataFieldType.CURRENCY,
+          _displayName: "Currency",
+          ...getAccountConfig(payload._internalType, "currency"),
+        }),
+        (this.isSelected = {
+          _value: true,
+          _type: DataFieldType.CHECKBOX,
+          _displayName: "Selected",
+          ...getAccountConfig(payload._internalType, "isSelected"),
+        });
+    }
   }
 }
 

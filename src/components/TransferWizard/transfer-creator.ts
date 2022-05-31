@@ -13,6 +13,7 @@ import { computed, reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";
 import { AccountTransferStore } from "@/store/data/data-store";
 import ErrorMessages from "@/utils/error-messages";
+import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
 
 export const useTransferCreator = () => {
   const { validString, validNumber, validDate } = useValidator();
@@ -106,7 +107,6 @@ export const useTransferCreator = () => {
       initialValue: boolean,
       validationObject: TransferValidationResultObject
     ): boolean => {
-      console.log("CASH", validateResult);
       return (
         initialValue ||
         !!validationObject.valueError ||
@@ -168,8 +168,6 @@ export const useTransferCreator = () => {
         break;
     }
 
-    console.log("basicValidation", basicValidation);
-
     return basicValidation;
   };
 
@@ -200,21 +198,25 @@ export const useTransferCreator = () => {
       ...{ value: Number(remainingParams.value) },
     };
 
-    console.log("constructor object", constructorObject);
-
     const newTransfer = new BasicTransfer(constructorObject);
 
     if (newTransfer._internalID._value !== "") {
       try {
-        const issueResult = await AccountTransferStore.commitAddTransfer(
-          newTransfer
-        );
-        if (issueResult) {
-          reset();
-          return Promise.resolve(true);
-        } else {
-          return Promise.reject(new Error("Something went wrong"));
-        }
+        return IndexedDBTransferStoreManager.addTransfer(newTransfer)
+          .then(async (_) => {
+            const issueResult = await AccountTransferStore.commitAddTransfer(
+              newTransfer
+            );
+            if (issueResult) {
+              reset();
+              return Promise.resolve(true);
+            } else {
+              throw new Error("Failed to add transfer !");
+            }
+          })
+          .catch((err) => {
+            throw new Error(err);
+          });
       } catch (err) {
         return Promise.reject(err);
       }

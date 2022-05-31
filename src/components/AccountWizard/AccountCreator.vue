@@ -268,17 +268,14 @@ export default defineComponent({
     const startCreateAccount = async () => {
       if (hasErrors()) {
         showInfo.value = false;
-        console.log("hasErrors", hasErrors());
         return;
       }
       try {
         const createResult = await createAccount();
-        console.log("createResult", createResult);
         if (createResult) {
           showSuccess.value = true;
         }
       } catch (err) {
-        console.log("err", err);
         showError.value = true;
         if (err instanceof Error) {
           errorMessage.value = err.message;

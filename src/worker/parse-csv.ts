@@ -4,8 +4,6 @@ import Papa from "papaparse";
 const parsingResult = [];
 
 export function parseCSV(csv: File, fieldReadyCallback: Function) {
-  console.log("Got File", csv);
-
   const newParseObject = {
     date: new Date(),
     fields: [],
@@ -13,7 +11,6 @@ export function parseCSV(csv: File, fieldReadyCallback: Function) {
   };
 
   let isFirstRow = true;
-  console.log(getBasicTransferFields());
 
   Papa.parse(csv, {
     header: true,

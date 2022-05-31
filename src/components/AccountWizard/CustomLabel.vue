@@ -45,9 +45,6 @@ export default defineComponent({
       required: true,
     },
   },
-  mounted() {
-    console.log("Value", this.modelValue);
-  },
 });
 </script>
 

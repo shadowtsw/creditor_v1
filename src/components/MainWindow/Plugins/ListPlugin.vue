@@ -48,8 +48,6 @@ export default defineComponent({
       () => AccountTransferStore.transfersFromActiveAccounts
     );
 
-    console.log("transfers", transfers.value);
-
     return {
       transfers,
     };

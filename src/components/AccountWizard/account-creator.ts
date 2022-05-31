@@ -7,11 +7,11 @@ import {
   IBasicAccountConstructorKeys,
 } from "@/interfaces/accounts/accounts";
 import { AccountTransferStore } from "@/store/data/data-store";
-// import { generateCreditorAccountID } from "@/utils/id-generator";
 import { useValidator } from "@/utils/validator";
 import { computed, reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";
 import ErrorMessages from "@/utils/error-messages";
+import IndexedDBAccountStoreManager from "@/indexedDB/account-database";
 
 export const useAccountCreator = () => {
   const { validString, validNumber, validDate } = useValidator();
@@ -74,15 +74,6 @@ export const useAccountCreator = () => {
       return null;
     },
   };
-
-  //Currency
-  // const currency = ref<CurrencyValues>(CurrencyValues.EUR);
-  // const getCurrency = computed(() => {
-  //   return currency.value;
-  // });
-  // const setCurrency = (payload: CurrencyValues) => {
-  //   currency.value = payload;
-  // };
 
   const hasErrors = (): boolean => {
     const addGeneralValidation = (
@@ -181,7 +172,7 @@ export const useAccountCreator = () => {
           reset();
           return Promise.resolve(true);
         } else {
-          return Promise.reject(new Error("Something went wrong"));
+          throw new Error("Failed to add account !");
         }
       } catch (err) {
         return Promise.reject(err);
