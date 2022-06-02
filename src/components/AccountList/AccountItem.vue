@@ -1,5 +1,5 @@
 <template>
-  <div class="account-card">
+  <div v-if="!isLoading" class="account-card">
     <div class="account-card__short-name">
       <p v-if="account.shortName._value">{{ account.shortName._value }}</p>
       <p v-else>{{ account._internalID._value }}</p>
@@ -85,7 +85,7 @@
 import { defineComponent, onMounted, computed, PropType, ref } from "vue";
 import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
 import { AccountTransferStore } from "@/store/data/data-store";
-import { AccountCalcData } from "@/worker/message-interfaces/db-worker";
+import { AccountBalanceObject } from "@/worker/message-interfaces/account-assist-interface";
 
 export default defineComponent({
   props: {
@@ -94,8 +94,13 @@ export default defineComponent({
       required: true,
     },
     summary: {
-      type: Object as PropType<AccountCalcData>,
+      type: Object as PropType<AccountBalanceObject & { isLoading: boolean }>,
       required: true,
+    },
+    isLoading: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   setup(props) {

@@ -184,7 +184,7 @@ export const useTransferCreator = () => {
     }
 
     if (
-      preConfiguredObject._internalType !== BasicAccountTypes.CASH &&
+      preConfiguredObject._internalType === BasicAccountTypes.BANK_ACCOUNT &&
       !convertedBookDate
     ) {
       throw new Error("Date conversation failed !");
@@ -202,21 +202,15 @@ export const useTransferCreator = () => {
 
     if (newTransfer._internalID._value !== "") {
       try {
-        return IndexedDBTransferStoreManager.addTransfer(newTransfer)
-          .then(async (_) => {
-            const issueResult = await AccountTransferStore.commitAddTransfer(
-              newTransfer
-            );
-            if (issueResult) {
-              reset();
-              return Promise.resolve(true);
-            } else {
-              throw new Error("Failed to add transfer !");
-            }
-          })
-          .catch((err) => {
-            throw new Error(err);
-          });
+        const issueResult = await AccountTransferStore.commitAddTransfer(
+          newTransfer
+        );
+        if (issueResult) {
+          reset();
+          return Promise.resolve(true);
+        } else {
+          throw new Error("Failed to add transfer !");
+        }
       } catch (err) {
         return Promise.reject(err);
       }
@@ -248,8 +242,8 @@ export const useTransferCreator = () => {
     preConfiguredObject.distKey = {};
     preConfiguredObject.currency = CurrencyValues.EUR;
 
-    preConfiguredObject.provider = "";
-    preConfiguredObject.accountNumber = "";
+    // preConfiguredObject.provider = "";
+    // preConfiguredObject.accountNumber = "";
 
     preConfiguredObject.bookDate = "";
   };

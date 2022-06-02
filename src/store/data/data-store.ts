@@ -22,6 +22,11 @@ import { ExampleWorker } from "./worker-types";
 import IndexedDBAccountStoreManager from "@/indexedDB/account-database";
 import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
 import { DataFieldType } from "@/interfaces/data-field/data-field-interface";
+import {
+  AccountAssistMessageTypes,
+  RequestBalanceMessage,
+} from "@/worker/message-interfaces/account-assist-interface";
+import { accountAssistantWorker } from "@/worker/worker-provider";
 
 @Module({
   dynamic: true,
@@ -60,7 +65,7 @@ class AccountsTransfers extends VuexModule {
           this.addAccount(payload);
           resolve(true);
         } catch (err) {
-          throw new Error("Failed to add transfer to DB");
+          throw new Error(`Failed to add account to DB: ${err}`);
         }
       } else {
         throw new Error("Account already exists");
@@ -164,30 +169,34 @@ class AccountsTransfers extends VuexModule {
   }
   //Ad or delete
   @Action
-  private addTransferToAccount(payload: {
+  private async addTransferToAccount(payload: {
     accountID: string;
     transferID: string;
-  }) {
-    if (this._accounts.hasOwnProperty(payload.accountID)) {
-      if (
-        !this._accounts[payload.accountID].transfers._value.includes(
-          payload.transferID
-        )
-      ) {
-        IndexedDBAccountStoreManager.addTransferToAccount({
-          accountID: payload.accountID,
-          transferID: payload.transferID,
-        })
-          .then((_) => {
+  }): Promise<boolean> {
+    return new Promise<boolean>(async (resolve, reject) => {
+      if (this._accounts.hasOwnProperty(payload.accountID)) {
+        if (
+          !this._accounts[payload.accountID].transfers._value.includes(
+            payload.transferID
+          )
+        ) {
+          try {
+            await IndexedDBAccountStoreManager.addTransferToAccount({
+              accountID: payload.accountID,
+              transferID: payload.transferID,
+            });
             this.connectTransfer(payload);
-          })
-          .catch((err) => {
-            throw new Error("Failed to add transfer to account");
-          });
+            resolve(true);
+          } catch (err) {
+            throw new Error(`Failed to add transfer to account: ${err}`);
+          }
+        } else {
+          throw new Error("Transfer already added to account!");
+        }
       } else {
-        throw new Error("Transfer already added to account!");
+        throw new Error("Account not found!");
       }
-    }
+    });
   }
   @Action
   private async deleteTransferFromAccount(payload: {
@@ -255,17 +264,32 @@ class AccountsTransfers extends VuexModule {
   }
   @Action({ rawError: true })
   async commitAddTransfer(payload: IBasicTransferClass): Promise<boolean> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
-        this.addTransferToPage(payload);
-        this.addTransferToAccount({
-          accountID: payload._accountID._value,
-          transferID: payload._internalID._value,
-        });
-        this.addTransfer(payload);
-        resolve(true);
+        try {
+          const boolean = await IndexedDBTransferStoreManager.addTransfer(
+            payload
+          );
+          console.log("STORE promise", boolean);
+          this.addTransferToPage(payload);
+          await this.addTransferToAccount({
+            accountID: payload._accountID._value,
+            transferID: payload._internalID._value,
+          });
+          this.addTransfer(payload);
+          const requestMessage: RequestBalanceMessage = {
+            topic: {
+              type: AccountAssistMessageTypes.REQUEST_CALC,
+              accountID: payload._accountID._value,
+            },
+          };
+          accountAssistantWorker.postMessage(requestMessage);
+          resolve(true);
+        } catch (err) {
+          throw new Error(`Failed to add transfer to DB: ${err}`);
+        }
       } else {
-        reject(new Error("Transfer already exists"));
+        throw new Error("Transfer already exists");
       }
     });
   }

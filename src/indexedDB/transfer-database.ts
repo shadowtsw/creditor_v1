@@ -110,9 +110,13 @@ class IndexedDBTransferManager {
         if (originalResult) {
           throw new Error("Transfer already exists");
         } else {
-          await appState.add("transfers", JSON.parse(JSON.stringify(payload)));
+          const test = await appState.add(
+            "transfers",
+            JSON.parse(JSON.stringify(payload))
+          );
+          console.log("INDEX promise", test);
+          return Promise.resolve(true);
         }
-        return Promise.resolve(true);
       } catch (err) {
         throw new Error(`Failed to add transfer: ${err}`);
       }

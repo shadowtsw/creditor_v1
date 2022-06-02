@@ -11,18 +11,140 @@ import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import {
   DBProvider as AccountProvider,
   IDBAccounts,
-} from "../indexedDB/account-database";
+} from "../../indexedDB/account-database";
 import {
   DBProvider as TransferProvider,
   IDBTransfers,
-} from "../indexedDB/transfer-database";
+} from "../../indexedDB/transfer-database";
 import {
-  AccountCalcData,
+  AccountBalanceObject,
+  BasicAccountAssistMessage,
   InitMessage,
   InitMessageTargets,
-  InitMessageTypes,
-} from "./message-interfaces/db-worker";
+  AccountAssistMessageTypes,
+  MessageGroups,
+  ResponseBalanceMessage,
+} from "../message-interfaces/account-assist-interface";
 
+self.addEventListener("message", async (event: MessageEvent) => {
+  if (!accountDB) {
+    try {
+      await openAccountDB();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  if (!transferDB) {
+    try {
+      await openTransferDB();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  if (event.data) {
+    const message = event.data as MessageGroups;
+
+    if (
+      "target" in message.topic &&
+      message.topic.type === AccountAssistMessageTypes.INIT
+    ) {
+      switch (message.topic.target) {
+        case InitMessageTargets.ACCOUNT_DB:
+          await openAccountDB();
+          break;
+        case InitMessageTargets.TRANSFER_DB:
+          await openTransferDB();
+          break;
+        default:
+          throw new Error("Message target not found");
+          break;
+      }
+    }
+
+    if (
+      "accountID" in message.topic &&
+      message.topic.type === AccountAssistMessageTypes.REQUEST_CALC
+    ) {
+      let relatedTransfers = [] as Array<
+        string | IBasicTransferClass | undefined
+      >;
+      let account = null;
+
+      account = await accountDB.get("accounts", message.topic.accountID);
+
+      if (account) {
+        account.transfers._value.forEach((entry) => {
+          relatedTransfers.push(entry);
+        });
+        if (relatedTransfers.length > 0) {
+          const accountTransfers = await transferDB.getAllFromIndex(
+            "transfers",
+            "accountID",
+            account._internalID._value
+          );
+
+          if (accountTransfers.length > 0) {
+            let transformedTransfers: Array<IBasicTransferClass>;
+
+            transformedTransfers = relatedTransfers.map((entry) => {
+              const result = accountTransfers.find((accountTransfer) => {
+                return accountTransfer._internalID._value === entry;
+              });
+
+              if (result) {
+                return result;
+              } else {
+                throw new Error("Transfer transformation failed !");
+              }
+            });
+
+            if (transformedTransfers.length > 0) {
+              const getCalcResult = getLatestAccountBalance(
+                account.openingBalance._value,
+                transformedTransfers
+              );
+
+              const messageResponse: ResponseBalanceMessage = {
+                topic: {
+                  type: AccountAssistMessageTypes.REQUEST_CALC,
+                  accountID: message.topic.accountID,
+                },
+                data: getCalcResult,
+              };
+
+              self.postMessage(messageResponse);
+            }
+          }
+        } else {
+          //return empty calc object
+          const messageResponse: ResponseBalanceMessage = {
+            topic: {
+              type: AccountAssistMessageTypes.REQUEST_CALC,
+              accountID: message.topic.accountID,
+            },
+            data: {
+              lastMonth: {
+                balance: account.openingBalance._value,
+                income: 0,
+                outgoing: 0,
+              },
+              currentMonth: {
+                balance: account.openingBalance._value,
+                income: 0,
+                outgoing: 0,
+              },
+            },
+          };
+          self.postMessage(messageResponse);
+        }
+      }
+    }
+  }
+});
+
+/**
+ * DB related
+ */
 let accountDB: accountDBSchema;
 let transferDB: transferDBSchema;
 
@@ -64,118 +186,13 @@ const openTransferDB = async (): Promise<boolean> => {
   }
 };
 
-type GlobalMessageObject = InitMessage;
-
-self.addEventListener("message", async (event: MessageEvent) => {
-  if (!accountDB) {
-    try {
-      await openAccountDB();
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  if (!transferDB) {
-    try {
-      await openTransferDB();
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  if (event.data) {
-    const message = event.data as GlobalMessageObject;
-
-    if (
-      message.topic &&
-      message.topic.type &&
-      message.topic.type === InitMessageTypes.INIT
-    ) {
-      switch (message.topic.target) {
-        case InitMessageTargets.ACCOUNT_DB:
-          await openAccountDB();
-          break;
-        case InitMessageTargets.TRANSFER_DB:
-          await openTransferDB();
-          break;
-        default:
-          throw new Error("Message target not found");
-          break;
-      }
-    }
-
-    if (event.data.calc) {
-      let relatedTransfers = [] as Array<
-        string | IBasicTransferClass | undefined
-      >;
-      let account = null;
-
-      account = await accountDB.get("accounts", event.data.targetAccount);
-
-      if (account) {
-        account.transfers._value.forEach((entry) => {
-          relatedTransfers.push(entry);
-        });
-        if (relatedTransfers.length > 0) {
-          const accountTransfers = await transferDB.getAllFromIndex(
-            "transfers",
-            "accountID",
-            account._internalID._value
-          );
-
-          if (accountTransfers.length > 0) {
-            let transformedTransfers: Array<IBasicTransferClass>;
-
-            transformedTransfers = relatedTransfers.map((entry) => {
-              const result = accountTransfers.find((accountTransfer) => {
-                return accountTransfer._internalID._value === entry;
-              });
-
-              if (result) {
-                return result;
-              } else {
-                throw new Error("Transfer transformation failed !");
-              }
-            });
-
-            if (transformedTransfers.length > 0) {
-              const getCalcResult = getLatestAccountBalance(
-                account.openingBalance._value,
-                transformedTransfers
-              );
-              self.postMessage({
-                calc: true,
-                targetAccount: account._internalID._value,
-                data: getCalcResult,
-              });
-            }
-          }
-        } else {
-          //return empty calc object
-          self.postMessage({
-            calc: true,
-            targetAccount: account._internalID._value,
-            data: {
-              lastMonth: {
-                balance: account.openingBalance._value,
-                income: 0,
-                outgoing: 0,
-              },
-              currentMonth: {
-                balance: account.openingBalance._value,
-                income: 0,
-                outgoing: 0,
-              },
-            },
-          });
-        }
-      }
-    }
-  }
-});
-
+/**
+ * FUNCTIONS
+ */
 const getLatestAccountBalance = (
   openingBalance: number,
   relatedTransfers: Array<IBasicTransferClass>
-): AccountCalcData => {
+): AccountBalanceObject => {
   const date = new Date();
   const currentMonth = date.getMonth();
   date.setDate(1);
