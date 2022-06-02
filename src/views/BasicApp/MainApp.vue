@@ -62,9 +62,9 @@ import Welcome from "@/views/Welcome.vue";
 
 //Start store
 import { AccountTransferStore } from "@/store/data/data-store";
-import { workerProvider } from "@/worker/worker-provider";
+// import { workerProvider } from "@/worker/worker-provider";
 import { UserDataStore } from "@/store/user/user-data";
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
+// import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
 
 // const importPage = importPages();
 
@@ -86,6 +86,7 @@ export default defineComponent({
         //Init User & App states
         await UserDataStore.initAppStateData();
         //Init Account data
+        await AccountTransferStore.initMetaState();
         await AccountTransferStore.initAccounts();
         await AccountTransferStore.initTransfers();
       } catch (err) {

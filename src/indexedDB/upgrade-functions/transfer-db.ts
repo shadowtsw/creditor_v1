@@ -10,5 +10,9 @@ export const upgradeTransferDB = (db: transferDBSchema) => {
     });
     store.createIndex("isSelected", "isSelected._valueMeta");
     store.createIndex("accountID", "_accountID._value");
+    store.createIndex(
+      "valuta-yearMonth",
+      "valutaDate._dateMetaInformation.yearmonth"
+    );
   }
 };

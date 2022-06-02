@@ -6,7 +6,11 @@ export interface IDBTransfers extends DBSchema {
   transfers: {
     value: IBasicTransferClass;
     key: string;
-    indexes: { isSelected: number; accountID: string };
+    indexes: {
+      isSelected: number;
+      accountID: string;
+      "valuta-yearMonth": string;
+    };
   };
 }
 

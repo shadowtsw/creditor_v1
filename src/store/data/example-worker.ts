@@ -72,8 +72,12 @@ const randomDistKeyGenerator = () => {
 const getExampleData = (
   accountAmount: number,
   transfersPerAccount: number
-): Array<IBasicAccountClass> => {
-  const parsedArray = [];
+): {
+  accounts: Array<IBasicAccountClass>;
+  transfers: Array<IBasicTransferClass>;
+} => {
+  const parsedAccountArray = [];
+  const transferArray = [];
 
   for (let i = 0; i < accountAmount; i++) {
     const newAccount: IBasicAccountClass = {
@@ -110,7 +114,7 @@ const getExampleData = (
         _displayName: "IBAN/AccountNo.",
       },
       transfers: {
-        _value: [] as Array<IBasicTransferClass>,
+        _value: [] as Array<string>,
         _type: DataFieldType.TRANSFERLIST,
         _readonly: true,
         _visible: true,
@@ -140,6 +144,10 @@ const getExampleData = (
           weekDay: new Date().getDay(),
           month: new Date().getMonth(),
           year: new Date().getFullYear(),
+          yearmonth: Number(
+            new Date().getFullYear().toString() +
+              new Date().getMonth().toString()
+          ),
         },
         _type: DataFieldType.NUMBER,
         _readonly: false,
@@ -154,6 +162,10 @@ const getExampleData = (
           weekDay: new Date().getDay(),
           month: new Date().getMonth(),
           year: new Date().getFullYear(),
+          yearmonth: Number(
+            new Date().getFullYear().toString() +
+              new Date().getMonth().toString()
+          ),
         },
         _type: DataFieldType.NUMBER,
         _readonly: true,
@@ -168,6 +180,10 @@ const getExampleData = (
           weekDay: new Date().getDay(),
           month: new Date().getMonth(),
           year: new Date().getFullYear(),
+          yearmonth: Number(
+            new Date().getFullYear().toString() +
+              new Date().getMonth().toString()
+          ),
         },
         _type: DataFieldType.NUMBER,
         _readonly: false,
@@ -249,6 +265,9 @@ const getExampleData = (
             weekDay: bookDate.getDate(),
             month: bookDate.getMonth(),
             year: bookDate.getFullYear(),
+            yearmonth: Number(
+              bookDate.getFullYear().toString() + bookDate.getMonth().toString()
+            ),
           },
         },
         valutaDate: {
@@ -263,6 +282,10 @@ const getExampleData = (
             weekDay: valutaDate.getDate(),
             month: valutaDate.getMonth(),
             year: valutaDate.getFullYear(),
+            yearmonth: Number(
+              valutaDate.getFullYear().toString() +
+                valutaDate.getMonth().toString()
+            ),
           },
         },
         description: {
@@ -291,6 +314,7 @@ const getExampleData = (
         },
         isSelected: {
           _value: false,
+          _valueMeta: 0,
           _type: DataFieldType.CHECKBOX,
           _readonly: false,
           _visible: true,
@@ -315,6 +339,9 @@ const getExampleData = (
             weekDay: bookDate.getDate(),
             month: bookDate.getMonth(),
             year: bookDate.getFullYear(),
+            yearmonth: Number(
+              bookDate.getFullYear().toString() + bookDate.getMonth().toString()
+            ),
           },
           ...getTransferConfig(BasicAccountTypes.DIGITAL_ACCOUNT, "createdAt"),
         },
@@ -327,6 +354,9 @@ const getExampleData = (
             weekDay: bookDate.getDate(),
             month: bookDate.getMonth(),
             year: bookDate.getFullYear(),
+            yearmonth: Number(
+              bookDate.getFullYear().toString() + bookDate.getMonth().toString()
+            ),
           },
           ...getTransferConfig(BasicAccountTypes.DIGITAL_ACCOUNT, "updatedAt"),
         },
@@ -353,12 +383,16 @@ const getExampleData = (
           _displayName: "Description",
         },
       };
-      newAccount.transfers._value.push(newTransfer);
+      newAccount.transfers._value.push(newTransfer._internalID._value);
+      transferArray.push(newTransfer);
     }
-    parsedArray.push(newAccount);
+    parsedAccountArray.push(newAccount);
   }
 
-  return parsedArray;
+  return {
+    accounts: parsedAccountArray,
+    transfers: transferArray,
+  };
 };
 
 const get = {

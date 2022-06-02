@@ -3,7 +3,7 @@
   <div class="account_wrapper" v-if="accountList.length > 0">
     <AccountItem
       v-for="account in accounts"
-      :isLoading="summaryObject[account._internalID._value].isLoading"
+      :isLoading="summaryObject[account._internalID._value].isLoading || false"
       :account="account"
       :key="account._internalID._value"
       :summary="summaryObject[account._internalID._value]"
@@ -35,6 +35,7 @@ import {
   AccountAssistantWorker,
   accountAssistantWorker,
 } from "@/worker/worker-provider";
+import { getLatestAccountBalance } from "@/worker/worker-functions/account-assist-worker/account-balance";
 
 export default defineComponent({
   components: {
@@ -42,17 +43,22 @@ export default defineComponent({
     AccountItem,
   },
   setup() {
+    const demoMode = computed(() => {
+      return AccountTransferStore.Demo;
+    });
     //Web-Worker starts
     const cardWorker: AccountAssistantWorker = accountAssistantWorker;
     const unsubscribe = ref<null | Function>(null);
     onMounted(() => {
-      unsubscribe.value = cardWorker.subscribeBalanceMessage({
-        id: "AccountList",
-        callback: (data: ResponseBalanceMessage) => {
-          console.log("INCOMING MESSAGE", data);
-          setAccountData(data.topic.accountID, data.data);
-        },
-      });
+      if (!demoMode.value) {
+        unsubscribe.value = cardWorker.subscribeBalanceMessage({
+          id: "AccountList",
+          callback: (data: ResponseBalanceMessage) => {
+            console.log("INCOMING MESSAGE", data);
+            setAccountData(data.topic.accountID, data.data);
+          },
+        });
+      }
     });
     onBeforeUnmount(() => {
       if (unsubscribe.value) {
@@ -72,14 +78,22 @@ export default defineComponent({
     watch(accountList, (newValue, oldValue) => {
       if (oldValue.length === 0) {
         accountList.value.forEach((entry) => {
-          setAccountData(entry._internalID._value);
-          postCalculation(entry._internalID._value);
+          if (!demoMode.value) {
+            setAccountData(entry._internalID._value);
+            postCalculation(entry._internalID._value);
+          } else {
+            // setAccountData(entry._internalID._value, getLatestAccountBalance());
+          }
         });
       } else {
         newValue.forEach((entry) => {
-          if (!summaryObject.hasOwnProperty(entry._internalID._value)) {
-            setAccountData(entry._internalID._value);
-            postCalculation(entry._internalID._value);
+          if (!demoMode.value) {
+            if (!summaryObject.hasOwnProperty(entry._internalID._value)) {
+              setAccountData(entry._internalID._value);
+              postCalculation(entry._internalID._value);
+            }
+          } else {
+            // setAccountData(entry._internalID._value, getLatestAccountBalance());
           }
         });
       }
@@ -87,12 +101,15 @@ export default defineComponent({
 
     //Functions
     const setAccountData = (accountID: string, data?: AccountBalanceObject) => {
+      console.log("SETS ACCOUNT DATA");
       if (data) {
+        console.log("WITH DATA");
         summaryObject[accountID] = {
           ...data,
           ...{ isLoading: false },
         };
       } else {
+        console.log("WITH DUMMY");
         //Sets dummy with loading state
         summaryObject[accountID] = {
           isLoading: true,

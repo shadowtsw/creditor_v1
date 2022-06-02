@@ -12,7 +12,10 @@ export interface ExampleWorker {
   examples: (
     accounts: number,
     transfers: number
-  ) => Promise<Array<IBasicAccountClass>>;
+  ) => Promise<{
+    accounts: Array<IBasicAccountClass>;
+    transfers: Array<IBasicTransferClass>;
+  }>;
   randomNumber: () => Promise<boolean>;
   getTags: Promise<Array<string>>;
 }

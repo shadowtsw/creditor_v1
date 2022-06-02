@@ -3,7 +3,7 @@
   <p @click="activateCreateAccount">Create first account</p>
   <p @click="activateImportCSV">Import CSV</p>
   <p>Create Map</p>
-  <p>Start Demo</p>
+  <p @click="activateDemoMode">Start Demo</p>
 </template>
 
 <script lang="ts">
@@ -19,9 +19,14 @@ export default defineComponent({
     });
     const { activateImportCSV, activateCreateAccount } = usePageNavigator();
 
+    const activateDemoMode = async () => {
+      AccountTransferStore.commitUseDemo();
+    };
+
     return {
       activateImportCSV,
       activateCreateAccount,
+      activateDemoMode,
     };
   },
 });

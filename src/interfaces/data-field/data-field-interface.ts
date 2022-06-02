@@ -24,4 +24,5 @@ export interface BasicTimeField {
   weekDay: number;
   month: number;
   year: number;
+  yearmonth: number;
 }

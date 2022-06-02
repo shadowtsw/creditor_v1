@@ -27,6 +27,7 @@ import {
   RequestBalanceMessage,
 } from "@/worker/message-interfaces/account-assist-interface";
 import { accountAssistantWorker } from "@/worker/worker-provider";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
 
 @Module({
   dynamic: true,
@@ -35,11 +36,35 @@ import { accountAssistantWorker } from "@/worker/worker-provider";
   name: "AccountTransferStore",
 })
 class AccountsTransfers extends VuexModule {
+  private _useDemo = false;
+  public get Demo() {
+    return this._useDemo;
+  }
+  @Mutation
+  setDemoMode(payload: boolean) {
+    this._useDemo = payload;
+  }
+  @Action
+  async commitUseDemo() {
+    await IndexedDBAppStateStoreManager.setState({
+      property: "useDemo",
+      value: true,
+    });
+    this.setDemoMode(true);
+  }
+  @Action
+  async commitDeactivateDemo() {
+    await IndexedDBAppStateStoreManager.setState({
+      property: "useDemo",
+      value: false,
+    });
+    this.setDemoMode(false);
+  }
   /*
    * Accounts
    */
 
-  //OBJECT & GETTER
+  //STATE & GETTER
   private _accounts: { [index: string]: IBasicAccountClass } = {};
   public get allAccounts(): Array<IBasicAccountClass | never> {
     const accounts: Array<IBasicAccountClass> = [];
@@ -49,7 +74,18 @@ class AccountsTransfers extends VuexModule {
     }
     return accounts;
   }
-  //OBJECT & GETTER
+  //TODO: necessary ?
+  public get selectedAccounts() {
+    const selectedAccounts = [];
+    const allAccounts = this._accounts;
+    for (const account in allAccounts) {
+      if (allAccounts[account].isSelected._value) {
+        selectedAccounts.push(allAccounts[account]);
+      }
+    }
+    return selectedAccounts;
+  }
+  //STATE & GETTER
 
   //ADD-ACCOUNT
   @Mutation
@@ -61,7 +97,9 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
         try {
-          await IndexedDBAccountStoreManager.addAccount(payload);
+          if (!this.Demo) {
+            await IndexedDBAccountStoreManager.addAccount(payload);
+          }
           this.addAccount(payload);
           resolve(true);
         } catch (err) {
@@ -90,6 +128,43 @@ class AccountsTransfers extends VuexModule {
   }
   //ADD-ACCOUNT
 
+  //!Interact with transfer
+  @Action
+  private async addTransferToAccount(payload: {
+    accountID: string;
+    transferID: string;
+  }): Promise<boolean> {
+    return new Promise<boolean>(async (resolve, reject) => {
+      if (this._accounts.hasOwnProperty(payload.accountID)) {
+        if (
+          !this._accounts[payload.accountID].transfers._value.includes(
+            payload.transferID
+          )
+        ) {
+          try {
+            if (!this.Demo) {
+              await IndexedDBAccountStoreManager.addTransferToAccount({
+                accountID: payload.accountID,
+                transferID: payload.transferID,
+              });
+            }
+            this.connectTransfer(payload);
+            resolve(true);
+          } catch (err) {
+            throw new Error(`Failed to add transfer to account: ${err}`);
+          }
+        } else {
+          throw new Error("Transfer already added to account!");
+        }
+      } else {
+        throw new Error("Account not found!");
+      }
+    });
+  }
+  //!Interact with transfer
+
+  //*-----------------------------------FINISHED
+
   //DELETE-ACCOUNT
   @Mutation
   private deleteAccount(accountID: string) {
@@ -104,11 +179,13 @@ class AccountsTransfers extends VuexModule {
           //DELETE TRANSFERS FROM PAGINATION
 
           //DELETE ALL TRANSFERS
-          await IndexedDBTransferStoreManager.deleteManyTransfers(
-            this._accounts[accountID].transfers._value
-          );
-          //DELETE ACCOUNT FROM DB
-          await IndexedDBAccountStoreManager.deleteAccount(accountID);
+          if (!this.Demo) {
+            await IndexedDBTransferStoreManager.deleteManyTransfers(
+              this._accounts[accountID].transfers._value
+            );
+            //DELETE ACCOUNT FROM DB
+            await IndexedDBAccountStoreManager.deleteAccount(accountID);
+          }
           //DELETE ACCOUNT FROM STORE
           this.deleteAccount(accountID);
           resolve(true);
@@ -122,18 +199,6 @@ class AccountsTransfers extends VuexModule {
   }
   //DELETE-ACCOUNT
 
-  //*-----------------------------------FINISHED
-
-  public get selectedAccounts() {
-    const selectedAccounts = [];
-    const allAccounts = this._accounts;
-    for (const account in allAccounts) {
-      if (allAccounts[account].isSelected._value) {
-        selectedAccounts.push(allAccounts[account]);
-      }
-    }
-    return selectedAccounts;
-  }
   @Mutation
   private setAccountSelected(payload: {
     accountID: string;
@@ -169,64 +234,102 @@ class AccountsTransfers extends VuexModule {
   }
   //Ad or delete
   @Action
-  private async addTransferToAccount(payload: {
+  private async deleteTransferFromAccount(payload: {
     accountID: string;
     transferID: string;
   }): Promise<boolean> {
     return new Promise<boolean>(async (resolve, reject) => {
       if (this._accounts.hasOwnProperty(payload.accountID)) {
-        if (
-          !this._accounts[payload.accountID].transfers._value.includes(
-            payload.transferID
-          )
-        ) {
-          try {
-            await IndexedDBAccountStoreManager.addTransferToAccount({
+        try {
+          if (!this.Demo) {
+            await IndexedDBAccountStoreManager.removeTransferFromAccount({
               accountID: payload.accountID,
               transferID: payload.transferID,
             });
-            this.connectTransfer(payload);
-            resolve(true);
-          } catch (err) {
-            throw new Error(`Failed to add transfer to account: ${err}`);
           }
-        } else {
-          throw new Error("Transfer already added to account!");
+          this.disconnectTransfer(payload);
+          resolve(true);
+        } catch (err) {
+          throw new Error();
         }
-      } else {
-        throw new Error("Account not found!");
       }
     });
   }
-  @Action
-  private async deleteTransferFromAccount(payload: {
-    accountID: string;
-    transferID: string;
-  }) {
-    if (this._accounts.hasOwnProperty(payload.accountID)) {
-      await IndexedDBAccountStoreManager.removeTransferFromAccount({
-        accountID: payload.accountID,
-        transferID: payload.transferID,
-      })
-        .then((_) => {
-          this.disconnectTransfer(payload);
-        })
-        .catch((err) => {
-          throw new Error();
-        });
-    }
-  }
   /*
-   * Accounts End
+   * Accounts END
    */
 
   /*
    * Transfers
    */
-  private _transfers: { [index: string]: IBasicTransferClass } = {};
-  public get transfersAsObject() {
-    return this._transfers;
+
+  //STATE & GETTER
+
+  //STATE & GETTER
+
+  //ADD-TRANSFERS
+  @Mutation
+  private addTransfer(payload: IBasicTransferClass) {
+    this._transfers[payload._internalID._value] = payload;
   }
+  @Action({ rawError: true })
+  async commitAddTransfer(payload: IBasicTransferClass): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
+        try {
+          if (!this.Demo) {
+            await IndexedDBTransferStoreManager.addTransfer(payload);
+          }
+          this.addTransferToPage(payload);
+          await this.addTransferToAccount({
+            accountID: payload._accountID._value,
+            transferID: payload._internalID._value,
+          });
+          this.addTransfer(payload);
+          if (!this.Demo) {
+            const requestMessage: RequestBalanceMessage = {
+              topic: {
+                type: AccountAssistMessageTypes.REQUEST_CALC,
+                accountID: payload._accountID._value,
+              },
+            };
+            accountAssistantWorker.postMessage(requestMessage);
+          }
+          resolve(true);
+        } catch (err) {
+          throw new Error(`Failed to add transfer to DB: ${err}`);
+        }
+      } else {
+        throw new Error("Transfer already exists");
+      }
+    });
+  }
+  @Action({ rawError: true })
+  async commitAddTransferFromDB(
+    payload: IBasicTransferClass
+  ): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
+        this.addTransferToPage(payload);
+        // this.addTransferToAccount({
+        //   accountID: payload._accountID._value,
+        //   transferID: payload._internalID._value,
+        // });
+        this.addTransfer(payload);
+        resolve(true);
+      } else {
+        reject(new Error("Transfer already exists"));
+      }
+    });
+  }
+  //ADD-TRANSFERS
+
+  //*-----------------------------------FINISHED
+
+  private _transfers: { [index: string]: IBasicTransferClass } = {};
+  // public get transfersAsObject() {
+  //   return this._transfers;
+  // }
   public get allTransfers() {
     const transfers: Array<IBasicTransferClass> = [];
     const allTransfers = this._transfers;
@@ -258,59 +361,7 @@ class AccountsTransfers extends VuexModule {
     }
     return [];
   }
-  @Mutation
-  private addTransfer(payload: IBasicTransferClass) {
-    this._transfers[payload._internalID._value] = payload;
-  }
-  @Action({ rawError: true })
-  async commitAddTransfer(payload: IBasicTransferClass): Promise<boolean> {
-    return new Promise(async (resolve, reject) => {
-      if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
-        try {
-          const boolean = await IndexedDBTransferStoreManager.addTransfer(
-            payload
-          );
-          console.log("STORE promise", boolean);
-          this.addTransferToPage(payload);
-          await this.addTransferToAccount({
-            accountID: payload._accountID._value,
-            transferID: payload._internalID._value,
-          });
-          this.addTransfer(payload);
-          const requestMessage: RequestBalanceMessage = {
-            topic: {
-              type: AccountAssistMessageTypes.REQUEST_CALC,
-              accountID: payload._accountID._value,
-            },
-          };
-          accountAssistantWorker.postMessage(requestMessage);
-          resolve(true);
-        } catch (err) {
-          throw new Error(`Failed to add transfer to DB: ${err}`);
-        }
-      } else {
-        throw new Error("Transfer already exists");
-      }
-    });
-  }
-  @Action({ rawError: true })
-  async commitAddTransferFromDB(
-    payload: IBasicTransferClass
-  ): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
-        this.addTransferToPage(payload);
-        // this.addTransferToAccount({
-        //   accountID: payload._accountID._value,
-        //   transferID: payload._internalID._value,
-        // });
-        this.addTransfer(payload);
-        resolve(true);
-      } else {
-        reject(new Error("Transfer already exists"));
-      }
-    });
-  }
+
   private _openedTransfers: Array<string> = [];
   public get isOpened() {
     return this._openedTransfers;
@@ -532,13 +583,14 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initAccounts(): Promise<boolean> {
     try {
-      const accounts = await IndexedDBAccountStoreManager.getAllAccounts();
+      if (!this.Demo) {
+        const accounts = await IndexedDBAccountStoreManager.getAllAccounts();
 
-      accounts.forEach((account) => {
-        const existingAccount = new BasicAccount(account);
-        this.commitAddAccountFromDB(existingAccount);
-      });
-
+        accounts.forEach((account) => {
+          const existingAccount = new BasicAccount(account);
+          this.commitAddAccountFromDB(existingAccount);
+        });
+      }
       return Promise.resolve(true);
     } catch (err) {
       return Promise.reject(err);
@@ -547,11 +599,31 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initTransfers(): Promise<boolean> {
     try {
-      const transfers = await IndexedDBTransferStoreManager.getAllTransfers();
-      transfers.forEach((transfer) => {
-        const existingTransfer = new BasicTransfer(transfer);
-        this.commitAddTransferFromDB(existingTransfer);
-      });
+      if (!this.Demo) {
+        const transfers = await IndexedDBTransferStoreManager.getAllTransfers();
+        transfers.forEach((transfer) => {
+          const existingTransfer = new BasicTransfer(transfer);
+          this.commitAddTransferFromDB(existingTransfer);
+        });
+      }
+      return Promise.resolve(true);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+  @Action
+  async initMetaState(): Promise<boolean> {
+    try {
+      const requestState = await IndexedDBAppStateStoreManager.getState(
+        "useDemo"
+      );
+      if (
+        requestState &&
+        "value" in requestState &&
+        typeof requestState.value === "boolean"
+      ) {
+        this.setDemoMode(requestState.value);
+      }
       return Promise.resolve(true);
     } catch (err) {
       return Promise.reject(err);
