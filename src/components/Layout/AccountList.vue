@@ -36,6 +36,7 @@ import {
   accountAssistantWorker,
 } from "@/worker/worker-provider";
 import { getLatestAccountBalance } from "@/worker/worker-functions/account-assist-worker/account-balance";
+import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 
 export default defineComponent({
   components: {
@@ -44,7 +45,7 @@ export default defineComponent({
   },
   setup() {
     const demoMode = computed(() => {
-      return ApplicationEnvironment.Demo;
+      return ApplicationEnvironmentStore.Demo;
     });
     //Web-Worker starts
     const cardWorker: AccountAssistantWorker = accountAssistantWorker;

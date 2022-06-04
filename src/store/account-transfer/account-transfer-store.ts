@@ -28,7 +28,7 @@ import {
 } from "@/worker/message-interfaces/account-assist-interface";
 import { accountAssistantWorker } from "@/worker/worker-provider";
 import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
-import { ApplicationEnvironment } from "../application/application-store";
+import { ApplicationEnvironmentStore } from "../application/application-store";
 
 @Module({
   dynamic: true,
@@ -74,7 +74,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
         try {
-          if (!ApplicationEnvironment.Demo) {
+          if (!ApplicationEnvironmentStore.Demo) {
             await IndexedDBAccountStoreManager.addAccount(payload);
           }
           this.addAccount(payload);
@@ -119,7 +119,7 @@ class AccountsTransfers extends VuexModule {
           )
         ) {
           try {
-            if (!ApplicationEnvironment.Demo) {
+            if (!ApplicationEnvironmentStore.Demo) {
               await IndexedDBAccountStoreManager.addTransferToAccount({
                 accountID: payload.accountID,
                 transferID: payload.transferID,
@@ -156,7 +156,7 @@ class AccountsTransfers extends VuexModule {
           //DELETE TRANSFERS FROM PAGINATION
 
           //DELETE ALL TRANSFERS
-          if (!ApplicationEnvironment.Demo) {
+          if (!ApplicationEnvironmentStore.Demo) {
             await IndexedDBTransferStoreManager.deleteManyTransfers(
               this._accounts[accountID].transfers._value
             );
@@ -218,7 +218,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise<boolean>(async (resolve, reject) => {
       if (this._accounts.hasOwnProperty(payload.accountID)) {
         try {
-          if (!ApplicationEnvironment.Demo) {
+          if (!ApplicationEnvironmentStore.Demo) {
             await IndexedDBAccountStoreManager.removeTransferFromAccount({
               accountID: payload.accountID,
               transferID: payload.transferID,
@@ -254,7 +254,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
         try {
-          if (!ApplicationEnvironment.Demo) {
+          if (!ApplicationEnvironmentStore.Demo) {
             await IndexedDBTransferStoreManager.addTransfer(payload);
           }
           this.addTransferToPage(payload);
@@ -263,7 +263,7 @@ class AccountsTransfers extends VuexModule {
             transferID: payload._internalID._value,
           });
           this.addTransfer(payload);
-          if (!ApplicationEnvironment.Demo) {
+          if (!ApplicationEnvironmentStore.Demo) {
             const requestMessage: RequestBalanceMessage = {
               topic: {
                 type: AccountAssistMessageTypes.REQUEST_CALC,
@@ -560,7 +560,7 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initAccounts(): Promise<boolean> {
     try {
-      if (!ApplicationEnvironment.Demo) {
+      if (!ApplicationEnvironmentStore.Demo) {
         const accounts = await IndexedDBAccountStoreManager.getAllAccounts();
 
         accounts.forEach((account) => {
@@ -576,7 +576,7 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initTransfers(): Promise<boolean> {
     try {
-      if (!ApplicationEnvironment.Demo) {
+      if (!ApplicationEnvironmentStore.Demo) {
         const transfers = await IndexedDBTransferStoreManager.getAllTransfers();
         transfers.forEach((transfer) => {
           const existingTransfer = new BasicTransfer(transfer);
@@ -599,7 +599,7 @@ class AccountsTransfers extends VuexModule {
         "value" in requestState &&
         typeof requestState.value === "boolean"
       ) {
-        ApplicationEnvironment.setDemoMode(requestState.value);
+        ApplicationEnvironmentStore.setDemoMode(requestState.value);
       }
       return Promise.resolve(true);
     } catch (err) {

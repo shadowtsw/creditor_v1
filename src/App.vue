@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from "vue";
-import { ApplicationEnvironment } from "./store/application/application-store";
+import { ApplicationEnvironmentStore } from "./store/application/application-store";
 import Login from "./views/Login.vue";
 import MainApp from "./views/BasicApp/MainApp.vue";
 

@@ -3,6 +3,7 @@ import { BasicDataField } from "@/interfaces/data-field/data-field-interface";
 import { AvailableTags, TagsObject } from "@/store/appData/app-data-types";
 import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
+import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 
 export interface IDBAppStateData extends DBSchema {
   appState: {
@@ -105,7 +106,7 @@ class IndexedDBAppStateManager {
     property: string;
     value: string | boolean;
   }): Promise<boolean> {
-    if (!ApplicationEnvironment.Demo) {
+    if (!ApplicationEnvironmentStore.Demo) {
       if (!this._app_state_data) {
         try {
           await this.initDB();
@@ -168,7 +169,7 @@ class IndexedDBAppStateManager {
     pageName: string;
     value: boolean;
   }): Promise<boolean> {
-    if (!ApplicationEnvironment.Demo) {
+    if (!ApplicationEnvironmentStore.Demo) {
       if (!this._app_state_data) {
         try {
           await this.initDB();
@@ -231,7 +232,7 @@ class IndexedDBAppStateManager {
     pluginName: string;
     value: boolean;
   }): Promise<boolean> {
-    if (!ApplicationEnvironment.Demo) {
+    if (!ApplicationEnvironmentStore.Demo) {
       if (!this._app_state_data) {
         try {
           await this.initDB();

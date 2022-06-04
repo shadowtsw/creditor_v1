@@ -12,7 +12,7 @@ import store from "../";
   dynamic: true,
   namespaced: true,
   store,
-  name: "ApplicationEnvironmentStore",
+  name: "UserDataStore",
 })
 class UserData extends VuexModule {
   private _firstStart: boolean = true;

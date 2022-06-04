@@ -14,7 +14,7 @@ import store from "..";
   store,
   name: "ApplicationEnvironmentStore",
 })
-class ApplicationEnvironmentStore extends VuexModule {
+class ApplicationEnvironment extends VuexModule {
   /**
    * DEMO
    */
@@ -66,4 +66,4 @@ class ApplicationEnvironmentStore extends VuexModule {
   }
 }
 
-export const ApplicationEnvironment = getModule(ApplicationEnvironmentStore);
+export const ApplicationEnvironmentStore = getModule(ApplicationEnvironment);
