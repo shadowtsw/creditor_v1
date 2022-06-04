@@ -17,7 +17,7 @@ import {
 } from "@/interfaces/transfers/transfers";
 import * as Comlink from "comlink";
 import { RequestEventDataType } from "./demo-worker-types";
-import { AppDataStore } from "../appData/app-data";
+import { SubDataStore } from "../sub-data/sub-data-store";
 import { ExampleWorker } from "./demo-worker-types";
 import IndexedDBAccountStoreManager from "@/indexedDB/account-database";
 import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
@@ -548,7 +548,7 @@ class AccountsTransfers extends VuexModule {
   //   const tags = await get.getTags;
 
   //   tags.forEach((tag) => {
-  //     AppDataStore.addDefaultTag(tag);
+  //     SubDataStore.addDefaultTag(tag);
   //   });
 
   //   newWorker.terminate();

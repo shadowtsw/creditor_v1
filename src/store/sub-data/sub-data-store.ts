@@ -12,9 +12,9 @@ import { AvailableKeys, AvailableTags, DistKeyObject } from "./app-data-types";
   dynamic: true,
   namespaced: true,
   store,
-  name: "AppData",
+  name: "SubDataStore",
 })
-class AppData extends VuexModule {
+class SubData extends VuexModule {
   /**
    * //*App tags
    */
@@ -112,4 +112,4 @@ class AppData extends VuexModule {
   //App dist keys
 }
 
-export const AppDataStore = getModule(AppData);
+export const SubDataStore = getModule(SubData);

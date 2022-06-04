@@ -1,5 +1,8 @@
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
-import { DistKeyObject, TagsObject } from "@/store/appData/app-data-types";
+import {
+  DistKeyObject,
+  TagsObject,
+} from "@/store/sub-data/sub-data-store-types";
 
 export interface IDBCustomData extends DBSchema {
   tags: {

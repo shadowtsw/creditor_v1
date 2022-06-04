@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import { AppDataStore } from "@/store/appData/app-data";
+import { SubDataStore } from "@/store/sub-data/sub-data-store";
 import { defineComponent, computed, PropType } from "vue";
 
 export default defineComponent({
@@ -21,7 +21,7 @@ export default defineComponent({
   },
   setup() {
     const defaultTags = computed(() => {
-      return AppDataStore.defaultGroup?.tags;
+      return SubDataStore.defaultGroup?.tags;
     });
 
     return {

@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts">
-import { AppDataStore } from "@/store/appData/app-data";
+import { SubDataStore } from "@/store/sub-data/sub-data-store";
 import { computed, defineComponent, PropType } from "vue";
 
 export default defineComponent({
@@ -18,7 +18,7 @@ export default defineComponent({
   },
   setup() {
     const availableKeys = computed(() => {
-      return AppDataStore.availableKeys;
+      return SubDataStore.availableKeys;
     });
 
     return {

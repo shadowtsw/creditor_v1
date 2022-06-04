@@ -1,6 +1,9 @@
 import { IBasicAccountConstructorConfig } from "@/interfaces/accounts/accounts";
 import { BasicDataField } from "@/interfaces/data-field/data-field-interface";
-import { AvailableTags, TagsObject } from "@/store/appData/app-data-types";
+import {
+  AvailableTags,
+  TagsObject,
+} from "@/store/sub-data/sub-data-store-types";
 import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
