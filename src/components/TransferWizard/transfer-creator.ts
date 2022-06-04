@@ -11,7 +11,7 @@ import {
 import { useValidator } from "@/utils/validator";
 import { computed, reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import ErrorMessages from "@/utils/error-messages";
 import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
 

@@ -1,6 +1,7 @@
 import { IBasicAccountConstructorConfig } from "@/interfaces/accounts/accounts";
 import { BasicDataField } from "@/interfaces/data-field/data-field-interface";
 import { AvailableTags, TagsObject } from "@/store/appData/app-data-types";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 
 export interface IDBAppStateData extends DBSchema {
@@ -104,29 +105,36 @@ class IndexedDBAppStateManager {
     property: string;
     value: string | boolean;
   }): Promise<boolean> {
-    if (!this._app_state_data) {
-      try {
-        await this.initDB();
-      } catch (err) {
-        throw new Error(`Failed to init DB:${err}`);
-      }
-    }
-
-    if (this._app_state_data) {
-      const appState = this._app_state_data;
-      try {
-        const originalResult = await appState.get("appState", payload.property);
-        if (originalResult) {
-          await appState.put("appState", payload);
-        } else {
-          await appState.add("appState", payload);
+    if (!ApplicationEnvironment.Demo) {
+      if (!this._app_state_data) {
+        try {
+          await this.initDB();
+        } catch (err) {
+          throw new Error(`Failed to init DB:${err}`);
         }
-        return Promise.resolve(true);
-      } catch (err) {
-        throw new Error(`Failed to add state: ${err}`);
+      }
+
+      if (this._app_state_data) {
+        const appState = this._app_state_data;
+        try {
+          const originalResult = await appState.get(
+            "appState",
+            payload.property
+          );
+          if (originalResult) {
+            await appState.put("appState", payload);
+          } else {
+            await appState.add("appState", payload);
+          }
+          return Promise.resolve(true);
+        } catch (err) {
+          throw new Error(`Failed to add state: ${err}`);
+        }
+      } else {
+        throw new Error("Database not found");
       }
     } else {
-      throw new Error("Database not found");
+      return Promise.resolve(true);
     }
   }
 
@@ -160,32 +168,36 @@ class IndexedDBAppStateManager {
     pageName: string;
     value: boolean;
   }): Promise<boolean> {
-    if (!this._app_state_data) {
-      try {
-        await this.initDB();
-      } catch (err) {
-        throw new Error(`Failed to init DB:${err}`);
-      }
-    }
-
-    if (this._app_state_data) {
-      const appState = this._app_state_data;
-      try {
-        const originalResult = await appState.get(
-          "visiblePages",
-          payload.pageName
-        );
-        if (originalResult) {
-          await appState.put("visiblePages", payload);
-        } else {
-          await appState.add("visiblePages", payload);
+    if (!ApplicationEnvironment.Demo) {
+      if (!this._app_state_data) {
+        try {
+          await this.initDB();
+        } catch (err) {
+          throw new Error(`Failed to init DB:${err}`);
         }
-        return Promise.resolve(true);
-      } catch (err) {
-        throw new Error(`Failed to add visibility to page: ${err}`);
+      }
+
+      if (this._app_state_data) {
+        const appState = this._app_state_data;
+        try {
+          const originalResult = await appState.get(
+            "visiblePages",
+            payload.pageName
+          );
+          if (originalResult) {
+            await appState.put("visiblePages", payload);
+          } else {
+            await appState.add("visiblePages", payload);
+          }
+          return Promise.resolve(true);
+        } catch (err) {
+          throw new Error(`Failed to add visibility to page: ${err}`);
+        }
+      } else {
+        throw new Error("Database not found");
       }
     } else {
-      throw new Error("Database not found");
+      return Promise.resolve(true);
     }
   }
 
@@ -215,33 +227,40 @@ class IndexedDBAppStateManager {
     }
   }
 
-  public async setPlugin(payload: { pluginName: string; value: boolean }) {
-    if (!this._app_state_data) {
-      try {
-        await this.initDB();
-      } catch (err) {
-        throw new Error(`Failed to init DB:${err}`);
-      }
-    }
-
-    if (this._app_state_data) {
-      const appState = this._app_state_data;
-      try {
-        const originalResult = await appState.get(
-          "visiblePlugins",
-          payload.pluginName
-        );
-        if (originalResult) {
-          await appState.put("visiblePlugins", payload);
-        } else {
-          await appState.add("visiblePlugins", payload);
+  public async setPlugin(payload: {
+    pluginName: string;
+    value: boolean;
+  }): Promise<boolean> {
+    if (!ApplicationEnvironment.Demo) {
+      if (!this._app_state_data) {
+        try {
+          await this.initDB();
+        } catch (err) {
+          throw new Error(`Failed to init DB:${err}`);
         }
-      } catch (err) {
-        throw new Error(`Failed to add visibility to plugin: ${err}`);
       }
-      return Promise.resolve(true);
+
+      if (this._app_state_data) {
+        const appState = this._app_state_data;
+        try {
+          const originalResult = await appState.get(
+            "visiblePlugins",
+            payload.pluginName
+          );
+          if (originalResult) {
+            await appState.put("visiblePlugins", payload);
+          } else {
+            await appState.add("visiblePlugins", payload);
+          }
+        } catch (err) {
+          throw new Error(`Failed to add visibility to plugin: ${err}`);
+        }
+        return Promise.resolve(true);
+      } else {
+        throw new Error("Database not found");
+      }
     } else {
-      throw new Error("Database not found");
+      return Promise.resolve(true);
     }
   }
 

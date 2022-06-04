@@ -16,9 +16,9 @@ import {
   IBasicTransferClass,
 } from "@/interfaces/transfers/transfers";
 import * as Comlink from "comlink";
-import { RequestEventDataType } from "./worker-types";
+import { RequestEventDataType } from "./demo-worker-types";
 import { AppDataStore } from "../appData/app-data";
-import { ExampleWorker } from "./worker-types";
+import { ExampleWorker } from "./demo-worker-types";
 import IndexedDBAccountStoreManager from "@/indexedDB/account-database";
 import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
 import { DataFieldType } from "@/interfaces/data-field/data-field-interface";
@@ -27,7 +27,8 @@ import {
   RequestBalanceMessage,
 } from "@/worker/message-interfaces/account-assist-interface";
 import { accountAssistantWorker } from "@/worker/worker-provider";
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
+import { ApplicationEnvironment } from "../application/application-store";
 
 @Module({
   dynamic: true,
@@ -36,30 +37,6 @@ import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
   name: "AccountTransferStore",
 })
 class AccountsTransfers extends VuexModule {
-  private _useDemo = false;
-  public get Demo() {
-    return this._useDemo;
-  }
-  @Mutation
-  setDemoMode(payload: boolean) {
-    this._useDemo = payload;
-  }
-  @Action
-  async commitUseDemo() {
-    await IndexedDBAppStateStoreManager.setState({
-      property: "useDemo",
-      value: true,
-    });
-    this.setDemoMode(true);
-  }
-  @Action
-  async commitDeactivateDemo() {
-    await IndexedDBAppStateStoreManager.setState({
-      property: "useDemo",
-      value: false,
-    });
-    this.setDemoMode(false);
-  }
   /*
    * Accounts
    */
@@ -97,7 +74,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
         try {
-          if (!this.Demo) {
+          if (!ApplicationEnvironment.Demo) {
             await IndexedDBAccountStoreManager.addAccount(payload);
           }
           this.addAccount(payload);
@@ -142,7 +119,7 @@ class AccountsTransfers extends VuexModule {
           )
         ) {
           try {
-            if (!this.Demo) {
+            if (!ApplicationEnvironment.Demo) {
               await IndexedDBAccountStoreManager.addTransferToAccount({
                 accountID: payload.accountID,
                 transferID: payload.transferID,
@@ -179,7 +156,7 @@ class AccountsTransfers extends VuexModule {
           //DELETE TRANSFERS FROM PAGINATION
 
           //DELETE ALL TRANSFERS
-          if (!this.Demo) {
+          if (!ApplicationEnvironment.Demo) {
             await IndexedDBTransferStoreManager.deleteManyTransfers(
               this._accounts[accountID].transfers._value
             );
@@ -241,7 +218,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise<boolean>(async (resolve, reject) => {
       if (this._accounts.hasOwnProperty(payload.accountID)) {
         try {
-          if (!this.Demo) {
+          if (!ApplicationEnvironment.Demo) {
             await IndexedDBAccountStoreManager.removeTransferFromAccount({
               accountID: payload.accountID,
               transferID: payload.transferID,
@@ -277,7 +254,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
         try {
-          if (!this.Demo) {
+          if (!ApplicationEnvironment.Demo) {
             await IndexedDBTransferStoreManager.addTransfer(payload);
           }
           this.addTransferToPage(payload);
@@ -286,7 +263,7 @@ class AccountsTransfers extends VuexModule {
             transferID: payload._internalID._value,
           });
           this.addTransfer(payload);
-          if (!this.Demo) {
+          if (!ApplicationEnvironment.Demo) {
             const requestMessage: RequestBalanceMessage = {
               topic: {
                 type: AccountAssistMessageTypes.REQUEST_CALC,
@@ -540,7 +517,7 @@ class AccountsTransfers extends VuexModule {
   // @Action
   // async initializeSampleStore() {
   //   const newWorker: Worker = new Worker(
-  //     new URL("./example-worker.ts", import.meta.url),
+  //     new URL("./demo-worker.ts", import.meta.url),
   //     {
   //       type: "module",
   //     }
@@ -583,7 +560,7 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initAccounts(): Promise<boolean> {
     try {
-      if (!this.Demo) {
+      if (!ApplicationEnvironment.Demo) {
         const accounts = await IndexedDBAccountStoreManager.getAllAccounts();
 
         accounts.forEach((account) => {
@@ -599,7 +576,7 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initTransfers(): Promise<boolean> {
     try {
-      if (!this.Demo) {
+      if (!ApplicationEnvironment.Demo) {
         const transfers = await IndexedDBTransferStoreManager.getAllTransfers();
         transfers.forEach((transfer) => {
           const existingTransfer = new BasicTransfer(transfer);
@@ -622,7 +599,7 @@ class AccountsTransfers extends VuexModule {
         "value" in requestState &&
         typeof requestState.value === "boolean"
       ) {
-        this.setDemoMode(requestState.value);
+        ApplicationEnvironment.setDemoMode(requestState.value);
       }
       return Promise.resolve(true);
     } catch (err) {

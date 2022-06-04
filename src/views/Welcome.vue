@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts">
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
-import { UserDataStore } from "@/store/user/user-data";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
+import { UserDataStore } from "@/store/user-data/user-data-store";
 import { defineComponent, onMounted } from "vue";
 
 export default defineComponent({

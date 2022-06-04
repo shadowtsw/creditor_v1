@@ -61,10 +61,10 @@ import { importPages } from "@/components/component-registration";
 import Welcome from "@/views/Welcome.vue";
 
 //Start store
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 // import { workerProvider } from "@/worker/worker-provider";
-import { UserDataStore } from "@/store/user/user-data";
-// import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
+import { UserDataStore } from "@/store/user-data/user-data-store";
+// import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 
 // const importPage = importPages();
 

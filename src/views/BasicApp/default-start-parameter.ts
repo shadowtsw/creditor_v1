@@ -1,4 +1,4 @@
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 
 const currentPage = await IndexedDBAppStateStoreManager.getState("currentPage");
 

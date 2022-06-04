@@ -9,7 +9,7 @@
 <script lang="ts">
 import { usePageNavigator } from "@/components/navigator";
 import { defineComponent, onMounted } from "vue";
-import { AccountTransferStore } from "../store/data/data-store";
+import { AccountTransferStore } from "../store/account-transfer/account-transfer-store";
 
 export default defineComponent({
   setup() {

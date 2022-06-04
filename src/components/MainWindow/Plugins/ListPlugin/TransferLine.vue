@@ -38,7 +38,7 @@
 import { defineComponent, ref, PropType, computed } from "vue";
 import TransferLineDetails from "./TransferLineDetails.vue";
 import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 
 export default defineComponent({
   components: {

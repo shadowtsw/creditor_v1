@@ -24,7 +24,7 @@ import {
 import AccountItem from "../AccountList/AccountItem.vue";
 import AccountToolbar from "../AccountList/AccountToolbar.vue";
 
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import {
   AccountAssistMessageTypes,
   AccountBalanceObject,
@@ -44,7 +44,7 @@ export default defineComponent({
   },
   setup() {
     const demoMode = computed(() => {
-      return AccountTransferStore.Demo;
+      return ApplicationEnvironment.Demo;
     });
     //Web-Worker starts
     const cardWorker: AccountAssistantWorker = accountAssistantWorker;

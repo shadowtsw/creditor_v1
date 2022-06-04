@@ -23,9 +23,7 @@ import {
   PropType,
 } from "vue";
 import TransferLine from "./ListPlugin/TransferLine.vue";
-import { AccountTransferStore } from "@/store/data/data-store";
-
-import { DBManager } from "@/indexedDB/indexed-db-manager";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 
 export default defineComponent({
   components: {

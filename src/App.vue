@@ -7,15 +7,13 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from "vue";
-import { ApplicationEnvironment } from "./store/application/application";
+import { ApplicationEnvironment } from "./store/application/application-store";
 import Login from "./views/Login.vue";
 import MainApp from "./views/BasicApp/MainApp.vue";
 
-//TODO
-import { DBManager } from "./indexedDB/indexed-db-manager";
-import { AccountTransferStore } from "./store/data/data-store";
+import { AccountTransferStore } from "./store/account-transfer/account-transfer-store";
 import { usePageNavigator } from "./components/navigator";
-import IndexedDBAppStateStoreManager from "./indexedDB/app-state-indexeddb";
+import IndexedDBAppStateStoreManager from "./indexedDB/app-state-database";
 
 export default defineComponent({
   components: {

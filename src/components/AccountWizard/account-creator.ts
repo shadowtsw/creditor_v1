@@ -6,7 +6,7 @@ import {
   IBasicAccountConstructorConfig,
   IBasicAccountConstructorKeys,
 } from "@/interfaces/accounts/accounts";
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import { useValidator } from "@/utils/validator";
 import { computed, reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";

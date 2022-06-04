@@ -71,7 +71,7 @@ import {
 import { importPlugins } from "../components/component-registration";
 import { usePluginNavigator } from "../components/navigator";
 import TransfersToolbar from "../components/Transfers/TransfersToolbar.vue";
-import { AccountTransferStore } from "../store/data/data-store";
+import { AccountTransferStore } from "../store/account-transfer/account-transfer-store";
 
 //Submenu
 import DistMenu from "@/components/Transfers/SubMenu/DistMenu.vue";

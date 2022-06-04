@@ -84,7 +84,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, computed, PropType, ref } from "vue";
 import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import { AccountBalanceObject } from "@/worker/message-interfaces/account-assist-interface";
 
 export default defineComponent({

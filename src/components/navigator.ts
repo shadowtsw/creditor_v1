@@ -5,7 +5,7 @@ import {
   defaultStartPage,
   defaultStartPlugin,
 } from "@/views/BasicApp/default-start-parameter";
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-indexeddb";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 
 //Converts dictionary for use in vue components
 const pluginMap = ref<Array<DictionaryEntryObject>>([]);

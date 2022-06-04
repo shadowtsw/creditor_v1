@@ -41,7 +41,7 @@ import {
   BasicAccountTypes,
   IBasicAccountClass,
 } from "@/interfaces/accounts/accounts";
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import TransferCreator from "@/components/TransferWizard/TransferCreator.vue";
 
 export default defineComponent({

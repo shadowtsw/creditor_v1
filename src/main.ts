@@ -1,5 +1,5 @@
-import IndexedDBAppStateStoreManager from "./indexedDB/app-state-indexeddb";
-import IndexedDBCustomDataManager from "./indexedDB/custom-data-indexeddb";
+import IndexedDBAppStateStoreManager from "./indexedDB/app-state-database";
+import IndexedDBCustomDataManager from "./indexedDB/not-ready/custom-data-indexeddb";
 
 import { createApp } from "vue";
 import App from "./App.vue";

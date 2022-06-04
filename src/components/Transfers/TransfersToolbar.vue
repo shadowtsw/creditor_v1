@@ -37,7 +37,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { usePluginNavigator } from "../navigator";
-import { AccountTransferStore } from "@/store/data/data-store";
+import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 
 export default defineComponent({
   setup() {
