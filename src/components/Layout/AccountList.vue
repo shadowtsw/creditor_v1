@@ -2,11 +2,11 @@
   <AccountToolbar />
   <div class="account_wrapper" v-if="accountList.length > 0">
     <AccountItem
-      v-for="account in accounts"
-      :isLoading="summaryObject[account._internalID._value].isLoading || false"
+      v-for="(account, index) in accountList"
+      :isLoading="accountBalanceSummary[index].isLoading"
       :account="account"
       :key="account._internalID._value"
-      :summary="summaryObject[account._internalID._value]"
+      :summary="accountBalanceSummary[index]"
     />
   </div>
 </template>
@@ -34,9 +34,12 @@ import {
 import {
   AccountAssistantWorker,
   accountAssistantWorker,
+  DemoWorker,
 } from "@/worker/worker-provider";
 import { getLatestAccountBalance } from "@/worker/worker-functions/account-assist-worker/account-balance";
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
+import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
+import { ExampleWorker } from "../../../.history/src/store/account-transfer/demo-worker-types_20220605000408";
 
 export default defineComponent({
   components: {
@@ -51,6 +54,7 @@ export default defineComponent({
     const cardWorker: AccountAssistantWorker = accountAssistantWorker;
     const unsubscribe = ref<null | Function>(null);
     onMounted(() => {
+      console.log("demoMode.value", demoMode.value);
       if (!demoMode.value) {
         unsubscribe.value = cardWorker.subscribeBalanceMessage({
           id: "AccountList",
@@ -59,6 +63,13 @@ export default defineComponent({
             setAccountData(data.topic.accountID, data.data);
           },
         });
+        initAccountBalanceData();
+      } else {
+        console.log("INIT DEMO");
+        AccountTransferStore.subscribeChanges(() => {
+          initDemoData();
+        });
+        initDemoData();
       }
     });
     onBeforeUnmount(() => {
@@ -74,60 +85,79 @@ export default defineComponent({
     const summaryObject = reactive<{
       [index: string]: AccountBalanceObject & { isLoading: boolean };
     }>({});
+    const accountBalanceSummary = computed(
+      (): Array<(AccountBalanceObject & { isLoading: boolean }) | never> => {
+        return accountList.value.map((entry) => {
+          if (summaryObject[entry._internalID._value]) {
+            return summaryObject[entry._internalID._value];
+          } else {
+            return {
+              isLoading: false,
+              lastMonth: {
+                balance: 0,
+                income: 0,
+                outgoing: 0,
+              },
+              currentMonth: {
+                balance: 0,
+                income: 0,
+                outgoing: 0,
+              },
+            };
+          }
+        });
+      }
+    );
+    //Account related
 
     //Initial calculation
     watch(accountList, (newValue, oldValue) => {
-      if (oldValue.length === 0) {
-        accountList.value.forEach((entry) => {
-          if (!demoMode.value) {
-            setAccountData(entry._internalID._value);
-            postCalculation(entry._internalID._value);
-          } else {
-            // setAccountData(entry._internalID._value, getLatestAccountBalance());
-          }
-        });
-      } else {
-        newValue.forEach((entry) => {
-          if (!demoMode.value) {
-            if (!summaryObject.hasOwnProperty(entry._internalID._value)) {
-              setAccountData(entry._internalID._value);
-              postCalculation(entry._internalID._value);
-            }
-          } else {
-            // setAccountData(entry._internalID._value, getLatestAccountBalance());
-          }
-        });
+      if (demoMode.value) {
+        initDemoData();
       }
     });
+    // watch(accountList, async (newValue, oldValue) => {
+    //   console.log("AccountList watch", newValue);
+    //   if (oldValue.length === 0) {
+    //     for (const entry of accountList.value) {
+    //       if (!demoMode.value) {
+    //         postCalculation(entry._internalID._value);
+    //       } else {
+    //         //DEMO WORKER ONLY
+    //         setDemoData(entry);
+    //       }
+    //     }
+    //   } else {
+    //     for (const entry of newValue) {
+    //       if (!demoMode.value) {
+    //         if (!summaryObject.hasOwnProperty(entry._internalID._value)) {
+    //           postCalculation(entry._internalID._value);
+    //         }
+    //       } else {
+    //         //DEMO WORKER ONLY
+    //         setDemoData(entry);
+    //       }
+    //     }
+    //   }
+    // });
 
     //Functions
-    const setAccountData = (accountID: string, data?: AccountBalanceObject) => {
-      console.log("SETS ACCOUNT DATA");
-      if (data) {
-        console.log("WITH DATA");
-        summaryObject[accountID] = {
-          ...data,
-          ...{ isLoading: false },
-        };
-      } else {
-        console.log("WITH DUMMY");
-        //Sets dummy with loading state
-        summaryObject[accountID] = {
-          isLoading: true,
-          lastMonth: {
-            balance: 0,
-            income: 0,
-            outgoing: 0,
-          },
-          currentMonth: {
-            balance: 0,
-            income: 0,
-            outgoing: 0,
-          },
-        };
+    //Prod
+    const initAccountBalanceData = () => {
+      for (const entry of accountList.value) {
+        if (!demoMode.value) {
+          postCalculation(entry._internalID._value);
+        }
       }
     };
+    const setAccountData = (accountID: string, data: AccountBalanceObject) => {
+      summaryObject[accountID] = {
+        ...data,
+        ...{ isLoading: false },
+      };
+    };
     const postCalculation = (accountID: string) => {
+      summaryObject[accountID].isLoading = true;
       const requestMessage: RequestBalanceMessage = {
         topic: {
           type: AccountAssistMessageTypes.REQUEST_CALC,
@@ -136,11 +166,35 @@ export default defineComponent({
       };
       cardWorker.postMessage(requestMessage);
     };
+    //Demo
+    const initDemoData = async () => {
+      //DEMO WORKER ONLY
+      console.log("DEMO INIT TRANSFERDATA");
+      for (const entry of accountList.value) {
+        setDemoData(entry);
+      }
+    };
+    const setDemoData = async (entry: IBasicAccountClass) => {
+      //DEMO WORKER ONLY
+      if (demoMode.value) {
+        console.log("DEMO, newVal");
+        const transfers =
+          await DemoWorker.WorkerProvider.demoWorker.getTransfersFromAccount(
+            entry._internalID._value
+          );
+        console.log("transfers", transfers);
+        if (transfers && transfers.length > 0) {
+          setAccountData(
+            entry._internalID._value,
+            getLatestAccountBalance(entry.openingBalance._value, transfers)
+          );
+        }
+      }
+    };
 
     return {
-      accounts: accountList,
       accountList,
-      summaryObject,
+      accountBalanceSummary,
     };
   },
 });

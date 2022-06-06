@@ -143,10 +143,12 @@ export const useTransferCreator = () => {
     let basicValidation = false;
 
     basicValidation = addGeneralValidation(basicValidation, validateResult);
+    console.log("GENERAL-VALID", basicValidation);
 
     switch (preConfiguredObject._internalType) {
       case BasicAccountTypes.CASH:
         basicValidation = addCashValidation(basicValidation, validateResult);
+        console.log("CASH-VALID", basicValidation);
         break;
       case BasicAccountTypes.DIGITAL_ACCOUNT:
         basicValidation = addCashValidation(basicValidation, validateResult);
@@ -154,6 +156,7 @@ export const useTransferCreator = () => {
           basicValidation,
           validateResult
         );
+        console.log("DIGITAL-VALID", basicValidation);
         break;
       case BasicAccountTypes.BANK_ACCOUNT:
         basicValidation = addCashValidation(basicValidation, validateResult);
@@ -165,6 +168,7 @@ export const useTransferCreator = () => {
           basicValidation,
           validateResult
         );
+        console.log("BANK-VALID", basicValidation);
         break;
     }
 
@@ -172,6 +176,7 @@ export const useTransferCreator = () => {
   };
 
   const createTransfer = async (): Promise<boolean> => {
+    console.log("CREATE TRANSFER");
     if (hasErrors()) {
       throw new Error("Something is missing, please check inputs !");
     }
@@ -197,7 +202,7 @@ export const useTransferCreator = () => {
       ...{ bookDate: convertedBookDate || "" },
       ...{ value: Number(remainingParams.value) },
     };
-
+    console.log("Before Class");
     const newTransfer = new BasicTransfer(constructorObject);
 
     if (newTransfer._internalID._value !== "") {

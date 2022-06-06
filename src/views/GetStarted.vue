@@ -8,8 +8,8 @@
 
 <script lang="ts">
 import { usePageNavigator } from "@/components/navigator";
+import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 import { defineComponent, onMounted } from "vue";
-import { AccountTransferStore } from "../store/account-transfer/account-transfer-store";
 
 export default defineComponent({
   setup() {
@@ -20,7 +20,7 @@ export default defineComponent({
     const { activateImportCSV, activateCreateAccount } = usePageNavigator();
 
     const activateDemoMode = async () => {
-      AccountTransferStore.commitUseDemo();
+      ApplicationEnvironmentStore.commitUseDemo();
     };
 
     return {

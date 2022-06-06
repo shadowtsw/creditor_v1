@@ -31,7 +31,7 @@ export const generateCreditorAccountID = (
 
   const accountID = prefix + firstPart + secondPart + thirdPart;
 
-  const newInternalID = window.btoa(accountID);
+  const newInternalID = btoa(accountID);
 
   return newInternalID;
 };
@@ -73,7 +73,7 @@ export const generateCreditorTransferID = (
   const transferID =
     prefix + firstPart + secondPart + thirdPart + fourthPart + fifthPart;
 
-  const newInternalID = window.btoa(transferID);
+  const newInternalID = btoa(transferID);
 
   return newInternalID;
 };

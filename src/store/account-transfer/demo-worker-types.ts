@@ -9,13 +9,16 @@ export enum ResponseEventDataType {
 }
 
 export interface ExampleWorker {
-  examples: (
+  generateExampleData: (
     accounts: number,
     transfers: number
-  ) => Promise<{
-    accounts: Array<IBasicAccountClass>;
-    transfers: Array<IBasicTransferClass>;
-  }>;
-  randomNumber: () => Promise<boolean>;
+  ) => Promise<boolean>;
+  // randomNumber: () => Promise<boolean>;
   getTags: Promise<Array<string>>;
+  getAccounts: Promise<Array<IBasicAccountClass>>;
+  getTransfers: Promise<Array<IBasicTransferClass>>;
+  getTransfersFromAccount: (
+    accountID: string
+  ) => Promise<Array<IBasicTransferClass | never>>;
+  addTransfer: (payload: IBasicTransferClass) => void;
 }

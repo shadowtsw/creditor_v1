@@ -26,7 +26,7 @@ import {
   AccountAssistMessageTypes,
   RequestBalanceMessage,
 } from "@/worker/message-interfaces/account-assist-interface";
-import { accountAssistantWorker } from "@/worker/worker-provider";
+import { accountAssistantWorker, DemoWorker } from "@/worker/worker-provider";
 import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 import { ApplicationEnvironmentStore } from "../application/application-store";
 
@@ -78,6 +78,7 @@ class AccountsTransfers extends VuexModule {
             await IndexedDBAccountStoreManager.addAccount(payload);
           }
           this.addAccount(payload);
+          this.postBalanceCalculation(payload._internalID._value);
           resolve(true);
         } catch (err) {
           throw new Error(`Failed to add account to DB: ${err}`);
@@ -92,8 +93,8 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
         try {
-          // await IndexedDBAccountStoreManager.addAccount(payload);
           this.addAccount(payload);
+          this.postBalanceCalculation(payload._internalID._value);
           resolve(true);
         } catch (err) {
           throw new Error("Failed to add transfer to DB");
@@ -256,6 +257,11 @@ class AccountsTransfers extends VuexModule {
         try {
           if (!ApplicationEnvironmentStore.Demo) {
             await IndexedDBTransferStoreManager.addTransfer(payload);
+          } else {
+            await DemoWorker.WorkerProvider.demoWorker.addTransfer(
+              JSON.parse(JSON.stringify(payload))
+            );
+            this.fireDemoSubs();
           }
           this.addTransferToPage(payload);
           await this.addTransferToAccount({
@@ -263,15 +269,7 @@ class AccountsTransfers extends VuexModule {
             transferID: payload._internalID._value,
           });
           this.addTransfer(payload);
-          if (!ApplicationEnvironmentStore.Demo) {
-            const requestMessage: RequestBalanceMessage = {
-              topic: {
-                type: AccountAssistMessageTypes.REQUEST_CALC,
-                accountID: payload._accountID._value,
-              },
-            };
-            accountAssistantWorker.postMessage(requestMessage);
-          }
+          this.postBalanceCalculation(payload._accountID._value);
           resolve(true);
         } catch (err) {
           throw new Error(`Failed to add transfer to DB: ${err}`);
@@ -288,10 +286,6 @@ class AccountsTransfers extends VuexModule {
     return new Promise((resolve, reject) => {
       if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
         this.addTransferToPage(payload);
-        // this.addTransferToAccount({
-        //   accountID: payload._accountID._value,
-        //   transferID: payload._internalID._value,
-        // });
         this.addTransfer(payload);
         resolve(true);
       } else {
@@ -516,6 +510,7 @@ class AccountsTransfers extends VuexModule {
 
   // @Action
   // async initializeSampleStore() {
+
   //   const newWorker: Worker = new Worker(
   //     new URL("./demo-worker.ts", import.meta.url),
   //     {
@@ -557,6 +552,21 @@ class AccountsTransfers extends VuexModule {
   // }
 
   //!INIT
+  @Action
+  async postBalanceCalculation(accountID: string): Promise<boolean> {
+    if (!ApplicationEnvironmentStore.Demo) {
+      const requestMessage: RequestBalanceMessage = {
+        topic: {
+          type: AccountAssistMessageTypes.REQUEST_CALC,
+          accountID: accountID,
+        },
+      };
+      accountAssistantWorker.postMessage(requestMessage);
+      return Promise.resolve(true);
+    } else {
+      return Promise.resolve(true);
+    }
+  }
   @Action({ rawError: true })
   async initAccounts(): Promise<boolean> {
     try {
@@ -604,6 +614,36 @@ class AccountsTransfers extends VuexModule {
       return Promise.resolve(true);
     } catch (err) {
       return Promise.reject(err);
+    }
+  }
+
+  //DEMO SECTION
+  private changeSubs: Array<Function | never> = [];
+  @Mutation
+  subscribeChanges(callback: Function) {
+    this.changeSubs.push(callback);
+  }
+  @Action
+  fireDemoSubs() {
+    this.changeSubs.forEach((callback) => {
+      console.log("Changes fired");
+      callback();
+    });
+  }
+  @Action
+  async useDemoWorker() {
+    if (ApplicationEnvironmentStore.Demo) {
+      if (Object.keys(this._accounts).length === 0) {
+        try {
+          const demoWorker = DemoWorker.WorkerProvider;
+          const accountResult = await demoWorker.demoWorker.getAccounts;
+          accountResult.forEach((entry) => {
+            this.commitAddAccountFromDB(entry);
+          });
+        } catch (err) {
+          throw new Error(`Failed during demo processing: ${err}`);
+        }
+      }
     }
   }
 }

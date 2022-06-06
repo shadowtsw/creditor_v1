@@ -1,3 +1,4 @@
+import { ExampleWorker } from "@/store/account-transfer/demo-worker-types";
 import {
   InitMessage,
   InitMessageTargets,
@@ -7,6 +8,7 @@ import {
   SubscriptionObject,
   ResponseBalanceMessage,
 } from "@/worker/message-interfaces/account-assist-interface";
+import * as Comlink from "comlink";
 
 // class WorkerProvider {
 //   private static singleton: WorkerProvider | null;
@@ -162,5 +164,46 @@ export class AccountAssistantWorker {
     }
   }
 }
-
 export const accountAssistantWorker = AccountAssistantWorker.WorkerProvider;
+
+export class DemoWorker {
+  private static singleton: DemoWorker | null;
+  private _worker: ExampleWorker;
+
+  private constructor() {
+    const comlinkWorker = new Worker(
+      new URL("../store/account-transfer/demo-worker.ts", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+
+    this._worker = Comlink.wrap(comlinkWorker);
+
+    if (this._worker) {
+      this.init();
+    } else {
+      console.log("NO WORKER FOUND");
+    }
+  }
+
+  private async init() {
+    if (this._worker) {
+      await this._worker.generateExampleData(3, 20);
+    } else {
+      throw new Error("DemoWOrker not running");
+    }
+  }
+
+  public static get WorkerProvider(): DemoWorker {
+    if (!DemoWorker.singleton) {
+      DemoWorker.singleton = new DemoWorker();
+    }
+    return DemoWorker.singleton;
+  }
+  public get demoWorker(): ExampleWorker {
+    return this._worker;
+  }
+}
+
+// export const DemoWorkerWorker = DemoWorker.WorkerProvider;

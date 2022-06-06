@@ -18,7 +18,7 @@ class ApplicationEnvironment extends VuexModule {
   /**
    * DEMO
    */
-  private _useDemo = false;
+  private _useDemo = true;
 
   public get Demo() {
     return this._useDemo;

@@ -89,6 +89,8 @@ export default defineComponent({
         await AccountTransferStore.initMetaState();
         await AccountTransferStore.initAccounts();
         await AccountTransferStore.initTransfers();
+        //TODO
+        await AccountTransferStore.useDemoWorker();
       } catch (err) {
         console.info("WARNING: ERROR during Init()", err);
       }

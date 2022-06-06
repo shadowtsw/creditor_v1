@@ -239,6 +239,10 @@ export class BasicAccount implements IBasicAccountClass {
             year:
               payload.openingBalanceDate.getFullYear() ||
               new Date().getFullYear(),
+            yearmonth:
+              payload.openingBalanceDate.getFullYear() +
+                payload.openingBalanceDate.getMonth() ||
+              new Date().getFullYear() + new Date().getMonth(),
           },
           _type: DataFieldType.NUMBER,
           _displayName: "Opening balance date",
@@ -251,6 +255,7 @@ export class BasicAccount implements IBasicAccountClass {
             weekDay: new Date().getDay(),
             month: new Date().getMonth(),
             year: new Date().getFullYear(),
+            yearmonth: new Date().getFullYear() + new Date().getMonth(),
           },
           _type: DataFieldType.NUMBER,
           _displayName: "Created at",
@@ -263,6 +268,7 @@ export class BasicAccount implements IBasicAccountClass {
             weekDay: new Date().getDay() || new Date().getDay(),
             month: new Date().getMonth() || new Date().getMonth(),
             year: new Date().getFullYear() || new Date().getFullYear(),
+            yearmonth: new Date().getFullYear() + new Date().getMonth(),
           },
           _type: DataFieldType.NUMBER,
           _displayName: "Updated at",

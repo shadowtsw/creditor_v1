@@ -1,19 +1,28 @@
 import {
+  BasicAccount,
   BasicAccountTypes,
   CurrencyValues,
   IBasicAccountClass,
+  IBasicAccountConstructorConfig,
 } from "@/interfaces/accounts/accounts";
-import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
+import {
+  BasicTransfer,
+  IBasicTransferClass,
+  IBasicTransferConstructorConfig,
+} from "@/interfaces/transfers/transfers";
 import { DataFieldType } from "@/interfaces/data-field/data-field-interface";
 import * as Comlink from "comlink";
 import { getTransferConfig } from "@/utils/config-generator";
+import { ExampleWorker } from "./demo-worker-types";
+
+console.log("HERE IS DEMO WORKER");
 
 const randomNumberGenerator = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min)) + min;
 };
 
 const randomValueGenerator = () => {
-  let decimal = randomNumberGenerator(1, 99);
+  let decimal = randomNumberGenerator(5, 99);
   let value = randomNumberGenerator(5, 1800);
   return Number(value + "." + decimal);
 };
@@ -69,337 +78,111 @@ const randomDistKeyGenerator = () => {
   return distKeys[0];
 };
 
-const getExampleData = (
+const accountDB: Array<IBasicAccountClass> = [];
+const transferDB: Array<IBasicTransferClass> = [];
+
+const generateExampleData = (
   accountAmount: number,
   transfersPerAccount: number
-): {
-  accounts: Array<IBasicAccountClass>;
-  transfers: Array<IBasicTransferClass>;
-} => {
-  const parsedAccountArray = [];
-  const transferArray = [];
+): Promise<boolean> => {
+  // const parsedAccountArray = [];
+  // const transferArray = [];
 
   for (let i = 0; i < accountAmount; i++) {
-    const newAccount: IBasicAccountClass = {
-      _internalID: {
-        _value: i.toString(),
-        _type: DataFieldType.ID,
-        _readonly: true,
-        _visible: false,
-        _shared: false,
-        _displayName: "internalID",
-      },
-      _internalType: {
-        _value: BasicAccountTypes.DIGITAL_ACCOUNT,
-        _type: DataFieldType.ID,
-        _readonly: true,
-        _visible: false,
-        _shared: false,
-        _displayName: "internalID",
-      },
-      provider: {
-        _value: "SPK" + i.toString(),
-        _type: DataFieldType.STRING,
-        _readonly: true,
-        _visible: true,
-        _shared: true,
-        _displayName: "Bank/Account",
-      },
-      accountNumber: {
-        _value: (i * i).toString(),
-        _type: DataFieldType.STRING,
-        _readonly: true,
-        _visible: true,
-        _shared: false,
-        _displayName: "IBAN/AccountNo.",
-      },
-      transfers: {
-        _value: [] as Array<string>,
-        _type: DataFieldType.TRANSFERLIST,
-        _readonly: true,
-        _visible: true,
-        _shared: false,
-        _displayName: "Transfers",
-      },
-      shortName: {
-        _value: "",
-        _type: DataFieldType.STRING,
-        _readonly: false,
-        _visible: true,
-        _shared: true,
-        _displayName: "Shortname",
-      },
-      openingBalance: {
-        _value: 50,
-        _type: DataFieldType.NUMBER,
-        _readonly: false,
-        _visible: true,
-        _shared: false,
-        _displayName: "Opening balance",
-      },
-      openingBalanceDate: {
-        _value: new Date().getTime(),
-        _dateMetaInformation: {
-          isoString: new Date().toISOString(),
-          weekDay: new Date().getDay(),
-          month: new Date().getMonth(),
-          year: new Date().getFullYear(),
-          yearmonth: Number(
-            new Date().getFullYear().toString() +
-              new Date().getMonth().toString()
-          ),
-        },
-        _type: DataFieldType.NUMBER,
-        _readonly: false,
-        _visible: true,
-        _shared: false,
-        _displayName: "Opening balance date",
-      },
-      createdAt: {
-        _value: new Date().getTime(),
-        _dateMetaInformation: {
-          isoString: new Date().toISOString(),
-          weekDay: new Date().getDay(),
-          month: new Date().getMonth(),
-          year: new Date().getFullYear(),
-          yearmonth: Number(
-            new Date().getFullYear().toString() +
-              new Date().getMonth().toString()
-          ),
-        },
-        _type: DataFieldType.NUMBER,
-        _readonly: true,
-        _visible: true,
-        _shared: true,
-        _displayName: "Created at",
-      },
-      updatedAt: {
-        _value: new Date().getTime(),
-        _dateMetaInformation: {
-          isoString: new Date().toISOString(),
-          weekDay: new Date().getDay(),
-          month: new Date().getMonth(),
-          year: new Date().getFullYear(),
-          yearmonth: Number(
-            new Date().getFullYear().toString() +
-              new Date().getMonth().toString()
-          ),
-        },
-        _type: DataFieldType.NUMBER,
-        _readonly: false,
-        _visible: true,
-        _shared: true,
-        _displayName: "Updated at",
-      },
-      currency: {
-        _value: CurrencyValues.EUR,
-        _type: DataFieldType.CURRENCY,
-        _readonly: false,
-        _visible: true,
-        _shared: true,
-        _displayName: "Currency",
-      },
-      isSelected: {
-        _value: i === 2 ? true : false,
-        _type: DataFieldType.CHECKBOX,
-        _readonly: false,
-        _visible: true,
-        _shared: false,
-        _displayName: "Selected",
-      },
+    const accountTypeValue = BasicAccountTypes.CASH;
+    const accountID = "account-" + i.toString();
+    const accountNumber = (i * i).toString();
+    const provider = "SPK" + i.toString();
+    const accountShortname = `DummyCash-${i}`;
+
+    const newAccountConstructorObject: IBasicAccountConstructorConfig = {
+      _internalType: accountTypeValue,
+      provider: provider,
+      accountNumber: accountNumber,
+      shortName: accountShortname,
+      openingBalance: randomNumberGenerator(50, 2500),
+      openingBalanceDate: new Date(),
+      currency: CurrencyValues.EUR,
     };
+
+    const newAccount = new BasicAccount(newAccountConstructorObject);
 
     for (let j = 0; j < transfersPerAccount; j++) {
       const bookDate = randomDateGenerator();
       const valutaDate = randomDateGenerator();
-      const newTransfer: IBasicTransferClass = {
-        _internalID: {
-          _value: i.toString() + j.toString(),
-          _type: DataFieldType.ID,
-          _readonly: true,
-          _visible: false,
-          _shared: false,
-          _displayName: "internalID",
-        },
-        provider: {
-          _value: "SPK" + i.toString(),
-          _type: DataFieldType.STRING,
-          _readonly: true,
-          _visible: true,
-          _shared: true,
-          _displayName: "Bank/Account",
-        },
-        accountNumber: {
-          _value: (i * i).toString(),
-          _type: DataFieldType.STRING,
-          _readonly: true,
-          _visible: true,
-          _shared: true,
-          _displayName: "IBAN/AccountNo.",
-        },
-        value: {
-          _value: randomValueGenerator(),
-          _type: DataFieldType.NUMBER,
-          _readonly: false,
-          _visible: true,
-          _shared: true,
-          _displayName: "Value [EUR]",
-        },
-        purpose: {
-          _value: (i * i).toString(),
-          _type: DataFieldType.TEXTFIELD,
-          _readonly: false,
-          _visible: true,
-          _shared: true,
-          _displayName: "Purpose",
-        },
-        bookDate: {
-          _value: bookDate.getTime(),
-          _type: DataFieldType.DATE,
-          _readonly: true,
-          _visible: true,
-          _shared: false,
-          _displayName: "Date of book (Book date)",
-          _dateMetaInformation: {
-            isoString: bookDate.toLocaleDateString(),
-            weekDay: bookDate.getDate(),
-            month: bookDate.getMonth(),
-            year: bookDate.getFullYear(),
-            yearmonth: Number(
-              bookDate.getFullYear().toString() + bookDate.getMonth().toString()
-            ),
-          },
-        },
-        valutaDate: {
-          _value: valutaDate.getTime(),
-          _type: DataFieldType.DATE,
-          _readonly: true,
-          _visible: true,
-          _shared: false,
-          _displayName: "Date of credit (valuta date)",
-          _dateMetaInformation: {
-            isoString: valutaDate.toLocaleDateString(),
-            weekDay: valutaDate.getDate(),
-            month: valutaDate.getMonth(),
-            year: valutaDate.getFullYear(),
-            yearmonth: Number(
-              valutaDate.getFullYear().toString() +
-                valutaDate.getMonth().toString()
-            ),
-          },
-        },
-        description: {
-          _value: "empty",
-          _type: DataFieldType.TEXTFIELD,
-          _readonly: false,
-          _visible: true,
-          _shared: true,
-          _displayName: "Description",
-        },
-        tags: {
-          _value: randomTagsGenerator(),
-          _type: DataFieldType.TAGLIST,
-          _readonly: false,
-          _visible: true,
-          _shared: true,
-          _displayName: "Tags",
-        },
-        distKey: {
-          _value: randomDistKeyGenerator(),
-          _type: DataFieldType.KEYOBJECT,
-          _readonly: false,
-          _visible: true,
-          _shared: true,
-          _displayName: "Distribution key",
-        },
-        isSelected: {
-          _value: false,
-          _valueMeta: 0,
-          _type: DataFieldType.CHECKBOX,
-          _readonly: false,
-          _visible: true,
-          _shared: false,
-          _displayName: "Selected",
-        },
-        _internalType: {
-          _value: BasicAccountTypes.DIGITAL_ACCOUNT,
-          _type: DataFieldType.STRING,
-          _displayName: "",
-          ...getTransferConfig(
-            BasicAccountTypes.DIGITAL_ACCOUNT,
-            "_internalType"
-          ),
-        },
-        createdAt: {
-          _value: new Date().getTime(),
-          _type: DataFieldType.NUMBER,
-          _displayName: "",
-          _dateMetaInformation: {
-            isoString: bookDate.toLocaleDateString(),
-            weekDay: bookDate.getDate(),
-            month: bookDate.getMonth(),
-            year: bookDate.getFullYear(),
-            yearmonth: Number(
-              bookDate.getFullYear().toString() + bookDate.getMonth().toString()
-            ),
-          },
-          ...getTransferConfig(BasicAccountTypes.DIGITAL_ACCOUNT, "createdAt"),
-        },
-        updatedAt: {
-          _value: new Date().getTime(),
-          _type: DataFieldType.NUMBER,
-          _displayName: "",
-          _dateMetaInformation: {
-            isoString: bookDate.toLocaleDateString(),
-            weekDay: bookDate.getDate(),
-            month: bookDate.getMonth(),
-            year: bookDate.getFullYear(),
-            yearmonth: Number(
-              bookDate.getFullYear().toString() + bookDate.getMonth().toString()
-            ),
-          },
-          ...getTransferConfig(BasicAccountTypes.DIGITAL_ACCOUNT, "updatedAt"),
-        },
-        _accountID: {
-          _value: `Test_${j}`,
-          _type: DataFieldType.ID,
-          _displayName: "",
-          ...getTransferConfig(BasicAccountTypes.DIGITAL_ACCOUNT, "_accountID"),
-        },
-        shortName: {
-          _value: `TestName_${j}`,
-          _type: DataFieldType.TEXTFIELD,
-          _readonly: false,
-          _visible: true,
-          _shared: true,
-          _displayName: "Description",
-        },
-        currency: {
-          _value: CurrencyValues.EUR,
-          _type: DataFieldType.TEXTFIELD,
-          _readonly: false,
-          _visible: true,
-          _shared: true,
-          _displayName: "Description",
-        },
+
+      const newTransferContructorObject: IBasicTransferConstructorConfig = {
+        _internalType: accountTypeValue,
+        shortName: "",
+        currency: CurrencyValues.EUR,
+
+        provider: provider,
+        accountNumber: accountNumber,
+
+        value: randomValueGenerator(),
+
+        purpose: (i * i).toString(),
+        description: "Demo" + "-" + j + "-" + i,
+
+        tags: randomTagsGenerator(),
+        valutaDate: valutaDate,
+        bookDate: "",
+        distKey: randomDistKeyGenerator(),
+        _accountID: newAccount._internalID._value,
       };
+
+      const newTransfer = new BasicTransfer(newTransferContructorObject);
+
       newAccount.transfers._value.push(newTransfer._internalID._value);
-      transferArray.push(newTransfer);
+      transferDB.push(newTransfer);
     }
-    parsedAccountArray.push(newAccount);
+    accountDB.push(newAccount);
   }
 
-  return {
-    accounts: parsedAccountArray,
-    transfers: transferArray,
-  };
+  console.log("Examples generated");
+  // console.log("AccountsDB", accountDB);
+  // console.log("TransfersDB",transferDB);
+  return Promise.resolve(true);
 };
 
-const get = {
-  examples: (accounts: number, transfers: number) =>
-    getExampleData(accounts, transfers),
-  randomNumber: randomNumberGenerator,
+const getTransfersFromAccount = (accountID: string) => {
+  // console.log("TRANSFER DB", transferDB, accountID);
+  return (
+    transferDB.filter((entry) => {
+      return entry._accountID._value === accountID;
+    }) || []
+  );
+};
+
+const addTransfer = (payload: IBasicTransferClass) => {
+  const relatedAccount = accountDB.find((entry) => {
+    return entry._internalID._value === payload._accountID._value;
+  });
+  if (relatedAccount) {
+    transferDB.push(payload);
+    relatedAccount.transfers._value.push(payload._internalID._value);
+  }
+};
+
+const ExampleWorkerObject: {
+  generateExampleData: (
+    accounts: number,
+    transfers: number
+  ) => Promise<boolean>;
+  getTags: Array<string>;
+  getAccounts: Array<IBasicAccountClass>;
+  getTransfers: Array<IBasicTransferClass>;
+  getTransfersFromAccount: (
+    accountID: string
+  ) => Array<IBasicTransferClass | never>;
+  addTransfer: (payload: IBasicTransferClass) => void;
+} = {
+  generateExampleData: generateExampleData,
   getTags: tags,
+  getAccounts: accountDB,
+  getTransfers: transferDB,
+  getTransfersFromAccount: getTransfersFromAccount,
+  addTransfer: addTransfer,
 };
 
-Comlink.expose(get);
+Comlink.expose(ExampleWorkerObject);

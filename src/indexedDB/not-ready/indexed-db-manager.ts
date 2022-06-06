@@ -5,7 +5,7 @@ import {
   IDBTransfers,
   IDBUserData,
 } from "./db-schemas";
-import { TagsObject } from "@/store/sub-data/sub-data-store-types";
+import { TagsObject } from "@/store/sub-data/sub-data-types";
 
 enum DataBases {
   USER_DATA = "user-data",
