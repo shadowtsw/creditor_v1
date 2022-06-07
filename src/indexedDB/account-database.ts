@@ -2,6 +2,8 @@ import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import { upgradeAccountDB } from "./upgrade-functions/account-db";
 
+import { ApplicationEnvironmentStore } from "@/store/application/application-store";
+
 export interface IDBAccounts extends DBSchema {
   accounts: {
     value: IBasicAccountClass;
@@ -12,11 +14,13 @@ export interface IDBAccounts extends DBSchema {
 
 enum DataBases {
   ACCOUNTS = "accounts-database",
+  DEMO_ACCOUNTS = "accounts-demo",
 }
 
 export const DBProvider = {
   accountsDB: {
     dbname: DataBases.ACCOUNTS,
+    dbDemoName: DataBases.DEMO_ACCOUNTS,
     currentVersion: 1,
   },
 };
@@ -38,10 +42,14 @@ class IndexedDBAccountManager {
     return IndexedDBAccountManager._storeManager;
   }
 
-  public async initDB(): Promise<boolean> {
+  public async initDB(useRegularDB: boolean = true): Promise<boolean> {
     const appDatabase = DBProvider.accountsDB;
+    let relatedDB = appDatabase.dbname;
+    if (!useRegularDB || ApplicationEnvironmentStore.Demo) {
+      relatedDB = appDatabase.dbDemoName;
+    }
     const db = await openDB<IDBAccounts>(
-      appDatabase.dbname,
+      relatedDB,
       appDatabase.currentVersion,
       {
         upgrade(db) {
@@ -197,6 +205,16 @@ class IndexedDBAccountManager {
       }
     } else {
       throw new Error("Database not found");
+    }
+  }
+
+  public async useDemoAccounts() {
+    try {
+      this._account_data?.close();
+      await this.initDB(false);
+      return Promise.resolve(true);
+    } catch (err) {
+      throw new Error(`Failed to init demo accounts: ${err}`);
     }
   }
 }

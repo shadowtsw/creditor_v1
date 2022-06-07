@@ -290,6 +290,65 @@ class IndexedDBAppStateManager {
       throw new Error("Database not found");
     }
   }
+
+  public async setDemoInitialState() {
+    if (!this._app_state_data) {
+      try {
+        await this.initDB();
+      } catch (err) {
+        throw new Error(`Failed to init DB:${err}`);
+      }
+    }
+
+    if (this._app_state_data) {
+      const appState = this._app_state_data;
+      try {
+        const originalResult = await appState.get("appState", "demoInUse");
+        if (originalResult) {
+          await appState.put("appState", {
+            property: "demoInUse",
+            value: true,
+          });
+        } else {
+          await appState.add("appState", {
+            property: "demoInUse",
+            value: true,
+          });
+        }
+      } catch (err) {
+        throw new Error(`Failed to add visibility to plugin: ${err}`);
+      }
+      return Promise.resolve(true);
+    } else {
+      throw new Error("Database not found");
+    }
+  }
+
+  public async getDemoState() {
+    if (!this._app_state_data) {
+      try {
+        await this.initDB();
+      } catch (err) {
+        throw new Error(`Failed to init DB:${err}`);
+      }
+    }
+
+    if (this._app_state_data) {
+      const appState = this._app_state_data;
+      try {
+        const stateResult = await appState.get("appState", "demoInUse");
+        if (stateResult) {
+          return stateResult;
+        } else {
+          return null;
+        }
+      } catch (err) {
+        throw new Error(`Failed to get property: demoInUse ${err}`);
+      }
+    } else {
+      throw new Error("Database not found");
+    }
+  }
 }
 
 const IndexedDBAppStateStoreManager = IndexedDBAppStateManager.AppStateManager;

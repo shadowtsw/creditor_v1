@@ -14,6 +14,20 @@ import { DataFieldType } from "@/interfaces/data-field/data-field-interface";
 import * as Comlink from "comlink";
 import { getTransferConfig } from "@/utils/config-generator";
 import { ExampleWorker } from "./demo-worker-types";
+import {
+  DBProvider as TransferDBProvider,
+  IDBTransfers,
+} from "@/indexedDB/transfer-database";
+import {
+  DBProvider as AccountDBProvider,
+  IDBAccounts,
+} from "@/indexedDB/account-database";
+import { ApplicationEnvironmentStore } from "../application/application-store";
+
+import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
+import { upgradeAccountDB } from "@/indexedDB/upgrade-functions/account-db";
+import { upgradeTransferDB } from "@/indexedDB/upgrade-functions/transfer-db";
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 
 console.log("HERE IS DEMO WORKER");
 
@@ -23,12 +37,12 @@ const randomNumberGenerator = (min: number, max: number) => {
 
 const randomValueGenerator = () => {
   let decimal = randomNumberGenerator(5, 99);
-  let value = randomNumberGenerator(5, 1800);
+  let value = randomNumberGenerator(5, 2500);
   return Number(value + "." + decimal);
 };
 
 const randomDateGenerator = () => {
-  const year = randomNumberGenerator(2017, 2021);
+  const year = randomNumberGenerator(2001, 2021);
   const month = randomNumberGenerator(0, 11);
   const day =
     month !== 1 ? randomNumberGenerator(0, 30) : randomNumberGenerator(0, 28);
@@ -81,7 +95,7 @@ const randomDistKeyGenerator = () => {
 const accountDB: Array<IBasicAccountClass> = [];
 const transferDB: Array<IBasicTransferClass> = [];
 
-const generateExampleData = (
+const generateExampleData = async (
   accountAmount: number,
   transfersPerAccount: number
 ): Promise<boolean> => {
@@ -139,10 +153,62 @@ const generateExampleData = (
     accountDB.push(newAccount);
   }
 
+  await saveAccounts();
+  await saveTransfers();
+
   console.log("Examples generated");
   // console.log("AccountsDB", accountDB);
   // console.log("TransfersDB",transferDB);
+
   return Promise.resolve(true);
+};
+
+const saveAccounts = async (): Promise<boolean> => {
+  const appDatabase = AccountDBProvider.accountsDB;
+  const relatedDB = appDatabase.dbDemoName;
+
+  const db = await openDB<IDBAccounts>(relatedDB, appDatabase.currentVersion, {
+    upgrade(db) {
+      upgradeAccountDB(db);
+    },
+  });
+  if (db) {
+    const tx = db.transaction("accounts", "readwrite");
+    const promiseArray = [];
+    accountDB.forEach((entry) => {
+      promiseArray.push(tx.store.add(entry));
+    });
+    promiseArray.push(tx.done);
+    const result = await Promise.all(promiseArray);
+    console.log("STORED ACCOUNT EXAMPLES IN DB", result);
+    return Promise.resolve(true);
+  } else {
+    throw new Error("Failed to add account demo data");
+  }
+};
+
+const saveTransfers = async (): Promise<boolean> => {
+  const appDatabase = TransferDBProvider.transferDB;
+  const relatedDB = appDatabase.dbDemoName;
+
+  const db = await openDB<IDBTransfers>(relatedDB, appDatabase.currentVersion, {
+    upgrade(db) {
+      upgradeTransferDB(db);
+    },
+  });
+  if (db) {
+    const tx = db.transaction("transfers", "readwrite");
+    const promiseArray = [];
+    transferDB.forEach((entry) => {
+      promiseArray.push(tx.store.add(entry));
+    });
+    promiseArray.push(tx.done);
+    const result = await Promise.all(promiseArray);
+    console.log("STORED TRANSFER EXAMPLES IN DB", result);
+    return Promise.resolve(true);
+  } else {
+    throw new Error("Failed to add transfer demo data");
+  }
 };
 
 const getTransfersFromAccount = (accountID: string) => {

@@ -7,6 +7,7 @@ import {
   upgradeTransferDB,
 } from "@/indexedDB/upgrade-functions/transfer-db";
 import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
+import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import {
   DBProvider as AccountProvider,
@@ -147,8 +148,12 @@ let accountDB: accountDBSchema;
 let transferDB: transferDBSchema;
 
 const openAccountDB = async (): Promise<boolean> => {
+  let relatedDB = AccountProvider.accountsDB.dbname;
+  if (ApplicationEnvironmentStore.Demo) {
+    relatedDB = AccountProvider.accountsDB.dbDemoName;
+  }
   const db = await openDB<IDBAccounts>(
-    AccountProvider.accountsDB.dbname,
+    relatedDB,
     AccountProvider.accountsDB.currentVersion,
     {
       upgrade(db) {
@@ -166,8 +171,12 @@ const openAccountDB = async (): Promise<boolean> => {
 };
 
 const openTransferDB = async (): Promise<boolean> => {
+  let relatedDB = TransferProvider.transferDB.dbname;
+  if (ApplicationEnvironmentStore.Demo) {
+    relatedDB = TransferProvider.transferDB.dbDemoName;
+  }
   const db = await openDB<IDBTransfers>(
-    TransferProvider.transferDB.dbname,
+    relatedDB,
     TransferProvider.transferDB.currentVersion,
     {
       upgrade(db) {

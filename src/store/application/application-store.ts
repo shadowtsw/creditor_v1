@@ -47,23 +47,6 @@ class ApplicationEnvironment extends VuexModule {
   /**
    * DEMO END
    */
-  private _test: string = "test";
-
-  public get test() {
-    return this._test;
-  }
-
-  @Mutation
-  mutateTest(payload: string) {
-    this._test = payload;
-  }
-
-  @Action
-  commitTestChange(payload: string) {
-    if (payload !== "") {
-      this.mutateTest(payload);
-    }
-  }
 }
 
 export const ApplicationEnvironmentStore = getModule(ApplicationEnvironment);

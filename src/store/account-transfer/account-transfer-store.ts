@@ -74,9 +74,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._accounts.hasOwnProperty(payload._internalID._value)) {
         try {
-          if (!ApplicationEnvironmentStore.Demo) {
-            await IndexedDBAccountStoreManager.addAccount(payload);
-          }
+          await IndexedDBAccountStoreManager.addAccount(payload);
           this.addAccount(payload);
           this.postBalanceCalculation(payload._internalID._value);
           resolve(true);
@@ -255,14 +253,7 @@ class AccountsTransfers extends VuexModule {
     return new Promise(async (resolve, reject) => {
       if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
         try {
-          if (!ApplicationEnvironmentStore.Demo) {
-            await IndexedDBTransferStoreManager.addTransfer(payload);
-          } else {
-            await DemoWorker.WorkerProvider.demoWorker.addTransfer(
-              JSON.parse(JSON.stringify(payload))
-            );
-            this.fireDemoSubs();
-          }
+          await IndexedDBTransferStoreManager.addTransfer(payload);
           this.addTransferToPage(payload);
           await this.addTransferToAccount({
             accountID: payload._accountID._value,
@@ -508,49 +499,6 @@ class AccountsTransfers extends VuexModule {
     this.setPagination(newPagination);
   }
 
-  // @Action
-  // async initializeSampleStore() {
-
-  //   const newWorker: Worker = new Worker(
-  //     new URL("./demo-worker.ts", import.meta.url),
-  //     {
-  //       type: "module",
-  //     }
-  //   );
-
-  //   const get: ExampleWorker = Comlink.wrap(newWorker);
-
-  //   const accountStore: Array<IBasicAccountClass> = await get.examples(3, 50);
-
-  //   accountStore.forEach((account) => {
-  //     account.transfers._value.forEach((transfer) => {
-  //       if (typeof transfer !== "string") {
-  //         this._transfers[transfer._internalID._value] = transfer;
-  //       }
-  //     });
-
-  //     account.transfers._value = account.transfers._value.map((transfer) => {
-  //       if (typeof transfer !== "string") {
-  //         return transfer._internalID._value;
-  //       } else {
-  //         return transfer;
-  //       }
-  //     });
-
-  //     this._accounts[account._internalID._value] = account;
-  //   });
-
-  //   const tags = await get.getTags;
-
-  //   tags.forEach((tag) => {
-  //     SubDataStore.addDefaultTag(tag);
-  //   });
-
-  //   newWorker.terminate();
-
-  //   return true;
-  // }
-
   //!INIT
   @Action
   async postBalanceCalculation(accountID: string): Promise<boolean> {
@@ -614,36 +562,6 @@ class AccountsTransfers extends VuexModule {
       return Promise.resolve(true);
     } catch (err) {
       return Promise.reject(err);
-    }
-  }
-
-  //DEMO SECTION
-  private changeSubs: Array<Function | never> = [];
-  @Mutation
-  subscribeChanges(callback: Function) {
-    this.changeSubs.push(callback);
-  }
-  @Action
-  fireDemoSubs() {
-    this.changeSubs.forEach((callback) => {
-      console.log("Changes fired");
-      callback();
-    });
-  }
-  @Action
-  async useDemoWorker() {
-    if (ApplicationEnvironmentStore.Demo) {
-      if (Object.keys(this._accounts).length === 0) {
-        try {
-          const demoWorker = DemoWorker.WorkerProvider;
-          const accountResult = await demoWorker.demoWorker.getAccounts;
-          accountResult.forEach((entry) => {
-            this.commitAddAccountFromDB(entry);
-          });
-        } catch (err) {
-          throw new Error(`Failed during demo processing: ${err}`);
-        }
-      }
     }
   }
 }

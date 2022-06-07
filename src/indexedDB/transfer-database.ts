@@ -2,6 +2,8 @@ import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import IndexedDBAccountStoreManager from "./account-database";
 
+import { ApplicationEnvironmentStore } from "@/store/application/application-store";
+
 export interface IDBTransfers extends DBSchema {
   transfers: {
     value: IBasicTransferClass;
@@ -16,11 +18,13 @@ export interface IDBTransfers extends DBSchema {
 
 enum DataBases {
   TRANSFERS = "transfers-database",
+  DEMO_TRANSFERS = "transfers-demo",
 }
 
 export const DBProvider = {
   transferDB: {
     dbname: DataBases.TRANSFERS,
+    dbDemoName: DataBases.DEMO_TRANSFERS,
     currentVersion: 1,
   },
 };
@@ -42,10 +46,18 @@ class IndexedDBTransferManager {
     return IndexedDBTransferManager._storeManager;
   }
 
-  public async initDB(): Promise<boolean> {
+  public async initDB(useRegularDB: boolean = true): Promise<boolean> {
     const appDatabase = DBProvider.transferDB;
+    let relatedDB = appDatabase.dbname;
+    console.log(
+      "ApplicationEnvironmentStore.Demo",
+      ApplicationEnvironmentStore.Demo
+    );
+    if (!useRegularDB || ApplicationEnvironmentStore.Demo) {
+      relatedDB = appDatabase.dbDemoName;
+    }
     const db = await openDB<IDBTransfers>(
-      appDatabase.dbname,
+      relatedDB,
       appDatabase.currentVersion,
       {
         upgrade(db) {
@@ -192,6 +204,16 @@ class IndexedDBTransferManager {
       }
     } else {
       throw new Error("Failed to init DB");
+    }
+  }
+
+  public async useDemoTransfers() {
+    try {
+      this._transfer_data?.close();
+      await this.initDB(false);
+      return Promise.resolve(true);
+    } catch (err) {
+      throw new Error(`Failed to init demo transfers: ${err}`);
     }
   }
 }

@@ -1,3 +1,4 @@
+import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 import { ExampleWorker } from "@/store/account-transfer/demo-worker-types";
 import {
   InitMessage,
@@ -9,61 +10,6 @@ import {
   ResponseBalanceMessage,
 } from "@/worker/message-interfaces/account-assist-interface";
 import * as Comlink from "comlink";
-
-// class WorkerProvider {
-//   private static singleton: WorkerProvider | null;
-//   private static basicWorker: Worker | null = null;
-//   private static appWorker: Worker | null = null;
-//   private static accountDataWorker: Worker | null = null;
-//   private static processWorker: Worker | null = null;
-
-//   private constructor() {}
-
-//   public static get WorkerProvider(): WorkerProvider {
-//     if (!WorkerProvider.singleton) {
-//       WorkerProvider.singleton = new WorkerProvider();
-//     }
-//     return WorkerProvider.singleton;
-//   }
-
-//   public get ExampleWorker() {
-//     if (!WorkerProvider.basicWorker) {
-//       WorkerProvider.basicWorker = new Worker(
-//         new URL("./worker.ts", import.meta.url)
-//       );
-//     }
-//     return WorkerProvider.basicWorker;
-//   }
-
-//   public get AppWorker() {
-//     if (!WorkerProvider.appWorker) {
-//       WorkerProvider.appWorker = new Worker(
-//         new URL("./app-worker.ts", import.meta.url)
-//       );
-//     }
-//     return WorkerProvider.appWorker;
-//   }
-
-//   public get AccountDataWorker() {
-//     if (!WorkerProvider.accountDataWorker) {
-//       WorkerProvider.accountDataWorker = new Worker(
-//         new URL("./account-data-worker.ts", import.meta.url)
-//       );
-//     }
-//     return WorkerProvider.accountDataWorker;
-//   }
-
-//   public get ProcessingWorker() {
-//     if (!WorkerProvider.processWorker) {
-//       WorkerProvider.processWorker = new Worker(
-//         new URL("./process-data-worker.ts", import.meta.url)
-//       );
-//     }
-//     return WorkerProvider.processWorker;
-//   }
-// }
-
-// export const workerProvider = WorkerProvider.WorkerProvider;
 
 export class AccountAssistantWorker {
   private static singleton: AccountAssistantWorker | null;
@@ -189,7 +135,11 @@ export class DemoWorker {
 
   private async init() {
     if (this._worker) {
-      await this._worker.generateExampleData(3, 20);
+      const savedValues = await IndexedDBAppStateStoreManager.getDemoState();
+      if (!savedValues) {
+        await this._worker.generateExampleData(5, 21600);
+        await IndexedDBAppStateStoreManager.setDemoInitialState();
+      }
     } else {
       throw new Error("DemoWOrker not running");
     }

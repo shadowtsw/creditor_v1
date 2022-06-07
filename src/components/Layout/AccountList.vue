@@ -54,23 +54,14 @@ export default defineComponent({
     const cardWorker: AccountAssistantWorker = accountAssistantWorker;
     const unsubscribe = ref<null | Function>(null);
     onMounted(() => {
-      console.log("demoMode.value", demoMode.value);
-      if (!demoMode.value) {
-        unsubscribe.value = cardWorker.subscribeBalanceMessage({
-          id: "AccountList",
-          callback: (data: ResponseBalanceMessage) => {
-            console.log("INCOMING MESSAGE", data);
-            setAccountData(data.topic.accountID, data.data);
-          },
-        });
-        initAccountBalanceData();
-      } else {
-        console.log("INIT DEMO");
-        AccountTransferStore.subscribeChanges(() => {
-          initDemoData();
-        });
-        initDemoData();
-      }
+      unsubscribe.value = cardWorker.subscribeBalanceMessage({
+        id: "AccountList",
+        callback: (data: ResponseBalanceMessage) => {
+          console.log("INCOMING MESSAGE", data);
+          setAccountData(data.topic.accountID, data.data);
+        },
+      });
+      initAccountBalanceData();
     });
     onBeforeUnmount(() => {
       if (unsubscribe.value) {
@@ -111,11 +102,6 @@ export default defineComponent({
     //Account related
 
     //Initial calculation
-    watch(accountList, (newValue, oldValue) => {
-      if (demoMode.value) {
-        initDemoData();
-      }
-    });
     // watch(accountList, async (newValue, oldValue) => {
     //   console.log("AccountList watch", newValue);
     //   if (oldValue.length === 0) {
@@ -165,31 +151,6 @@ export default defineComponent({
         },
       };
       cardWorker.postMessage(requestMessage);
-    };
-    //Demo
-    const initDemoData = async () => {
-      //DEMO WORKER ONLY
-      console.log("DEMO INIT TRANSFERDATA");
-      for (const entry of accountList.value) {
-        setDemoData(entry);
-      }
-    };
-    const setDemoData = async (entry: IBasicAccountClass) => {
-      //DEMO WORKER ONLY
-      if (demoMode.value) {
-        console.log("DEMO, newVal");
-        const transfers =
-          await DemoWorker.WorkerProvider.demoWorker.getTransfersFromAccount(
-            entry._internalID._value
-          );
-        console.log("transfers", transfers);
-        if (transfers && transfers.length > 0) {
-          setAccountData(
-            entry._internalID._value,
-            getLatestAccountBalance(entry.openingBalance._value, transfers)
-          );
-        }
-      }
     };
 
     return {
