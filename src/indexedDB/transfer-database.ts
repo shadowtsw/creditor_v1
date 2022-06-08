@@ -3,6 +3,7 @@ import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import IndexedDBAccountStoreManager from "./account-database";
 
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
+import { Page } from "./transfer-interfaces/transfer-meta-interfaces";
 
 export interface IDBTransfers extends DBSchema {
   transfers: {
@@ -12,6 +13,14 @@ export interface IDBTransfers extends DBSchema {
       isSelected: number;
       accountID: string;
       "valuta-yearMonth": string;
+    };
+  };
+  pages: {
+    value: Page;
+    key: string;
+    indexes: {
+      year: number;
+      month: number;
     };
   };
 }

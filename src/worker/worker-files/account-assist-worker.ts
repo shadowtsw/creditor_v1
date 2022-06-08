@@ -42,6 +42,8 @@ self.addEventListener("message", async (event: MessageEvent) => {
   }
   if (event.data) {
     const message = event.data as MessageGroups;
+    //TODO
+    console.log("Message", message);
 
     if (
       "target" in message.topic &&

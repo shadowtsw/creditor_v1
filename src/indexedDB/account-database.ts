@@ -10,6 +10,12 @@ export interface IDBAccounts extends DBSchema {
     key: string;
     indexes: { isSelected: number };
   };
+  //TODO
+  accountMetaData: {
+    value: any;
+    key: string;
+    indexes: {};
+  };
 }
 
 enum DataBases {

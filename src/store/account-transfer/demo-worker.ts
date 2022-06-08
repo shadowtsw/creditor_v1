@@ -28,6 +28,7 @@ import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import { upgradeAccountDB } from "@/indexedDB/upgrade-functions/account-db";
 import { upgradeTransferDB } from "@/indexedDB/upgrade-functions/transfer-db";
 import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
+import { Pages } from "@/indexedDB/transfer-interfaces/transfer-meta-interfaces";
 
 console.log("HERE IS DEMO WORKER");
 
@@ -94,14 +95,12 @@ const randomDistKeyGenerator = () => {
 
 const accountDB: Array<IBasicAccountClass> = [];
 const transferDB: Array<IBasicTransferClass> = [];
+const cachedPagination: Pages = {};
 
 const generateExampleData = async (
   accountAmount: number,
   transfersPerAccount: number
 ): Promise<boolean> => {
-  // const parsedAccountArray = [];
-  // const transferArray = [];
-
   for (let i = 0; i < accountAmount; i++) {
     const accountTypeValue = BasicAccountTypes.CASH;
     const accountID = "account-" + i.toString();
@@ -149,12 +148,27 @@ const generateExampleData = async (
 
       newAccount.transfers._value.push(newTransfer._internalID._value);
       transferDB.push(newTransfer);
+      const currentYearMonth =
+        newTransfer.valutaDate._dateMetaInformation.yearmonth;
+
+      console.log("currentYearMonth", currentYearMonth);
+      if (!cachedPagination.hasOwnProperty(currentYearMonth)) {
+        cachedPagination[currentYearMonth] = [];
+      }
+      cachedPagination[currentYearMonth].push({
+        accountID: newTransfer._accountID._value,
+        transferID: newTransfer._internalID._value,
+        yearMonth: currentYearMonth,
+        year: newTransfer.valutaDate._dateMetaInformation.year,
+        month: newTransfer.valutaDate._dateMetaInformation.month,
+      });
     }
     accountDB.push(newAccount);
   }
 
   await saveAccounts();
   await saveTransfers();
+  await savePagination();
 
   console.log("Examples generated");
   // console.log("AccountsDB", accountDB);
@@ -205,6 +219,39 @@ const saveTransfers = async (): Promise<boolean> => {
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
     console.log("STORED TRANSFER EXAMPLES IN DB", result);
+    return Promise.resolve(true);
+  } else {
+    throw new Error("Failed to add transfer demo data");
+  }
+};
+
+const savePagination = async (): Promise<boolean> => {
+  const appDatabase = TransferDBProvider.transferDB;
+  const relatedDB = appDatabase.dbDemoName;
+
+  const db = await openDB<IDBTransfers>(relatedDB, appDatabase.currentVersion, {
+    upgrade(db) {
+      upgradeTransferDB(db);
+    },
+  });
+  if (db) {
+    const tx = db.transaction("pages", "readwrite");
+    const promiseArray = [];
+
+    for (const yearmonth in cachedPagination) {
+      promiseArray.push(
+        tx.store.add({
+          yearMonth: Number(yearmonth),
+          transfers: cachedPagination[yearmonth],
+          year: cachedPagination[yearmonth][0].year,
+          month: cachedPagination[yearmonth][0].month,
+        })
+      );
+    }
+
+    promiseArray.push(tx.done);
+    const result = await Promise.all(promiseArray);
+    console.log("STORED PAGINATION EXAMPLES IN DB", result);
     return Promise.resolve(true);
   } else {
     throw new Error("Failed to add transfer demo data");

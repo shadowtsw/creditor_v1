@@ -15,4 +15,11 @@ export const upgradeTransferDB = (db: transferDBSchema) => {
       "valutaDate._dateMetaInformation.yearmonth"
     );
   }
+  if (!db.objectStoreNames.contains("pages")) {
+    const store = db.createObjectStore("pages", {
+      keyPath: "yearMonth",
+    });
+    store.createIndex("year", "year");
+    store.createIndex("month", "month");
+  }
 };

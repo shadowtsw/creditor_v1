@@ -518,14 +518,13 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initAccounts(): Promise<boolean> {
     try {
-      if (!ApplicationEnvironmentStore.Demo) {
-        const accounts = await IndexedDBAccountStoreManager.getAllAccounts();
+      const accounts = await IndexedDBAccountStoreManager.getAllAccounts();
 
-        accounts.forEach((account) => {
-          const existingAccount = new BasicAccount(account);
-          this.commitAddAccountFromDB(existingAccount);
-        });
-      }
+      accounts.forEach((account) => {
+        const existingAccount = new BasicAccount(account);
+        this.commitAddAccountFromDB(existingAccount);
+      });
+
       return Promise.resolve(true);
     } catch (err) {
       return Promise.reject(err);
@@ -534,13 +533,13 @@ class AccountsTransfers extends VuexModule {
   @Action({ rawError: true })
   async initTransfers(): Promise<boolean> {
     try {
-      if (!ApplicationEnvironmentStore.Demo) {
-        const transfers = await IndexedDBTransferStoreManager.getAllTransfers();
-        transfers.forEach((transfer) => {
-          const existingTransfer = new BasicTransfer(transfer);
-          this.commitAddTransferFromDB(existingTransfer);
-        });
-      }
+      const transfers = await IndexedDBTransferStoreManager.getAllTransfers();
+
+      // transfers.forEach((transfer) => {
+      //   const existingTransfer = new BasicTransfer(transfer);
+      //   this.commitAddTransferFromDB(existingTransfer);
+      // });
+
       return Promise.resolve(true);
     } catch (err) {
       return Promise.reject(err);

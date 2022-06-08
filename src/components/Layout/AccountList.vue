@@ -47,9 +47,6 @@ export default defineComponent({
     AccountItem,
   },
   setup() {
-    const demoMode = computed(() => {
-      return ApplicationEnvironmentStore.Demo;
-    });
     //Web-Worker starts
     const cardWorker: AccountAssistantWorker = accountAssistantWorker;
     const unsubscribe = ref<null | Function>(null);
@@ -101,39 +98,11 @@ export default defineComponent({
     );
     //Account related
 
-    //Initial calculation
-    // watch(accountList, async (newValue, oldValue) => {
-    //   console.log("AccountList watch", newValue);
-    //   if (oldValue.length === 0) {
-    //     for (const entry of accountList.value) {
-    //       if (!demoMode.value) {
-    //         postCalculation(entry._internalID._value);
-    //       } else {
-    //         //DEMO WORKER ONLY
-    //         setDemoData(entry);
-    //       }
-    //     }
-    //   } else {
-    //     for (const entry of newValue) {
-    //       if (!demoMode.value) {
-    //         if (!summaryObject.hasOwnProperty(entry._internalID._value)) {
-    //           postCalculation(entry._internalID._value);
-    //         }
-    //       } else {
-    //         //DEMO WORKER ONLY
-    //         setDemoData(entry);
-    //       }
-    //     }
-    //   }
-    // });
-
     //Functions
     //Prod
     const initAccountBalanceData = () => {
       for (const entry of accountList.value) {
-        if (!demoMode.value) {
-          postCalculation(entry._internalID._value);
-        }
+        postCalculation(entry._internalID._value);
       }
     };
     const setAccountData = (accountID: string, data: AccountBalanceObject) => {
@@ -143,7 +112,19 @@ export default defineComponent({
       };
     };
     const postCalculation = (accountID: string) => {
-      summaryObject[accountID].isLoading = true;
+      summaryObject[accountID] = {
+        isLoading: false,
+        lastMonth: {
+          balance: 0,
+          income: 0,
+          outgoing: 0,
+        },
+        currentMonth: {
+          balance: 0,
+          income: 0,
+          outgoing: 0,
+        },
+      };
       const requestMessage: RequestBalanceMessage = {
         topic: {
           type: AccountAssistMessageTypes.REQUEST_CALC,

@@ -41,6 +41,7 @@ export class AccountAssistantWorker {
   }
 
   public postMessage(message: MessageGroups) {
+    console.log("PostMessage", message);
     this.worker.postMessage(message);
   }
 
@@ -62,8 +63,6 @@ export class AccountAssistantWorker {
     };
 
     this.postMessage(initTransferDBMessage);
-
-    const that = this;
 
     this.worker.addEventListener("message", this.publishResponseCalc);
   }
@@ -137,7 +136,7 @@ export class DemoWorker {
     if (this._worker) {
       const savedValues = await IndexedDBAppStateStoreManager.getDemoState();
       if (!savedValues) {
-        await this._worker.generateExampleData(5, 21600);
+        await this._worker.generateExampleData(5, 1500);
         await IndexedDBAppStateStoreManager.setDemoInitialState();
       }
     } else {
