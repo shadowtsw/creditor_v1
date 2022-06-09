@@ -5,7 +5,7 @@ import {
 } from "../data-field/data-field-interface";
 import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
 import { generateCreditorAccountID } from "@/utils/id-generator";
-import { getAccountConfig } from "@/utils/config-generator";
+import { getAccountConfig, getYearMonth } from "@/utils/config-generator";
 
 export enum CurrencyValues {
   EUR = "EUR",
@@ -239,10 +239,12 @@ export class BasicAccount implements IBasicAccountClass {
             year:
               payload.openingBalanceDate.getFullYear() ||
               new Date().getFullYear(),
-            yearmonth:
-              payload.openingBalanceDate.getFullYear() +
-                payload.openingBalanceDate.getMonth() ||
-              new Date().getFullYear() + new Date().getMonth(),
+            yearmonth: payload.openingBalanceDate
+              ? getYearMonth(
+                  payload.openingBalanceDate.getFullYear(),
+                  payload.openingBalanceDate.getMonth()
+                )
+              : getYearMonth(new Date().getFullYear(), new Date().getMonth()),
           },
           _type: DataFieldType.NUMBER,
           _displayName: "Opening balance date",
@@ -255,7 +257,10 @@ export class BasicAccount implements IBasicAccountClass {
             weekDay: new Date().getDay(),
             month: new Date().getMonth(),
             year: new Date().getFullYear(),
-            yearmonth: new Date().getFullYear() + new Date().getMonth(),
+            yearmonth: getYearMonth(
+              new Date().getFullYear(),
+              new Date().getMonth()
+            ),
           },
           _type: DataFieldType.NUMBER,
           _displayName: "Created at",
@@ -268,7 +273,10 @@ export class BasicAccount implements IBasicAccountClass {
             weekDay: new Date().getDay() || new Date().getDay(),
             month: new Date().getMonth() || new Date().getMonth(),
             year: new Date().getFullYear() || new Date().getFullYear(),
-            yearmonth: new Date().getFullYear() + new Date().getMonth(),
+            yearmonth: getYearMonth(
+              new Date().getFullYear(),
+              new Date().getMonth()
+            ),
           },
           _type: DataFieldType.NUMBER,
           _displayName: "Updated at",

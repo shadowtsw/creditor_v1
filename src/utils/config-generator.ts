@@ -369,3 +369,12 @@ export const getAccountConfig = (
     throw new Error("Unknown account type, please check parameters !");
   }
 };
+
+export const getYearMonth = (year: number, month: number) => {
+  let newMonth = month.toString();
+  if (newMonth.length === 1) {
+    newMonth = "0" + newMonth;
+  }
+  const yearMonthString = year.toString() + newMonth;
+  return Number(yearMonthString);
+};

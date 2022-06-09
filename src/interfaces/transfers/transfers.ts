@@ -1,4 +1,4 @@
-import { getTransferConfig } from "@/utils/config-generator";
+import { getTransferConfig, getYearMonth } from "@/utils/config-generator";
 import { generateCreditorTransferID } from "@/utils/id-generator";
 import {
   BasicAccountTypes,
@@ -216,6 +216,7 @@ export class BasicTransfer implements IBasicTransferClass {
     _valueMeta: number;
   };
   constructor(payload: IBasicTransferConstructorConfig | IBasicTransferClass) {
+    console.log("payload", payload);
     if ("_internalID" in payload) {
       this._internalID = payload._internalID;
       this._internalType = payload._internalType;
@@ -278,9 +279,9 @@ export class BasicTransfer implements IBasicTransferClass {
             weekDay: payload.valutaDate.getDay(),
             month: payload.valutaDate.getMonth(),
             year: payload.valutaDate.getFullYear(),
-            yearmonth: Number(
-              payload.valutaDate.getFullYear().toString() +
-                payload.valutaDate.getMonth().toString()
+            yearmonth: getYearMonth(
+              payload.valutaDate.getFullYear(),
+              payload.valutaDate.getMonth()
             ),
           },
           _type: DataFieldType.NUMBER,
@@ -331,13 +332,13 @@ export class BasicTransfer implements IBasicTransferClass {
                 : payload.bookDate.getFullYear(),
             yearmonth:
               payload.bookDate === ""
-                ? Number(
-                    payload.valutaDate.getFullYear().toString() +
-                      payload.valutaDate.getMonth().toString()
+                ? getYearMonth(
+                    payload.valutaDate.getFullYear(),
+                    payload.valutaDate.getMonth()
                   )
-                : Number(
-                    payload.bookDate.getFullYear().toString() +
-                      payload.bookDate.getMonth().toString()
+                : getYearMonth(
+                    payload.bookDate.getFullYear(),
+                    payload.bookDate.getMonth()
                   ),
           },
           _type: DataFieldType.NUMBER,
@@ -371,9 +372,9 @@ export class BasicTransfer implements IBasicTransferClass {
             weekDay: new Date().getDay(),
             month: new Date().getMonth(),
             year: new Date().getFullYear(),
-            yearmonth: Number(
-              new Date().getFullYear().toString() +
-                new Date().getMonth().toString()
+            yearmonth: getYearMonth(
+              new Date().getFullYear(),
+              new Date().getMonth()
             ),
           },
           _type: DataFieldType.NUMBER,
@@ -389,9 +390,9 @@ export class BasicTransfer implements IBasicTransferClass {
             weekDay: new Date().getDay(),
             month: new Date().getMonth(),
             year: new Date().getFullYear(),
-            yearmonth: Number(
-              new Date().getFullYear().toString() +
-                new Date().getMonth().toString()
+            yearmonth: getYearMonth(
+              new Date().getFullYear(),
+              new Date().getMonth()
             ),
           },
           _type: DataFieldType.NUMBER,

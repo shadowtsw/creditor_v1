@@ -124,7 +124,7 @@ const generateExampleData = async (
       const bookDate = randomDateGenerator();
       const valutaDate = randomDateGenerator();
 
-      const newTransferContructorObject: IBasicTransferConstructorConfig = {
+      const newTransferConstructorObject: IBasicTransferConstructorConfig = {
         _internalType: accountTypeValue,
         shortName: "",
         currency: CurrencyValues.EUR,
@@ -144,17 +144,17 @@ const generateExampleData = async (
         _accountID: newAccount._internalID._value,
       };
 
-      const newTransfer = new BasicTransfer(newTransferContructorObject);
+      const newTransfer = new BasicTransfer(newTransferConstructorObject);
 
       newAccount.transfers._value.push(newTransfer._internalID._value);
       transferDB.push(newTransfer);
       const currentYearMonth =
         newTransfer.valutaDate._dateMetaInformation.yearmonth;
 
-      console.log("currentYearMonth", currentYearMonth);
       if (!cachedPagination.hasOwnProperty(currentYearMonth)) {
         cachedPagination[currentYearMonth] = [];
       }
+
       cachedPagination[currentYearMonth].push({
         accountID: newTransfer._accountID._value,
         transferID: newTransfer._internalID._value,
@@ -173,6 +173,7 @@ const generateExampleData = async (
   console.log("Examples generated");
   // console.log("AccountsDB", accountDB);
   // console.log("TransfersDB",transferDB);
+  // console.log("CachedPagination",cachedPagination);
 
   return Promise.resolve(true);
 };
