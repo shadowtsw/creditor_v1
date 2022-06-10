@@ -216,7 +216,6 @@ export class BasicTransfer implements IBasicTransferClass {
     _valueMeta: number;
   };
   constructor(payload: IBasicTransferConstructorConfig | IBasicTransferClass) {
-    console.log("payload", payload);
     if ("_internalID" in payload) {
       this._internalID = payload._internalID;
       this._internalType = payload._internalType;

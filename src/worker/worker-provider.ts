@@ -1,13 +1,13 @@
 import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 import { ExampleWorker } from "@/store/account-transfer/demo-worker-types";
 import {
-  InitMessage,
   InitMessageTargets,
-  AccountAssistMessageTypes,
-  MessageGroups,
+  AAW_MessageTypes,
   Subscriptions,
   SubscriptionObject,
-  ResponseBalanceMessage,
+  AAWInit,
+  OutgoingMessages,
+  IncomingMessages,
 } from "@/worker/message-interfaces/account-assist-interface";
 import * as Comlink from "comlink";
 
@@ -17,7 +17,8 @@ export class AccountAssistantWorker {
 
   //PubSup
   private subscribers: Subscriptions = {
-    REQUEST_CALC: [],
+    RESPONSE_CALC: [],
+    RESPONSE_PAGINATION: [],
   };
   //PubSup END
 
@@ -40,44 +41,56 @@ export class AccountAssistantWorker {
     return AccountAssistantWorker.singleton;
   }
 
-  public postMessage(message: MessageGroups) {
+  public postMessage(message: IncomingMessages) {
     console.log("PostMessage", message);
     this.worker.postMessage(message);
   }
 
   private init() {
-    const initAccountDBMessage: InitMessage = {
-      topic: {
-        type: AccountAssistMessageTypes.INIT,
+    const initAccountDBMessage: AAWInit = {
+      type: AAW_MessageTypes.INIT,
+      messageData: {
         target: InitMessageTargets.ACCOUNT_DB,
       },
     };
 
     this.postMessage(initAccountDBMessage);
 
-    const initTransferDBMessage: InitMessage = {
-      topic: {
-        type: AccountAssistMessageTypes.INIT,
+    const initTransferDBMessage: AAWInit = {
+      type: AAW_MessageTypes.INIT,
+      messageData: {
         target: InitMessageTargets.TRANSFER_DB,
       },
     };
 
     this.postMessage(initTransferDBMessage);
 
-    this.worker.addEventListener("message", this.publishResponseCalc);
+    this.worker.addEventListener("message", this.publishWorkerResponse);
   }
 
-  private publishResponseCalc = (event: MessageEvent) => {
-    if (
-      event.data.topic.type &&
-      event.data.data &&
-      event.data.topic.type === AccountAssistMessageTypes.REQUEST_CALC
-    ) {
-      const message = event.data as ResponseBalanceMessage;
-      const calcSubs = this.subscribers["REQUEST_CALC"];
+  private publishWorkerResponse = (event: MessageEvent) => {
+    if (event.data && event.data.type) {
+      const message = event.data as OutgoingMessages;
+      console.log("Message from Worker Provider", message);
 
-      for (const entry of calcSubs) {
-        entry.callback(message);
+      switch (message.type) {
+        case AAW_MessageTypes.RESPONSE_CALC:
+          const calcSubs = this.subscribers.RESPONSE_CALC;
+
+          for (const entry of calcSubs) {
+            entry.callback(message);
+          }
+          break;
+        case AAW_MessageTypes.RESPONSE_PAGINATION:
+          const paginationSubs = this.subscribers.RESPONSE_PAGINATION;
+
+          for (const entry of paginationSubs) {
+            entry.callback(message);
+          }
+          break;
+
+        default:
+          break;
       }
     } else {
       throw new Error("Unknown Message Response");
@@ -85,23 +98,38 @@ export class AccountAssistantWorker {
   };
 
   public removeListener() {
-    this.worker.removeEventListener("message", this.publishResponseCalc);
+    this.worker.removeEventListener("message", this.publishWorkerResponse);
   }
 
   public terminateWorker() {
-    this.worker.removeEventListener("message", this.publishResponseCalc);
+    this.worker.removeEventListener("message", this.publishWorkerResponse);
     this.worker.terminate();
   }
 
   public subscribeBalanceMessage(payload: SubscriptionObject): Function {
-    const findSub = this.subscribers["REQUEST_CALC"].find((entry) => {
+    const findSub = this.subscribers.RESPONSE_CALC.find((entry) => {
       return entry.id === payload.id;
     });
     if (!findSub) {
-      this.subscribers["REQUEST_CALC"].push(payload);
-      const index = this.subscribers["REQUEST_CALC"].length - 1;
+      this.subscribers.RESPONSE_CALC.push(payload);
+      const index = this.subscribers.RESPONSE_CALC.length - 1;
       const unsubscribe = () => {
-        this.subscribers["REQUEST_CALC"].splice(index, 1);
+        this.subscribers.RESPONSE_CALC.splice(index, 1);
+      };
+      return unsubscribe;
+    } else {
+      throw new Error("Subscription already exists");
+    }
+  }
+  public subscribePaginationMessage(payload: SubscriptionObject): Function {
+    const findSub = this.subscribers.RESPONSE_PAGINATION.find((entry) => {
+      return entry.id === payload.id;
+    });
+    if (!findSub) {
+      this.subscribers.RESPONSE_PAGINATION.push(payload);
+      const index = this.subscribers.RESPONSE_PAGINATION.length - 1;
+      const unsubscribe = () => {
+        this.subscribers.RESPONSE_PAGINATION.splice(index, 1);
       };
       return unsubscribe;
     } else {

@@ -17,7 +17,7 @@ export interface IDBTransfers extends DBSchema {
   };
   pages: {
     value: Page;
-    key: string;
+    key: number;
     indexes: {
       year: number;
       month: number;

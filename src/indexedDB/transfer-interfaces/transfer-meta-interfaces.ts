@@ -1,4 +1,4 @@
-//Pages
+//Pages types for database
 export interface PageObject {
   accountID: string;
   transferID: string;

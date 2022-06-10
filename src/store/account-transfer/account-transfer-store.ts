@@ -23,12 +23,14 @@ import IndexedDBAccountStoreManager from "@/indexedDB/account-database";
 import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
 import { DataFieldType } from "@/interfaces/data-field/data-field-interface";
 import {
-  AccountAssistMessageTypes,
+  AAWUpdatePagination,
+  AAW_MessageTypes,
   RequestBalanceMessage,
 } from "@/worker/message-interfaces/account-assist-interface";
-import { accountAssistantWorker, DemoWorker } from "@/worker/worker-provider";
+import { accountAssistantWorker } from "@/worker/worker-provider";
 import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 import { ApplicationEnvironmentStore } from "../application/application-store";
+import { Pagination } from "@/interfaces/pages/page-types";
 
 @Module({
   dynamic: true,
@@ -246,7 +248,8 @@ class AccountsTransfers extends VuexModule {
   //ADD-TRANSFERS
   @Mutation
   private addTransfer(payload: IBasicTransferClass) {
-    this._transfers[payload._internalID._value] = payload;
+    // this._transfers[payload._internalID._value] = payload;
+    console.log("Transfer virtually added");
   }
   @Action({ rawError: true })
   async commitAddTransfer(payload: IBasicTransferClass): Promise<boolean> {
@@ -254,13 +257,17 @@ class AccountsTransfers extends VuexModule {
       if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
         try {
           await IndexedDBTransferStoreManager.addTransfer(payload);
-          this.addTransferToPage(payload);
           await this.addTransferToAccount({
             accountID: payload._accountID._value,
             transferID: payload._internalID._value,
           });
           this.addTransfer(payload);
           this.postBalanceCalculation(payload._accountID._value);
+          const updateMessage: AAWUpdatePagination = {
+            type: AAW_MessageTypes.UPDATE_PAGINATION,
+            messageData: payload,
+          };
+          accountAssistantWorker.postMessage(updateMessage);
           resolve(true);
         } catch (err) {
           throw new Error(`Failed to add transfer to DB: ${err}`);
@@ -276,7 +283,7 @@ class AccountsTransfers extends VuexModule {
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       if (!this._transfers.hasOwnProperty(payload._internalID._value)) {
-        this.addTransferToPage(payload);
+        // this.addTransferToPage(payload);
         this.addTransfer(payload);
         resolve(true);
       } else {
@@ -300,29 +307,29 @@ class AccountsTransfers extends VuexModule {
     }
     return transfers;
   }
-  public get pageTransfers() {
-    if (this._currentPage === null) {
-      return [];
-    }
+  // public get pageTransfers() {
+  //   if (this._currentPage === null) {
+  //     return [];
+  //   }
 
-    const transfersFromPath =
-      this._pagination[this._currentPage.year][this._currentPage.month];
+  //   const transfersFromPath =
+  //     this._pagination[this._currentPage.year][this._currentPage.month];
 
-    if (transfersFromPath && transfersFromPath.length > 0) {
-      const mappedTransfers = this._pagination[this._currentPage.year][
-        this._currentPage.month
-      ]
-        .map((entry) => {
-          return this._transfers[entry];
-        })
-        .filter((entry) => {
-          return this._accounts[entry._accountID._value].isSelected._value;
-        });
+  //   if (transfersFromPath && transfersFromPath.length > 0) {
+  //     const mappedTransfers = this._pagination[this._currentPage.year][
+  //       this._currentPage.month
+  //     ]
+  //       .map((entry) => {
+  //         return this._transfers[entry];
+  //       })
+  //       .filter((entry) => {
+  //         return this._accounts[entry._accountID._value].isSelected._value;
+  //       });
 
-      return mappedTransfers;
-    }
-    return [];
-  }
+  //     return mappedTransfers;
+  //   }
+  //   return [];
+  // }
 
   private _openedTransfers: Array<string> = [];
   public get isOpened() {
@@ -371,8 +378,7 @@ class AccountsTransfers extends VuexModule {
    * Transfers End
    */
 
-  private _pagination: { [index: number]: { [index: number]: Array<string> } } =
-    {};
+  private _pagination: Pagination = {};
   private _currentPage: { year: number; month: number } | null = null;
   public get currentPage() {
     return this._currentPage;
@@ -402,58 +408,40 @@ class AccountsTransfers extends VuexModule {
 
   //Add
   @Mutation
-  private setPagination(payload: {
-    [index: number]: { [index: number]: Array<string> };
-  }) {
+  private setPagination(payload: Pagination) {
     this._pagination = payload;
   }
-  @Mutation
-  private addTransferToPage(payload: IBasicTransferClass) {
-    const valutaDateYear = payload.valutaDate._dateMetaInformation.year;
-    const valutaDateMonth = payload.valutaDate._dateMetaInformation.month;
-
-    if (!this._pagination.hasOwnProperty(valutaDateYear)) {
-      this._pagination[valutaDateYear] = {};
-    }
-    if (!this._pagination[valutaDateYear].hasOwnProperty(valutaDateMonth)) {
-      this._pagination[valutaDateYear][valutaDateMonth] = [];
-    }
-    if (this._currentPage === null) {
-      this._currentPage = {
-        month: valutaDateMonth,
-        year: valutaDateYear,
-      };
-    }
-    this._pagination[valutaDateYear][valutaDateMonth].push(
-      payload._internalID._value
-    );
+  @Action
+  commitPagination(payload: Pagination) {
+    console.log("Pagination added", payload);
+    this.setPagination(payload);
   }
-  @Mutation
-  private deleteTransferFromPage(payload: IBasicTransferClass) {
-    const valutaDateYear = payload.valutaDate._dateMetaInformation.year;
-    const valutaDateMonth = payload.valutaDate._dateMetaInformation.month;
-    const path = this._pagination[valutaDateYear][valutaDateMonth];
+  // @Mutation
+  // private deleteTransferFromPage(payload: IBasicTransferClass) {
+  //   const valutaDateYear = payload.valutaDate._dateMetaInformation.year;
+  //   const valutaDateMonth = payload.valutaDate._dateMetaInformation.month;
+  //   const path = this._pagination[valutaDateYear][valutaDateMonth];
 
-    if (path && path.includes(payload._internalID._value)) {
-      const newArray = path.filter((entry) => {
-        return entry !== payload._internalID._value;
-      });
-      if (newArray.length > 0) {
-        this._pagination[valutaDateYear][valutaDateMonth] = newArray;
-      } else {
-        delete this._pagination[valutaDateYear][valutaDateMonth];
-        let countProps = 0;
-        for (const prop in this._pagination[valutaDateYear]) {
-          if (this._pagination[valutaDateYear].hasOwnProperty(prop)) {
-            countProps++;
-          }
-        }
-        if (countProps === 0) {
-          delete this._pagination[valutaDateYear];
-        }
-      }
-    }
-  }
+  //   if (path && path.includes(payload._internalID._value)) {
+  //     const newArray = path.filter((entry) => {
+  //       return entry !== payload._internalID._value;
+  //     });
+  //     if (newArray.length > 0) {
+  //       this._pagination[valutaDateYear][valutaDateMonth] = newArray;
+  //     } else {
+  //       delete this._pagination[valutaDateYear][valutaDateMonth];
+  //       let countProps = 0;
+  //       for (const prop in this._pagination[valutaDateYear]) {
+  //         if (this._pagination[valutaDateYear].hasOwnProperty(prop)) {
+  //           countProps++;
+  //         }
+  //       }
+  //       if (countProps === 0) {
+  //         delete this._pagination[valutaDateYear];
+  //       }
+  //     }
+  //   }
+  // }
   @Mutation
   private setCurrentPage(payload: { month: number; year: number }) {
     this._currentPage = { year: payload.year, month: payload.month };
@@ -468,47 +456,39 @@ class AccountsTransfers extends VuexModule {
   }
 
   //Multithread ?
-  @Action
-  createPagination() {
-    const newPagination: {
-      [index: number]: { [index: number]: Array<string> };
-    } = {};
-
-    const transfers = this.allTransfers;
-
-    for (const transfer in transfers) {
-      const year = transfers[transfer].valutaDate._dateMetaInformation.year;
-      const month = transfers[transfer].valutaDate._dateMetaInformation.month;
-      const id = transfers[transfer]._internalID._value;
-
-      if (!newPagination.hasOwnProperty(year)) {
-        newPagination[year] = {};
-      }
-
-      if (!newPagination[year].hasOwnProperty(month)) {
-        newPagination[year][month] = [];
-      }
-
-      const hasTransfer = newPagination[year][month].includes(id);
-
-      if (!hasTransfer) {
-        newPagination[year][month].push(id);
-      }
-    }
-
-    this.setPagination(newPagination);
-  }
+  // @Action
+  // createPagination() {
+  // const newPagination: Pagination = {};
+  // const transfers = this.allTransfers;
+  // for (const transfer in transfers) {
+  //   const year = transfers[transfer].valutaDate._dateMetaInformation.year;
+  //   const month = transfers[transfer].valutaDate._dateMetaInformation.month;
+  //   const id = transfers[transfer]._internalID._value;
+  //   if (!newPagination.hasOwnProperty(year)) {
+  //     newPagination[year] = {};
+  //   }
+  //   if (!newPagination[year].hasOwnProperty(month)) {
+  //     newPagination[year][month] = [];
+  //   }
+  //   const hasTransfer = newPagination[year][month].includes(id);
+  //   if (!hasTransfer) {
+  //     newPagination[year][month].push(id);
+  //   }
+  // }
+  // this.setPagination(newPagination);
+  // }
 
   //!INIT
   @Action
   async postBalanceCalculation(accountID: string): Promise<boolean> {
     if (!ApplicationEnvironmentStore.Demo) {
       const requestMessage: RequestBalanceMessage = {
-        topic: {
-          type: AccountAssistMessageTypes.REQUEST_CALC,
+        type: AAW_MessageTypes.REQUEST_CALC,
+        messageData: {
           accountID: accountID,
         },
       };
+
       accountAssistantWorker.postMessage(requestMessage);
       return Promise.resolve(true);
     } else {

@@ -26,7 +26,10 @@ import AccountToolbar from "../AccountList/AccountToolbar.vue";
 
 import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import {
-  AccountAssistMessageTypes,
+  AAWReqBalance,
+  AAWResBalance,
+  AAWResPagination,
+  AAW_MessageTypes,
   AccountBalanceObject,
   RequestBalanceMessage,
   ResponseBalanceMessage,
@@ -34,7 +37,6 @@ import {
 import {
   AccountAssistantWorker,
   accountAssistantWorker,
-  DemoWorker,
 } from "@/worker/worker-provider";
 import { getLatestAccountBalance } from "@/worker/worker-functions/account-assist-worker/account-balance";
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
@@ -49,21 +51,31 @@ export default defineComponent({
   setup() {
     //Web-Worker starts
     const cardWorker: AccountAssistantWorker = accountAssistantWorker;
-    const unsubscribe = ref<null | Function>(null);
+    const unsubscribeBalance = ref<null | Function>(null);
+    const unsubscribePagination = ref<null | Function>(null);
     onMounted(() => {
-      unsubscribe.value = cardWorker.subscribeBalanceMessage({
+      //AccountList can manage most of the needed actions since its never being unmounted during lifetime
+      unsubscribeBalance.value = cardWorker.subscribeBalanceMessage({
         id: "AccountList",
-        callback: (data: ResponseBalanceMessage) => {
-          console.log("INCOMING MESSAGE", data);
-          setAccountData(data.topic.accountID, data.data);
+        callback: (data: AAWResBalance) => {
+          setAccountData(data.messageData.accountID, data.messageData.data);
+        },
+      });
+      unsubscribePagination.value = cardWorker.subscribePaginationMessage({
+        id: "AccountList",
+        callback: (data: AAWResPagination) => {
+          AccountTransferStore.commitPagination(data.messageData);
         },
       });
       initAccountBalanceData();
+      requestPagination();
     });
     onBeforeUnmount(() => {
-      if (unsubscribe.value) {
-        // console.log("Subscription removed");
-        unsubscribe.value();
+      if (unsubscribeBalance.value) {
+        unsubscribeBalance.value();
+      }
+      if (unsubscribePagination.value) {
+        unsubscribePagination.value();
       }
     });
     //Web-Worker ends
@@ -125,13 +137,18 @@ export default defineComponent({
           outgoing: 0,
         },
       };
-      const requestMessage: RequestBalanceMessage = {
-        topic: {
-          type: AccountAssistMessageTypes.REQUEST_CALC,
+      const requestMessage: AAWReqBalance = {
+        type: AAW_MessageTypes.REQUEST_CALC,
+        messageData: {
           accountID: accountID,
         },
       };
       cardWorker.postMessage(requestMessage);
+    };
+    const requestPagination = () => {
+      cardWorker.postMessage({
+        type: AAW_MessageTypes.REQUEST_PAGINATION,
+      });
     };
 
     return {

@@ -205,7 +205,17 @@ export const usePageNavigator = () => {
     }
   };
 
+  /**
+   * DEMO ONLY
+   */
+  const activateDemoTabs = () => {
+    activateCreateAccount();
+    activateCreateTransfers();
+    activateTransferList();
+  };
+
   return {
+    activateDemoTabs,
     setActivePage,
     setTabVisibility,
     pages: computed(() => {
@@ -263,7 +273,12 @@ export const usePluginNavigator = () => {
     }
   };
 
+  const activateDemoPlugins = () => {
+    console.log("Demo Plugins enabled");
+  };
+
   return {
+    activateDemoPlugins,
     setActivePlugin,
     setTabVisibility,
     plugins: computed(() => {

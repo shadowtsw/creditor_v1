@@ -13,12 +13,12 @@ export interface ExampleWorker {
     accounts: number,
     transfers: number
   ) => Promise<boolean>;
+  // getTags: Promise<Array<string>>;
   // randomNumber: () => Promise<boolean>;
-  getTags: Promise<Array<string>>;
-  getAccounts: Promise<Array<IBasicAccountClass>>;
-  getTransfers: Promise<Array<IBasicTransferClass>>;
-  getTransfersFromAccount: (
-    accountID: string
-  ) => Promise<Array<IBasicTransferClass | never>>;
-  addTransfer: (payload: IBasicTransferClass) => void;
+  // getAccounts: Promise<Array<IBasicAccountClass>>;
+  // getTransfers: Promise<Array<IBasicTransferClass>>;
+  // getTransfersFromAccount: (
+  //   accountID: string
+  // ) => Promise<Array<IBasicTransferClass | never>>;
+  // addTransfer: (payload: IBasicTransferClass) => void;
 }

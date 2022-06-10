@@ -93,9 +93,9 @@ const randomDistKeyGenerator = () => {
   return distKeys[0];
 };
 
-const accountDB: Array<IBasicAccountClass> = [];
-const transferDB: Array<IBasicTransferClass> = [];
-const cachedPagination: Pages = {};
+let accountDB: Array<IBasicAccountClass> = [];
+let transferDB: Array<IBasicTransferClass> = [];
+let cachedPagination: Pages = {};
 
 const generateExampleData = async (
   accountAmount: number,
@@ -171,9 +171,6 @@ const generateExampleData = async (
   await savePagination();
 
   console.log("Examples generated");
-  // console.log("AccountsDB", accountDB);
-  // console.log("TransfersDB",transferDB);
-  // console.log("CachedPagination",cachedPagination);
 
   return Promise.resolve(true);
 };
@@ -253,50 +250,43 @@ const savePagination = async (): Promise<boolean> => {
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
     console.log("STORED PAGINATION EXAMPLES IN DB", result);
+    //Clean up memory
+    cachedPagination = {};
+    accountDB = [];
+    transferDB = [];
+    //Clean up memory
     return Promise.resolve(true);
   } else {
     throw new Error("Failed to add transfer demo data");
   }
 };
 
-const getTransfersFromAccount = (accountID: string) => {
-  // console.log("TRANSFER DB", transferDB, accountID);
-  return (
-    transferDB.filter((entry) => {
-      return entry._accountID._value === accountID;
-    }) || []
-  );
-};
+// const getTransfersFromAccount = (accountID: string) => {
+//   // console.log("TRANSFER DB", transferDB, accountID);
+//   return (
+//     transferDB.filter((entry) => {
+//       return entry._accountID._value === accountID;
+//     }) || []
+//   );
+// };
 
-const addTransfer = (payload: IBasicTransferClass) => {
-  const relatedAccount = accountDB.find((entry) => {
-    return entry._internalID._value === payload._accountID._value;
-  });
-  if (relatedAccount) {
-    transferDB.push(payload);
-    relatedAccount.transfers._value.push(payload._internalID._value);
-  }
-};
+// const addTransfer = (payload: IBasicTransferClass) => {
+//   const relatedAccount = accountDB.find((entry) => {
+//     return entry._internalID._value === payload._accountID._value;
+//   });
+//   if (relatedAccount) {
+//     transferDB.push(payload);
+//     relatedAccount.transfers._value.push(payload._internalID._value);
+//   }
+// };
 
-const ExampleWorkerObject: {
-  generateExampleData: (
-    accounts: number,
-    transfers: number
-  ) => Promise<boolean>;
-  getTags: Array<string>;
-  getAccounts: Array<IBasicAccountClass>;
-  getTransfers: Array<IBasicTransferClass>;
-  getTransfersFromAccount: (
-    accountID: string
-  ) => Array<IBasicTransferClass | never>;
-  addTransfer: (payload: IBasicTransferClass) => void;
-} = {
+const ExampleWorkerObject = {
   generateExampleData: generateExampleData,
-  getTags: tags,
-  getAccounts: accountDB,
-  getTransfers: transferDB,
-  getTransfersFromAccount: getTransfersFromAccount,
-  addTransfer: addTransfer,
+  // getTags: tags,
+  // getAccounts: accountDB,
+  // getTransfers: transferDB,
+  // getTransfersFromAccount: getTransfersFromAccount,
+  // addTransfer: addTransfer,
 };
 
 Comlink.expose(ExampleWorkerObject);

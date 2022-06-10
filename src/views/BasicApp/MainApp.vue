@@ -56,7 +56,7 @@ import StatusWindow from "@/components/Layout/StatusWindow.vue";
 
 //Views
 //Utilities
-import { usePageNavigator } from "@/components/navigator";
+import { usePageNavigator, usePluginNavigator } from "@/components/navigator";
 import { importPages } from "@/components/component-registration";
 import Welcome from "@/views/Welcome.vue";
 
@@ -90,6 +90,8 @@ export default defineComponent({
         //Init Account data
         if (ApplicationEnvironmentStore.Demo) {
           const demoWorker = DemoWorker.WorkerProvider.demoWorker;
+          activateDemoTabs();
+          activateDemoPlugins();
         }
         await AccountTransferStore.initMetaState();
         await AccountTransferStore.initAccounts();
@@ -99,6 +101,7 @@ export default defineComponent({
       }
     });
     const {
+      activateDemoTabs,
       activateCreateTransfers,
       hideCreateTransfers,
       activateTransferList,
@@ -107,6 +110,7 @@ export default defineComponent({
       pages,
       settings,
     } = usePageNavigator();
+    const { activateDemoPlugins } = usePluginNavigator();
 
     // Watch accounts
     const accountsLength = computed(() => {
