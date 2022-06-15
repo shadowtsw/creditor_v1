@@ -10,4 +10,9 @@ export const upgradeAccountDB = (db: accountDBSchema) => {
     });
     store.createIndex("isSelected", "isSelected._valueMeta");
   }
+  if (!db.objectStoreNames.contains("Cache")) {
+    const store = db.createObjectStore("Cache", {
+      keyPath: "accountID",
+    });
+  }
 };

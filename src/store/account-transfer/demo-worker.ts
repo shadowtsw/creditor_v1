@@ -10,10 +10,7 @@ import {
   IBasicTransferClass,
   IBasicTransferConstructorConfig,
 } from "@/interfaces/transfers/transfers";
-import { DataFieldType } from "@/interfaces/data-field/data-field-interface";
 import * as Comlink from "comlink";
-import { getTransferConfig } from "@/utils/config-generator";
-import { ExampleWorker } from "./demo-worker-types";
 import {
   DBProvider as TransferDBProvider,
   IDBTransfers,
@@ -22,15 +19,12 @@ import {
   DBProvider as AccountDBProvider,
   IDBAccounts,
 } from "@/indexedDB/account-database";
-import { ApplicationEnvironmentStore } from "../application/application-store";
-
-import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
+import { openDB } from "idb";
 import { upgradeAccountDB } from "@/indexedDB/upgrade-functions/account-db";
 import { upgradeTransferDB } from "@/indexedDB/upgrade-functions/transfer-db";
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
-import { Pages } from "@/indexedDB/transfer-interfaces/transfer-meta-interfaces";
+import { Pages } from "@/interfaces/transfers/page-types";
 
-console.log("HERE IS DEMO WORKER");
+// console.log("HERE IS DEMO WORKER");
 
 const randomNumberGenerator = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min)) + min;
@@ -38,7 +32,7 @@ const randomNumberGenerator = (min: number, max: number) => {
 
 const randomValueGenerator = () => {
   let decimal = randomNumberGenerator(5, 99);
-  let value = randomNumberGenerator(5, 2500);
+  let value = randomNumberGenerator(-1000, 2500);
   return Number(value + "." + decimal);
 };
 
@@ -192,7 +186,7 @@ const saveAccounts = async (): Promise<boolean> => {
     });
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
-    console.log("STORED ACCOUNT EXAMPLES IN DB", result);
+    // console.log("STORED ACCOUNT EXAMPLES IN DB", result);
     return Promise.resolve(true);
   } else {
     throw new Error("Failed to add account demo data");
@@ -216,7 +210,7 @@ const saveTransfers = async (): Promise<boolean> => {
     });
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
-    console.log("STORED TRANSFER EXAMPLES IN DB", result);
+    // console.log("STORED TRANSFER EXAMPLES IN DB", result);
     return Promise.resolve(true);
   } else {
     throw new Error("Failed to add transfer demo data");
@@ -249,7 +243,7 @@ const savePagination = async (): Promise<boolean> => {
 
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
-    console.log("STORED PAGINATION EXAMPLES IN DB", result);
+    // console.log("STORED PAGINATION EXAMPLES IN DB", result);
     //Clean up memory
     cachedPagination = {};
     accountDB = [];

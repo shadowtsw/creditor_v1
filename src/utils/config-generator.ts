@@ -370,11 +370,48 @@ export const getAccountConfig = (
   }
 };
 
-export const getYearMonth = (year: number, month: number) => {
+export const getYearMonth = (year: number, month: number): number => {
   let newMonth = month.toString();
   if (newMonth.length === 1) {
     newMonth = "0" + newMonth;
   }
   const yearMonthString = year.toString() + newMonth;
   return Number(yearMonthString);
+};
+
+export const getDateFromYearMonth = (yearMonth: number | string): Date => {
+  let yearMonthString;
+
+  if (typeof yearMonth === "number") {
+    yearMonthString = yearMonth.toString();
+  } else {
+    yearMonthString = yearMonth;
+  }
+
+  if (yearMonthString.length < 6) {
+    throw new Error("No valid yearMonth value");
+  }
+  const convertedDate = new Date(
+    Number(yearMonthString.slice(0, 4)),
+    Number(yearMonthString.slice(4, 6))
+  );
+
+  return convertedDate;
+};
+
+export const calcNewYearMonth = (
+  yearMonth: number | string,
+  type: "increase" | "decrease",
+  monthValue: number
+): number => {
+  if (monthValue < 0) {
+    throw new Error("Calculation requires positive values");
+  }
+  const yearMonthDate = getDateFromYearMonth(yearMonth);
+  if (type === "increase") {
+    yearMonthDate.setMonth(yearMonthDate.getMonth() + monthValue);
+  } else {
+    yearMonthDate.setMonth(yearMonthDate.getMonth() - monthValue);
+  }
+  return getYearMonth(yearMonthDate.getFullYear(), yearMonthDate.getMonth());
 };

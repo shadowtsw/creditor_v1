@@ -30,18 +30,12 @@ import {
   AAWResBalance,
   AAWResPagination,
   AAW_MessageTypes,
-  AccountBalanceObject,
-  RequestBalanceMessage,
-  ResponseBalanceMessage,
 } from "@/worker/message-interfaces/account-assist-interface";
+import { AccountBalanceObject } from "@/interfaces/accounts/saldo-balance-types";
 import {
   AccountAssistantWorker,
   accountAssistantWorker,
 } from "@/worker/worker-provider";
-import { getLatestAccountBalance } from "@/worker/worker-functions/account-assist-worker/account-balance";
-import { ApplicationEnvironmentStore } from "@/store/application/application-store";
-import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
-import { ExampleWorker } from "../../../.history/src/store/account-transfer/demo-worker-types_20220605000408";
 
 export default defineComponent({
   components: {
@@ -94,14 +88,18 @@ export default defineComponent({
             return {
               isLoading: false,
               lastMonth: {
-                balance: 0,
+                startBalance: 0,
+                endBalance: 0,
                 income: 0,
                 outgoing: 0,
+                sum: 0,
               },
               currentMonth: {
-                balance: 0,
+                startBalance: 0,
+                endBalance: 0,
                 income: 0,
                 outgoing: 0,
+                sum: 0,
               },
             };
           }
@@ -118,25 +116,31 @@ export default defineComponent({
       }
     };
     const setAccountData = (accountID: string, data: AccountBalanceObject) => {
-      summaryObject[accountID] = {
+      const accountBalanceObject = {
         ...data,
         ...{ isLoading: false },
       };
+      summaryObject[accountID] = accountBalanceObject;
     };
     const postCalculation = (accountID: string) => {
-      summaryObject[accountID] = {
+      const placeholder = {
         isLoading: false,
         lastMonth: {
-          balance: 0,
+          startBalance: 0,
+          endBalance: 0,
           income: 0,
           outgoing: 0,
+          sum: 0,
         },
         currentMonth: {
-          balance: 0,
+          startBalance: 0,
+          endBalance: 0,
           income: 0,
           outgoing: 0,
+          sum: 0,
         },
       };
+      summaryObject[accountID] = placeholder;
       const requestMessage: AAWReqBalance = {
         type: AAW_MessageTypes.REQUEST_CALC,
         messageData: {

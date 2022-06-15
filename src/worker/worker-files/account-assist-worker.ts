@@ -1,4 +1,3 @@
-import { PageObject } from "@/indexedDB/transfer-interfaces/transfer-meta-interfaces";
 import {
   upgradeAccountDB,
   accountDBSchema,
@@ -7,7 +6,7 @@ import {
   transferDBSchema,
   upgradeTransferDB,
 } from "@/indexedDB/upgrade-functions/transfer-db";
-import { Pagination } from "@/interfaces/pages/page-types";
+import { Pagination, PageObject } from "@/interfaces/transfers/page-types";
 import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
@@ -28,7 +27,19 @@ import {
   AAWResPagination,
   AAWResBalance,
 } from "../message-interfaces/account-assist-interface";
-import { getLatestAccountBalance } from "../worker-functions/account-assist-worker/account-balance";
+import {
+  BalanceByYearMonth,
+  MonthBalanceObject,
+  SaldoByYearMonth,
+  SaldoObject,
+  AccountBalanceObject,
+} from "@/interfaces/accounts/saldo-balance-types";
+// import { getLatestAccountBalance } from "../worker-functions/account-assist-worker/account-balance";
+import {
+  getYearMonth,
+  getDateFromYearMonth,
+  calcNewYearMonth,
+} from "@/utils/config-generator";
 
 /**
  * DB related
@@ -36,6 +47,7 @@ import { getLatestAccountBalance } from "../worker-functions/account-assist-work
 let accountDB: accountDBSchema;
 let transferDB: transferDBSchema;
 const openAccountDB = async (): Promise<boolean> => {
+  console.log("STATE", "OpenAccountDB");
   let relatedDB = AccountProvider.accountsDB.dbname;
   if (ApplicationEnvironmentStore.Demo) {
     relatedDB = AccountProvider.accountsDB.dbDemoName;
@@ -83,30 +95,52 @@ const openTransferDB = async (): Promise<boolean> => {
 /**
  * PAGINATION for Frontend
  */
-const pages: Pagination = {};
-const createPagination = async (): Promise<boolean> => {
-  console.time("START PAGINATION");
+//TODO: needs multiple update
+let pages: Pagination = {};
+const createPagination = async (
+  recreate: boolean = false
+): Promise<boolean> => {
+  console.log("STATE", "createPagination");
   try {
-    let cursor = await transferDB.transaction("pages").store.openCursor();
+    const existingPagination = await transferDB.get("Cache", "Pagination");
+    if (existingPagination && !recreate) {
+      // console.log("Pagination exists");
+      pages = existingPagination.data;
+      return Promise.resolve(true);
+    } else {
+      if (recreate) {
+        await transferDB.delete("Cache", "Pagination");
+        pages = {};
+      }
+      // console.log("Pagination not found, create new one");
+      let cursor = await transferDB.transaction("pages").store.openCursor();
 
-    while (cursor) {
-      if (!pages.hasOwnProperty(cursor.value.year)) {
-        pages[cursor.value.year] = {};
+      while (cursor) {
+        if (!pages.hasOwnProperty(cursor.value.year)) {
+          pages[cursor.value.year] = {};
+        }
+        if (!pages[cursor.value.year].hasOwnProperty(cursor.value.month)) {
+          pages[cursor.value.year][cursor.value.month] = [];
+        }
+        if (pages[cursor.value.year][cursor.value.month].length === 0) {
+          pages[cursor.value.year][cursor.value.month] = cursor.value.transfers;
+        } else {
+          // console.log("Duplicate ?");
+        }
+        // console.log(cursor.key, cursor.value);
+        cursor = await cursor.continue();
       }
-      if (!pages[cursor.value.year].hasOwnProperty(cursor.value.month)) {
-        pages[cursor.value.year][cursor.value.month] = [];
-      }
-      if (pages[cursor.value.year][cursor.value.month].length === 0) {
-        pages[cursor.value.year][cursor.value.month] = cursor.value.transfers;
+      if (Object.keys(pages).length > 0) {
+        await transferDB.add("Cache", {
+          id: "Pagination",
+          lastModified: new Date().getTime(),
+          data: pages,
+        });
       } else {
-        console.log("Duplicate ?");
-        console.log(cursor.key, cursor.value);
+        console.warn("Pagination empty");
       }
-      cursor = await cursor.continue();
+      return Promise.resolve(true);
     }
-    console.timeEnd("START PAGINATION");
-    console.log("Pages", pages);
-    return Promise.resolve(true);
   } catch (err) {
     throw new Error(`Failed to create pagination: ${err}`);
   }
@@ -138,7 +172,7 @@ const updatePagination = async (
     try {
       const target = await transferDB.get("pages", yearMonth);
       if (target) {
-        const findEntry = target.transfers.find((entry) => {
+        const findEntry = target.transfers.find((entry: PageObject) => {
           return entry.transferID === payload._internalID._value;
         });
         if (!findEntry) {
@@ -147,8 +181,11 @@ const updatePagination = async (
           pages[year][month].push({
             accountID: payload._accountID._value,
             transferID: payload._internalID._value,
+            year: payload.valutaDate._dateMetaInformation.year,
+            month: payload.valutaDate._dateMetaInformation.month,
+            yearMonth: payload.valutaDate._dateMetaInformation.yearmonth,
           });
-          console.log("Updated pages", pages);
+          await updatePaginationCache(pages);
           return Promise.resolve(true);
         } else {
           throw new Error("PageObject already exist");
@@ -163,8 +200,11 @@ const updatePagination = async (
         pages[year][month].push({
           accountID: payload._accountID._value,
           transferID: payload._internalID._value,
+          year: payload.valutaDate._dateMetaInformation.year,
+          month: payload.valutaDate._dateMetaInformation.month,
+          yearMonth: payload.valutaDate._dateMetaInformation.yearmonth,
         });
-        console.log("Updated pages", pages);
+        await updatePaginationCache(pages);
         return Promise.resolve(true);
       }
     } catch (err) {
@@ -202,6 +242,7 @@ const deleteFromPagination = async (
           pages[year][month] = pages[year][month].filter((entry) => {
             return entry.transferID === payload._internalID._value;
           });
+          await updatePaginationCache(pages);
           return Promise.resolve(true);
         } else {
           return Promise.resolve(true);
@@ -216,110 +257,455 @@ const deleteFromPagination = async (
     throw new Error("Database not found");
   }
 };
+const updatePaginationCache = async (
+  pagesObject: Pagination
+): Promise<boolean> => {
+  const updatedPagination = await transferDB.get("Cache", "Pagination");
+  if (updatedPagination) {
+    updatedPagination.data = pagesObject;
+    updatedPagination.lastModified = new Date().getTime();
+    await transferDB.put("Cache", updatedPagination);
+    return Promise.resolve(true);
+  } else {
+    throw new Error("Error during update, Pagination entry not found");
+  }
+};
 
 /**
- * FUNCTIONS
+ * ACCOUNT Calculation
  */
+//State
+const monthlyAccountBalance: BalanceByYearMonth = {};
+//State
+const saldoByYearMonth: SaldoByYearMonth = {};
+//State
+const currentBalanceCache: {
+  [index: string]: AccountBalanceObject & { lastModified: number };
+} = {};
+//Functions
+//TODO: needs multiple update
+//Creator
+const calculateInitialMonthlyBalance = async (
+  accountID: string,
+  recreate: boolean = false
+): Promise<boolean> => {
+  const balanceSummary: MonthBalanceObject = {};
 
-// const getLatestAccountBalance = (
-//   openingBalance: number,
-//   relatedTransfers: Array<IBasicTransferClass>
-// ): AccountBalanceObject => {
-//   const date = new Date();
-//   const currentMonth = date.getMonth();
-//   date.setDate(1);
-//   date.setMonth(currentMonth - 1);
-//   const lastMonth = date.getMonth();
-//   const relatedYear = date.getFullYear();
+  try {
+    //Try db first
+    const monthlyBalanceCache = await accountDB.get("Cache", accountID);
+    if (monthlyBalanceCache && !recreate) {
+      if (!monthlyAccountBalance.hasOwnProperty(accountID)) {
+        monthlyAccountBalance[accountID] = {};
+      }
+      monthlyAccountBalance[accountID] = monthlyBalanceCache.balanceData;
+      await calculateInitialSaldo(accountID, recreate);
+      return Promise.resolve(true);
+    }
+    //Go on with initial calculation
+    if (recreate) {
+      await accountDB.delete("Cache", accountID);
+      monthlyAccountBalance[accountID] = {};
+    }
+    const targetAccount = await accountDB.get("accounts", accountID);
+    if (targetAccount) {
+      let cursor = await transferDB
+        .transaction("transfers")
+        .store.index("accountID")
+        .openCursor(accountID);
 
-//   const beforeTransfers: Array<IBasicTransferClass> = [];
-//   const lastMonthTransfers: Array<IBasicTransferClass> = [];
-//   const currentMonthTransfers: Array<IBasicTransferClass> = [];
+      while (cursor) {
+        const yearMonth =
+          cursor.value.valutaDate._dateMetaInformation.yearmonth;
+        const value = cursor.value.value._value;
 
-//   relatedTransfers.forEach((transferEntry) => {
-//     if (
-//       transferEntry.valutaDate._dateMetaInformation.month === lastMonth &&
-//       transferEntry.valutaDate._dateMetaInformation.year === relatedYear
-//     ) {
-//       lastMonthTransfers.push(transferEntry);
-//     } else if (
-//       transferEntry.valutaDate._dateMetaInformation.month === currentMonth &&
-//       transferEntry.valutaDate._dateMetaInformation.year === relatedYear
-//     ) {
-//       currentMonthTransfers.push(transferEntry);
-//     } else {
-//       beforeTransfers.push(transferEntry);
-//     }
-//   });
+        if (!balanceSummary.hasOwnProperty(yearMonth)) {
+          balanceSummary[yearMonth] = { income: 0, outgoing: 0, sum: 0 };
+        }
+        if (value > 0) {
+          balanceSummary[yearMonth].income += value;
+        } else {
+          balanceSummary[yearMonth].outgoing += value;
+        }
+        balanceSummary[yearMonth].sum += value;
+        cursor = await cursor.continue();
+      }
 
-//   const resultObject = {
-//     lastMonth: {
-//       balance: 0,
-//       income: 0,
-//       outgoing: 0,
-//     },
-//     currentMonth: {
-//       balance: 0,
-//       income: 0,
-//       outgoing: 0,
-//     },
-//   };
+      if (!monthlyAccountBalance.hasOwnProperty(accountID)) {
+        monthlyAccountBalance[accountID] = {};
+      }
 
-//   const lastMentionedBalance = beforeTransfers.reduce((acc, curr) => {
-//     return acc + curr.value._value;
-//   }, openingBalance);
+      monthlyAccountBalance[accountID] = balanceSummary;
+      if (Object.keys(monthlyAccountBalance[accountID]).length > 0) {
+        await accountDB.add("Cache", {
+          accountID: accountID,
+          lastModified: new Date().getTime(),
+          balanceData: monthlyAccountBalance[accountID],
+          saldoData: {},
+        });
+      }
+      await calculateInitialSaldo(accountID, recreate);
+      return Promise.resolve(true);
+    } else {
+      throw new Error("Account not found");
+    }
+  } catch (err) {
+    throw new Error(`Failed to create balance summary ${accountID}: ${err}`);
+  }
+};
+const calculateInitialSaldo = async (
+  accountID: string,
+  recreate: boolean = false
+) => {
+  const saldoSummary: SaldoObject = {};
+  let hasOpeningMonth = false;
+  try {
+    //Try DB first
+    const saldoCache = await accountDB.get("Cache", accountID);
 
-//   const lastMonthValues = lastMonthTransfers.reduce<{
-//     income: number;
-//     outgoing: number;
-//   }>(
-//     (acc, curr) => {
-//       if (curr.value._value >= 0) {
-//         acc.income = acc.income + curr.value._value;
-//         return acc;
-//       } else if (curr.value._value < 0) {
-//         acc.outgoing = acc.outgoing + curr.value._value;
-//         return acc;
-//       } else {
-//         return acc;
-//       }
-//     },
-//     { income: 0, outgoing: 0 }
-//   );
+    if (saldoCache && !recreate) {
+      if (!saldoByYearMonth.hasOwnProperty(accountID)) {
+        saldoByYearMonth[accountID] = {};
+      }
+      saldoByYearMonth[accountID] = saldoCache.saldoData;
+      createCurrentBalance(accountID);
+      return Promise.resolve(true);
+    }
+    //Go on with initial calculation
+    if (recreate) {
+      const exist = await accountDB.get("Cache", accountID);
+      if (exist) {
+        await accountDB.delete("Cache", accountID);
+      }
+      saldoByYearMonth[accountID] = {};
+    }
+    const targetAccount = await accountDB.get("accounts", accountID);
+    let previousEntry = {} as { start: number | boolean; end: number };
+    if (targetAccount) {
+      const openingBalance = targetAccount.openingBalance._value;
+      const openingBalanceDate =
+        targetAccount.openingBalanceDate._dateMetaInformation.yearmonth;
+      const monthBalanceObject = monthlyAccountBalance[accountID];
+      for (const entry in monthBalanceObject) {
+        let convertedEntry = Number(entry);
+        if (!saldoSummary.hasOwnProperty(convertedEntry)) {
+          saldoSummary[convertedEntry] = { start: 0, end: 0 };
+        }
+        if (convertedEntry === openingBalanceDate) {
+          saldoSummary[convertedEntry].start = false;
+          saldoSummary[convertedEntry].end =
+            openingBalance + monthBalanceObject[convertedEntry].sum;
+          previousEntry = saldoSummary[convertedEntry];
+          hasOpeningMonth = true;
+          console.log("Opening Month");
+        } else {
+          saldoSummary[convertedEntry].start = previousEntry.end ?? 0;
+          const start = saldoSummary[convertedEntry].start as number;
+          saldoSummary[convertedEntry].end =
+            start + monthBalanceObject[convertedEntry].sum;
+          previousEntry = saldoSummary[convertedEntry];
+        }
+      }
+      if (!saldoByYearMonth.hasOwnProperty(accountID)) {
+        saldoByYearMonth[accountID] = {};
+      }
 
-//   resultObject.lastMonth.income = lastMonthValues.income;
-//   resultObject.lastMonth.outgoing = lastMonthValues.outgoing;
-//   resultObject.lastMonth.balance =
-//     lastMentionedBalance + lastMonthValues.income + lastMonthValues.outgoing;
+      saldoByYearMonth[accountID] = saldoSummary;
+      if (!hasOpeningMonth) {
+        console.warn(`Missing opening month at ${accountID}`);
+      }
+      if (saldoCache) {
+        // approveCurrentAndLastSaldo(accountID);
+        saldoCache.lastModified = new Date().getTime();
+        saldoCache.saldoData = saldoByYearMonth[accountID];
+        await accountDB.put("Cache", saldoCache);
+      } else {
+        await accountDB.add("Cache", {
+          accountID: accountID,
+          lastModified: new Date().getTime(),
+          balanceData: monthlyAccountBalance[accountID],
+          saldoData: saldoByYearMonth[accountID],
+        });
+      }
+      createCurrentBalance(accountID);
+      return Promise.resolve(true);
+    } else {
+      throw new Error("Account not found");
+    }
+  } catch (err) {
+    throw new Error(`Failed to create saldo summary ${accountID}: ${err}`);
+  }
+};
+const createCurrentBalance = (accountID: string) => {
+  const todayYearMonth = getYearMonth(
+    new Date().getFullYear(),
+    new Date().getMonth()
+  );
 
-//   const currentMonthValues = currentMonthTransfers.reduce<{
-//     income: number;
-//     outgoing: number;
-//   }>(
-//     (acc, curr) => {
-//       if (curr.value._value >= 0) {
-//         acc.income = acc.income + curr.value._value;
-//         return acc;
-//       } else if (curr.value._value < 0) {
-//         acc.outgoing = acc.outgoing + curr.value._value;
-//         return acc;
-//       } else {
-//         return acc;
-//       }
-//     },
-//     { income: 0, outgoing: 0 }
-//   );
+  const lastYearMonth = calcNewYearMonth(todayYearMonth, "decrease", 1);
 
-//   resultObject.currentMonth.income = currentMonthValues.income;
-//   resultObject.currentMonth.outgoing = currentMonthValues.outgoing;
-//   resultObject.currentMonth.balance =
-//     resultObject.lastMonth.balance +
-//     currentMonthValues.income +
-//     currentMonthValues.outgoing;
+  const arrayFromMonthlyAccountBalance = Object.entries(
+    monthlyAccountBalance[accountID]
+  );
 
-//   return resultObject;
-// };
+  const arrayFromMonthlySaldo = Object.entries(saldoByYearMonth[accountID]);
 
+  const lastEntryFromMonthlyAccountBalance =
+    arrayFromMonthlyAccountBalance.sort((a, b) => Number(a[0]) - Number(b[0]))[
+      arrayFromMonthlyAccountBalance.length - 1
+    ];
+
+  const lastEntryNumber = Number(lastEntryFromMonthlyAccountBalance[0]);
+
+  const entriesFromMonthlySaldo = arrayFromMonthlySaldo.sort(
+    (a, b) => Number(a[0]) - Number(b[0])
+  );
+
+  let balanceMessage: AccountBalanceObject = {
+    lastMonth: {
+      startBalance: 0,
+      endBalance: 0,
+      income: 0,
+      outgoing: 0,
+      sum: 0,
+    },
+    currentMonth: {
+      startBalance: 0,
+      endBalance: 0,
+      income: 0,
+      outgoing: 0,
+      sum: 0,
+    },
+  };
+
+  const switchResult =
+    lastYearMonth - lastEntryNumber > 0
+      ? 1
+      : lastYearMonth - lastEntryNumber === 0
+      ? lastYearMonth - lastEntryNumber
+      : -1;
+
+  switch (switchResult) {
+    case 1: //last yearMonth-entry in cache is older than last month
+      // console.log("last entry in cache is older than last month");
+      balanceMessage.lastMonth.startBalance =
+        entriesFromMonthlySaldo[entriesFromMonthlySaldo.length - 1][1].start;
+      balanceMessage.lastMonth.endBalance =
+        entriesFromMonthlySaldo[entriesFromMonthlySaldo.length - 1][1].start;
+      balanceMessage.currentMonth.startBalance =
+        entriesFromMonthlySaldo[entriesFromMonthlySaldo.length - 1][1].start;
+      balanceMessage.currentMonth.endBalance =
+        entriesFromMonthlySaldo[entriesFromMonthlySaldo.length - 1][1].start;
+      break;
+    case 0: //last entry equals last month
+      // console.log("last entry equals last month");
+      balanceMessage.lastMonth.startBalance =
+        saldoByYearMonth[accountID][lastYearMonth].start || 0;
+      balanceMessage.lastMonth.endBalance =
+        saldoByYearMonth[accountID][lastYearMonth].end;
+      balanceMessage.lastMonth.income =
+        monthlyAccountBalance[accountID][lastYearMonth].income;
+      balanceMessage.lastMonth.outgoing =
+        monthlyAccountBalance[accountID][lastYearMonth].outgoing;
+      balanceMessage.lastMonth.sum =
+        monthlyAccountBalance[accountID][lastYearMonth].sum;
+
+      balanceMessage.currentMonth.startBalance =
+        entriesFromMonthlySaldo[entriesFromMonthlySaldo.length - 1][1].start;
+      balanceMessage.currentMonth.endBalance =
+        entriesFromMonthlySaldo[entriesFromMonthlySaldo.length - 1][1].start;
+      break;
+    case -1: //last entry is newer than last month and should be
+      // console.log("last entry is newer than last month");
+      balanceMessage.lastMonth.startBalance =
+        saldoByYearMonth[accountID][todayYearMonth].start || 0;
+      balanceMessage.lastMonth.endBalance =
+        saldoByYearMonth[accountID][todayYearMonth].end;
+      balanceMessage.lastMonth.income =
+        monthlyAccountBalance[accountID][todayYearMonth].income;
+      balanceMessage.lastMonth.outgoing =
+        monthlyAccountBalance[accountID][todayYearMonth].outgoing;
+      balanceMessage.lastMonth.sum =
+        monthlyAccountBalance[accountID][todayYearMonth].sum;
+
+      balanceMessage.currentMonth.startBalance =
+        saldoByYearMonth[accountID][todayYearMonth].start || 0;
+      balanceMessage.currentMonth.endBalance =
+        saldoByYearMonth[accountID][todayYearMonth].end;
+      balanceMessage.currentMonth.income =
+        monthlyAccountBalance[accountID][todayYearMonth].income;
+      balanceMessage.currentMonth.outgoing =
+        monthlyAccountBalance[accountID][todayYearMonth].outgoing;
+      balanceMessage.currentMonth.sum =
+        monthlyAccountBalance[accountID][todayYearMonth].sum;
+      break;
+
+    default:
+      throw new Error("Something went wrong with balance message");
+      break;
+  }
+
+  currentBalanceCache[accountID] = {
+    ...balanceMessage,
+    lastModified: new Date().getTime(),
+  };
+};
+//Updater
+const updateBalance = async (
+  accountID: string,
+  transfer: IBasicTransferClass | Array<IBasicTransferClass>
+): Promise<boolean> => {
+  let transfers: IBasicTransferClass | Array<IBasicTransferClass> = [];
+  if (!Array.isArray(transfer)) {
+    transfers.push(transfer);
+  } else {
+    transfers = transfer;
+  }
+  for (const transfer of transfers) {
+    const yearMonth = transfer.valutaDate._dateMetaInformation.yearmonth;
+    const value = transfer.value._value;
+
+    if (!monthlyAccountBalance.hasOwnProperty(accountID)) {
+      monthlyAccountBalance[accountID] = {};
+    }
+
+    if (!monthlyAccountBalance[accountID].hasOwnProperty(yearMonth)) {
+      monthlyAccountBalance[accountID][yearMonth] = {
+        income: 0,
+        outgoing: 0,
+        sum: 0,
+      };
+    }
+    if (value > 0) {
+      monthlyAccountBalance[accountID][yearMonth].income += value;
+    } else {
+      monthlyAccountBalance[accountID][yearMonth].outgoing += value;
+    }
+    monthlyAccountBalance[accountID][yearMonth].sum += value;
+  }
+
+  try {
+    const existingData = await accountDB.get("Cache", accountID);
+
+    if (existingData) {
+      existingData.lastModified = new Date().getTime();
+      existingData.balanceData = monthlyAccountBalance[accountID];
+      await accountDB.put("Cache", existingData);
+    } else {
+      await accountDB.add("Cache", {
+        accountID: accountID,
+        lastModified: new Date().getTime(),
+        balanceData: monthlyAccountBalance[accountID],
+        saldoData: saldoByYearMonth[accountID],
+      });
+    }
+    await updateSaldo(accountID, transfers);
+    return Promise.resolve(true);
+  } catch (err) {
+    throw new Error("Failed to update monthly balance");
+  }
+};
+const updateSaldo = async (
+  accountID: string,
+  transfer: IBasicTransferClass | Array<IBasicTransferClass>
+): Promise<boolean> => {
+  let transfers: IBasicTransferClass | Array<IBasicTransferClass> = [];
+  let mappedTransfers;
+
+  if (!Array.isArray(transfer)) {
+    transfers.push(transfer);
+  } else {
+    transfers = transfer;
+  }
+
+  mappedTransfers = transfers.map((entry) => {
+    return {
+      transferID: entry._internalID._value,
+      accountID: entry._accountID._value,
+      valutaYearMonth: entry.valutaDate._dateMetaInformation.yearmonth,
+    };
+  });
+
+  mappedTransfers.sort((a, b) => a.valutaYearMonth - b.valutaYearMonth);
+
+  const saldoSummary: SaldoObject = saldoByYearMonth[accountID];
+  let hasOpeningMonth = false;
+  const targetAccount = await accountDB.get("accounts", accountID);
+  let previousEntry = {} as { start: number | boolean; end: number };
+  if (targetAccount) {
+    const openingBalance = targetAccount.openingBalance._value;
+    const openingBalanceDate =
+      targetAccount.openingBalanceDate._dateMetaInformation.yearmonth;
+
+    const monthBalanceObject = Object.entries(
+      monthlyAccountBalance[accountID]
+    ).sort((a, b) => Number(a[0]) - Number(b[0])); //ensures order
+
+    const monthBalanceCache = monthlyAccountBalance[accountID];
+
+    for (const entry of monthBalanceObject[0]) {
+      let convertedEntry = Number(entry);
+
+      if (convertedEntry < mappedTransfers[0].valutaYearMonth) {
+        previousEntry = saldoByYearMonth[accountID][convertedEntry];
+        continue;
+      }
+
+      if (!saldoSummary.hasOwnProperty(convertedEntry)) {
+        saldoSummary[convertedEntry] = { start: 0, end: 0 };
+      }
+
+      if (convertedEntry === openingBalanceDate) {
+        saldoSummary[convertedEntry].start = false;
+        saldoSummary[convertedEntry].end =
+          openingBalance + monthBalanceCache[convertedEntry].sum;
+        previousEntry = saldoSummary[convertedEntry];
+        hasOpeningMonth = true;
+        console.log("Opening Month");
+      } else {
+        saldoSummary[convertedEntry].start = previousEntry.end ?? 0;
+        const start = saldoSummary[convertedEntry].start as number;
+        saldoSummary[convertedEntry].end =
+          start + monthBalanceCache[convertedEntry].sum;
+        previousEntry = saldoSummary[convertedEntry];
+      }
+    }
+    if (!saldoByYearMonth.hasOwnProperty(accountID)) {
+      saldoByYearMonth[accountID] = {};
+    }
+
+    saldoByYearMonth[accountID] = saldoSummary;
+
+    if (!hasOpeningMonth) {
+      console.warn(`Missing opening month at ${accountID}`);
+    }
+    try {
+      const existingData = await accountDB.get("Cache", accountID);
+
+      if (existingData) {
+        existingData.saldoData = saldoByYearMonth[accountID];
+        existingData.lastModified = new Date().getTime();
+        await accountDB.put("Cache", existingData);
+      } else {
+        await accountDB.add("Cache", {
+          accountID: accountID,
+          lastModified: new Date().getTime(),
+          balanceData: monthlyAccountBalance[accountID],
+          saldoData: saldoByYearMonth[accountID],
+        });
+      }
+      return Promise.resolve(true);
+    } catch (err) {
+      throw new Error("Failed to update saldo");
+    }
+  } else {
+    throw new Error("Account not found");
+  }
+};
+
+/**
+ * MESSAGE CENTER
+ */
 self.addEventListener("message", async (event: MessageEvent) => {
   if (!accountDB) {
     try {
@@ -341,14 +727,29 @@ self.addEventListener("message", async (event: MessageEvent) => {
 
     if (message.type === AAW_MessageTypes.INIT) {
       switch (message.messageData.target) {
-        case InitMessageTargets.ACCOUNT_DB:
+        case InitMessageTargets.INIT_APP:
           await openAccountDB();
-          break;
-        case InitMessageTargets.TRANSFER_DB:
           await openTransferDB();
           await createPagination();
           postPaginationMessage();
+          const accounts = await accountDB.getAll("accounts");
+          for (const account of accounts) {
+            await calculateInitialMonthlyBalance(account._internalID._value);
+            postCurrentBalanceMessage(account._internalID._value);
+          }
           break;
+        // case InitMessageTargets.ACCOUNT_DB:
+        // await openAccountDB();
+        // break;
+        // case InitMessageTargets.TRANSFER_DB:
+        // await openTransferDB();
+        // await createPagination();
+        // postPaginationMessage();
+        // const accounts = await accountDB.getAll("accounts");
+        // for (const account of accounts) {
+        //   await calculateInitialMonthlyBalance(account._internalID._value);
+        // }
+        // break;
         default:
           throw new Error("Message target not found");
           break;
@@ -358,6 +759,10 @@ self.addEventListener("message", async (event: MessageEvent) => {
     if (message.type !== AAW_MessageTypes.INIT) {
       switch (message.type) {
         case AAW_MessageTypes.REQUEST_CALC:
+          if (Object.keys(monthlyAccountBalance).length === 0) {
+            await calculateInitialMonthlyBalance(message.messageData.accountID);
+          }
+          postCurrentBalanceMessage(message.messageData.accountID);
           break;
         case AAW_MessageTypes.REQUEST_PAGINATION:
           if (Object.keys(pages).length === 0) {
@@ -365,97 +770,41 @@ self.addEventListener("message", async (event: MessageEvent) => {
           }
           postPaginationMessage();
           break;
-        case AAW_MessageTypes.UPDATE_PAGINATION:
-          await updatePagination(message.messageData);
-          postPaginationMessage();
+        case AAW_MessageTypes.ADD_TRANSFER:
+          if (!Array.isArray(message.messageData)) {
+            await updatePagination(message.messageData);
+            postPaginationMessage();
+            await updateBalance(
+              message.messageData._accountID._value,
+              message.messageData
+            );
+            postCurrentBalanceMessage(message.messageData._accountID._value);
+          }
+          //TODO multiple updates
           break;
-        case AAW_MessageTypes.DELETE_FROM_PAGINATION:
-          await deleteFromPagination(message.messageData);
-          postPaginationMessage();
-          break;
+        // case AAW_MessageTypes.DELETE_FROM_PAGINATION:
+        //   await deleteFromPagination(message.messageData);
+        //   postPaginationMessage();
+        //   break;
         default:
           throw new Error("Unknown message type");
           break;
       }
-      // let relatedTransfers = [] as Array<
-      //   string | IBasicTransferClass | undefined
-      // >;
-      // let account = null;
-
-      // account = await accountDB.get("accounts", message.messageData.accountID);
-
-      // if (account) {
-      //   account.transfers._value.forEach((entry) => {
-      //     relatedTransfers.push(entry);
-      //   });
-      //   if (relatedTransfers.length > 0) {
-      //     const accountTransfers = await transferDB.getAllFromIndex(
-      //       "transfers",
-      //       "accountID",
-      //       account._internalID._value
-      //     );
-
-      //     if (accountTransfers.length > 0) {
-      //       let transformedTransfers: Array<IBasicTransferClass>;
-
-      //       transformedTransfers = relatedTransfers.map((entry) => {
-      //         const result = accountTransfers.find((accountTransfer) => {
-      //           return accountTransfer._internalID._value === entry;
-      //         });
-
-      //         if (result) {
-      //           return result;
-      //         } else {
-      //           throw new Error("Transfer transformation failed !");
-      //         }
-      //       });
-
-      //       if (transformedTransfers.length > 0) {
-      //         const getCalcResult = getLatestAccountBalance(
-      //           account.openingBalance._value,
-      //           transformedTransfers
-      //         );
-
-      //         const messageResponse: OutgoingMessages = {
-      //           type: AAW_MessageTypes.RESPONSE_CALC,
-      //           messageData: {
-      //             accountID: message.messageData.accountID,
-      //             data: getCalcResult,
-      //           },
-      //         };
-
-      //         self.postMessage(messageResponse);
-      //       }
-      //     }
-      //   } else {
-      //     //return empty calc object
-      //     const messageResponse: ResponseBalanceMessage = {
-      //       type: AAW_MessageTypes.RESPONSE_CALC,
-      //       messageData: {
-      //         accountID: message.messageData.accountID,
-      //         data: {
-      //           lastMonth: {
-      //             balance: account.openingBalance._value,
-      //             income: 0,
-      //             outgoing: 0,
-      //           },
-      //           currentMonth: {
-      //             balance: account.openingBalance._value,
-      //             income: 0,
-      //             outgoing: 0,
-      //           },
-      //         },
-      //       },
-      //     };
-      //     self.postMessage(messageResponse);
-      //   }
-      // }
     }
   }
 });
-
-const postBalanceMessage = (payload: AAWResBalance) => {
-  self.postMessage(payload);
+/**
+ * POST MESSAGES
+ */
+const postCurrentBalanceMessage = (accountID: string) => {
+  const { lastModified, ...balanceMessage } = currentBalanceCache;
+  self.postMessage({
+    type: AAW_MessageTypes.RESPONSE_CALC,
+    messageData: {
+      accountID: accountID,
+      data: balanceMessage,
+    },
+  });
 };
 const postPaginationMessage = () => {
   self.postMessage({

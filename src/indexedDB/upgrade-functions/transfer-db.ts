@@ -22,4 +22,9 @@ export const upgradeTransferDB = (db: transferDBSchema) => {
     store.createIndex("year", "year");
     store.createIndex("month", "month");
   }
+  if (!db.objectStoreNames.contains("Cache")) {
+    const store = db.createObjectStore("Cache", {
+      keyPath: "id",
+    });
+  }
 };

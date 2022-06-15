@@ -1,5 +1,3 @@
-import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
-import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
 export enum RequestEventDataType {
   GET_EXAMPLES = "reqGetExamples",
 }
@@ -13,12 +11,4 @@ export interface ExampleWorker {
     accounts: number,
     transfers: number
   ) => Promise<boolean>;
-  // getTags: Promise<Array<string>>;
-  // randomNumber: () => Promise<boolean>;
-  // getAccounts: Promise<Array<IBasicAccountClass>>;
-  // getTransfers: Promise<Array<IBasicTransferClass>>;
-  // getTransfersFromAccount: (
-  //   accountID: string
-  // ) => Promise<Array<IBasicTransferClass | never>>;
-  // addTransfer: (payload: IBasicTransferClass) => void;
 }

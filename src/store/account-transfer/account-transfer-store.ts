@@ -30,7 +30,7 @@ import {
 import { accountAssistantWorker } from "@/worker/worker-provider";
 import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 import { ApplicationEnvironmentStore } from "../application/application-store";
-import { Pagination } from "@/interfaces/pages/page-types";
+import { Pagination } from "@/interfaces/transfers/page-types";
 
 @Module({
   dynamic: true,
@@ -249,7 +249,7 @@ class AccountsTransfers extends VuexModule {
   @Mutation
   private addTransfer(payload: IBasicTransferClass) {
     // this._transfers[payload._internalID._value] = payload;
-    console.log("Transfer virtually added");
+    // console.log("Transfer virtually added");
   }
   @Action({ rawError: true })
   async commitAddTransfer(payload: IBasicTransferClass): Promise<boolean> {
@@ -413,7 +413,7 @@ class AccountsTransfers extends VuexModule {
   }
   @Action
   commitPagination(payload: Pagination) {
-    console.log("Pagination added", payload);
+    // console.log("Pagination added", payload);
     this.setPagination(payload);
   }
   // @Mutation

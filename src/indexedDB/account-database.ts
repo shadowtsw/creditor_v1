@@ -1,4 +1,8 @@
-import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
+import { IBasicAccountClass, DataBases } from "@/interfaces/accounts/accounts";
+import {
+  MonthBalanceObject,
+  SaldoObject,
+} from "@/interfaces/accounts/saldo-balance-types";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import { upgradeAccountDB } from "./upgrade-functions/account-db";
 
@@ -16,11 +20,17 @@ export interface IDBAccounts extends DBSchema {
     key: string;
     indexes: {};
   };
-}
-
-enum DataBases {
-  ACCOUNTS = "accounts-database",
-  DEMO_ACCOUNTS = "accounts-demo",
+  Cache: {
+    // value: MonthlyBalanceCache | SaldoCache;
+    value: {
+      accountID: string;
+      lastModified: number;
+      balanceData: MonthBalanceObject;
+      saldoData: SaldoObject;
+    };
+    key: string;
+    indexes: {};
+  };
 }
 
 export const DBProvider = {

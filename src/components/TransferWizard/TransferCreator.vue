@@ -224,7 +224,6 @@ export default defineComponent({
 
     const startCreateTransfer = async () => {
       if (hasErrors()) {
-        console.log("HAS ERRORS");
         showInfo.value = false;
         return;
       }

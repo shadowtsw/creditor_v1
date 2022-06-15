@@ -3,9 +3,14 @@ import {
   BasicTimeField,
   DataFieldType,
 } from "../data-field/data-field-interface";
-import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
 import { generateCreditorAccountID } from "@/utils/id-generator";
 import { getAccountConfig, getYearMonth } from "@/utils/config-generator";
+
+//For DB
+export enum DataBases {
+  ACCOUNTS = "accounts-database",
+  DEMO_ACCOUNTS = "accounts-demo",
+}
 
 export enum CurrencyValues {
   EUR = "EUR",

@@ -6,7 +6,11 @@ import {
   getModule,
 } from "vuex-module-decorators";
 import store from "..";
-import { AvailableKeys, AvailableTags, DistKeyObject } from "./sub-data-types";
+import {
+  AvailableKeys,
+  AvailableTags,
+  DistKeyObject,
+} from "../../interfaces/transfers/sub-data-types";
 
 @Module({
   dynamic: true,

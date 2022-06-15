@@ -7,6 +7,7 @@ import {
   getModule,
 } from "vuex-module-decorators";
 import store from "..";
+import { DemoWorker } from "@/worker/worker-provider";
 
 @Module({
   dynamic: true,
@@ -30,11 +31,16 @@ class ApplicationEnvironment extends VuexModule {
   }
   @Action
   async commitUseDemo() {
-    await IndexedDBAppStateStoreManager.setState({
-      property: "useDemo",
-      value: true,
-    });
-    this.setDemoMode(true);
+    try {
+      await IndexedDBAppStateStoreManager.setState({
+        property: "useDemo",
+        value: true,
+      });
+      this.setDemoMode(true);
+      const demoWorker = DemoWorker.WorkerProvider.demoWorker; //Initialize Demo DB
+    } catch (err) {
+      throw new Error("Failed to start Demo");
+    }
   }
   @Action
   async commitDeactivateDemo() {

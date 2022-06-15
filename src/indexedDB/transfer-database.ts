@@ -3,7 +3,7 @@ import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import IndexedDBAccountStoreManager from "./account-database";
 
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
-import { Page } from "./transfer-interfaces/transfer-meta-interfaces";
+import { PageCache, Page } from "@/interfaces/transfers/page-types";
 
 export interface IDBTransfers extends DBSchema {
   transfers: {
@@ -22,6 +22,10 @@ export interface IDBTransfers extends DBSchema {
       year: number;
       month: number;
     };
+  };
+  Cache: {
+    value: PageCache;
+    key: string;
   };
 }
 
@@ -139,7 +143,7 @@ class IndexedDBTransferManager {
             "transfers",
             JSON.parse(JSON.stringify(payload))
           );
-          console.log("INDEX promise", test);
+          // console.log("INDEX promise", test);
           return Promise.resolve(true);
         }
       } catch (err) {

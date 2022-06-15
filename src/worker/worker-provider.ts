@@ -164,11 +164,11 @@ export class DemoWorker {
     if (this._worker) {
       const savedValues = await IndexedDBAppStateStoreManager.getDemoState();
       if (!savedValues) {
-        await this._worker.generateExampleData(5, 1500);
+        await this._worker.generateExampleData(2, 2);
         await IndexedDBAppStateStoreManager.setDemoInitialState();
       }
     } else {
-      throw new Error("DemoWOrker not running");
+      throw new Error("DemoWorker not running");
     }
   }
 

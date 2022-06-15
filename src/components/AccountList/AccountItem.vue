@@ -63,7 +63,7 @@
       >
         <p class="saldo-title">Saldo</p>
         <p class="saldo-value">
-          {{ summary.currentMonth.balance }}{{ account.currency._value }}
+          {{ summary.currentMonth.endBalance }}{{ account.currency._value }}
         </p>
       </div>
       <div
@@ -74,7 +74,7 @@
       >
         <p class="saldo-title --small">Last Month</p>
         <p class="saldo-value">
-          {{ summary.lastMonth.balance }}{{ account.currency._value }}
+          {{ summary.lastMonth.endBalance }}{{ account.currency._value }}
         </p>
       </div>
     </transition>
@@ -85,7 +85,7 @@
 import { defineComponent, onMounted, computed, PropType, ref } from "vue";
 import { IBasicAccountClass } from "@/interfaces/accounts/accounts";
 import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
-import { AccountBalanceObject } from "@/worker/message-interfaces/account-assist-interface";
+import { AccountBalanceObject } from "@/interfaces/accounts/saldo-balance-types";
 
 export default defineComponent({
   props: {

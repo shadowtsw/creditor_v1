@@ -65,7 +65,7 @@ import { AccountTransferStore } from "@/store/account-transfer/account-transfer-
 // import { workerProvider } from "@/worker/worker-provider";
 import { UserDataStore } from "@/store/user-data/user-data-store";
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
-import { DemoWorker } from "@/worker/worker-provider";
+
 // import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
 
 // const importPage = importPages();
@@ -85,17 +85,17 @@ export default defineComponent({
   setup() {
     onMounted(async () => {
       try {
+        //TODO: start order app init
         //Init User & App states
         await UserDataStore.initAppStateData();
         //Init Account data
         if (ApplicationEnvironmentStore.Demo) {
-          const demoWorker = DemoWorker.WorkerProvider.demoWorker;
-          activateDemoTabs();
-          activateDemoPlugins();
+          // activateDemoTabs();
+          // activateDemoPlugins();
         }
-        await AccountTransferStore.initMetaState();
-        await AccountTransferStore.initAccounts();
-        await AccountTransferStore.initTransfers();
+        // await AccountTransferStore.initMetaState();
+        // await AccountTransferStore.initAccounts();
+        // await AccountTransferStore.initTransfers();
       } catch (err) {
         console.info("WARNING: ERROR during Init()", err);
       }
