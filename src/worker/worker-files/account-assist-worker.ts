@@ -8,7 +8,6 @@ import {
 } from "@/indexedDB/upgrade-functions/transfer-db";
 import { Pagination, PageObject } from "@/interfaces/transfers/page-types";
 import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
-import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import {
   DBProvider as AccountProvider,
@@ -40,16 +39,20 @@ import {
   getDateFromYearMonth,
   calcNewYearMonth,
 } from "@/utils/config-generator";
+import { LogMe } from "@/logging/logger-function";
+
+LogMe.worker("Account-Assist-Worker created");
 
 /**
  * DB related
  */
 let accountDB: accountDBSchema;
 let transferDB: transferDBSchema;
+let demoDataBases: boolean = false;
+
 const openAccountDB = async (): Promise<boolean> => {
-  console.log("STATE", "OpenAccountDB");
   let relatedDB = AccountProvider.accountsDB.dbname;
-  if (ApplicationEnvironmentStore.Demo) {
+  if (demoDataBases) {
     relatedDB = AccountProvider.accountsDB.dbDemoName;
   }
   const db = await openDB<IDBAccounts>(
@@ -71,7 +74,7 @@ const openAccountDB = async (): Promise<boolean> => {
 };
 const openTransferDB = async (): Promise<boolean> => {
   let relatedDB = TransferProvider.transferDB.dbname;
-  if (ApplicationEnvironmentStore.Demo) {
+  if (demoDataBases) {
     relatedDB = TransferProvider.transferDB.dbDemoName;
   }
   const db = await openDB<IDBTransfers>(
@@ -100,11 +103,22 @@ let pages: Pagination = {};
 const createPagination = async (
   recreate: boolean = false
 ): Promise<boolean> => {
-  console.log("STATE", "createPagination");
+  LogMe.info("Create pagination");
+  if (!transferDB) {
+    try {
+      await openTransferDB();
+    } catch (err) {
+      throw new Error(`Failed to init DB:${err}`);
+    }
+  }
+
   try {
     const existingPagination = await transferDB.get("Cache", "Pagination");
-    if (existingPagination && !recreate) {
-      // console.log("Pagination exists");
+    if (
+      existingPagination &&
+      Object.keys(existingPagination).length > 0 &&
+      !recreate
+    ) {
       pages = existingPagination.data;
       return Promise.resolve(true);
     } else {
@@ -148,6 +162,7 @@ const createPagination = async (
 const updatePagination = async (
   payload: IBasicTransferClass
 ): Promise<boolean> => {
+  LogMe.info("Update pagination");
   if (!transferDB) {
     try {
       await openTransferDB();
@@ -178,6 +193,12 @@ const updatePagination = async (
         if (!findEntry) {
           target.transfers.push(newPageObject);
           await transferDB.put("pages", target);
+          if (!pages.hasOwnProperty(year)) {
+            pages[year] = {};
+          }
+          if (!pages[year].hasOwnProperty(month)) {
+            pages[year][month] = [];
+          }
           pages[year][month].push({
             accountID: payload._accountID._value,
             transferID: payload._internalID._value,
@@ -197,6 +218,12 @@ const updatePagination = async (
           year: year,
           month: month,
         });
+        if (!pages.hasOwnProperty(year)) {
+          pages[year] = {};
+        }
+        if (!pages[year].hasOwnProperty(month)) {
+          pages[year][month] = [];
+        }
         pages[year][month].push({
           accountID: payload._accountID._value,
           transferID: payload._internalID._value,
@@ -217,6 +244,7 @@ const updatePagination = async (
 const deleteFromPagination = async (
   payload: IBasicTransferClass
 ): Promise<boolean> => {
+  LogMe.info("Delete from pagination");
   if (!transferDB) {
     try {
       await openTransferDB();
@@ -260,6 +288,7 @@ const deleteFromPagination = async (
 const updatePaginationCache = async (
   pagesObject: Pagination
 ): Promise<boolean> => {
+  LogMe.info("Pagination cache updates");
   const updatedPagination = await transferDB.get("Cache", "Pagination");
   if (updatedPagination) {
     updatedPagination.data = pagesObject;
@@ -289,12 +318,18 @@ const calculateInitialMonthlyBalance = async (
   accountID: string,
   recreate: boolean = false
 ): Promise<boolean> => {
+  LogMe.info("Monthly balance calculation starts");
   const balanceSummary: MonthBalanceObject = {};
 
   try {
     //Try db first
     const monthlyBalanceCache = await accountDB.get("Cache", accountID);
-    if (monthlyBalanceCache && !recreate) {
+
+    if (
+      monthlyBalanceCache &&
+      Object.keys(monthlyBalanceCache.balanceData).length > 0 &&
+      !recreate
+    ) {
       if (!monthlyAccountBalance.hasOwnProperty(accountID)) {
         monthlyAccountBalance[accountID] = {};
       }
@@ -357,13 +392,19 @@ const calculateInitialSaldo = async (
   accountID: string,
   recreate: boolean = false
 ) => {
+  LogMe.info("Initial saldo calculation starts");
   const saldoSummary: SaldoObject = {};
   let hasOpeningMonth = false;
   try {
     //Try DB first
     const saldoCache = await accountDB.get("Cache", accountID);
 
-    if (saldoCache && !recreate) {
+    if (
+      saldoCache &&
+      Object.keys(saldoCache.balanceData).length > 0 &&
+      Object.keys(saldoCache.saldoData).length > 0 &&
+      !recreate
+    ) {
       if (!saldoByYearMonth.hasOwnProperty(accountID)) {
         saldoByYearMonth[accountID] = {};
       }
@@ -437,6 +478,7 @@ const calculateInitialSaldo = async (
   }
 };
 const createCurrentBalance = (accountID: string) => {
+  LogMe.info("Current balance calculation starts");
   const todayYearMonth = getYearMonth(
     new Date().getFullYear(),
     new Date().getMonth()
@@ -555,6 +597,7 @@ const updateBalance = async (
   accountID: string,
   transfer: IBasicTransferClass | Array<IBasicTransferClass>
 ): Promise<boolean> => {
+  LogMe.info("Updating balance");
   let transfers: IBasicTransferClass | Array<IBasicTransferClass> = [];
   if (!Array.isArray(transfer)) {
     transfers.push(transfer);
@@ -599,16 +642,16 @@ const updateBalance = async (
         saldoData: saldoByYearMonth[accountID],
       });
     }
-    await updateSaldo(accountID, transfers);
+    await updateSaldo(transfers);
     return Promise.resolve(true);
   } catch (err) {
     throw new Error("Failed to update monthly balance");
   }
 };
 const updateSaldo = async (
-  accountID: string,
   transfer: IBasicTransferClass | Array<IBasicTransferClass>
 ): Promise<boolean> => {
+  LogMe.info("Updating saldo");
   let transfers: IBasicTransferClass | Array<IBasicTransferClass> = [];
   let mappedTransfers;
 
@@ -628,6 +671,8 @@ const updateSaldo = async (
 
   mappedTransfers.sort((a, b) => a.valutaYearMonth - b.valutaYearMonth);
 
+  const accountID = transfers[0]._accountID._value;
+
   const saldoSummary: SaldoObject = saldoByYearMonth[accountID];
   let hasOpeningMonth = false;
   const targetAccount = await accountDB.get("accounts", accountID);
@@ -643,8 +688,8 @@ const updateSaldo = async (
 
     const monthBalanceCache = monthlyAccountBalance[accountID];
 
-    for (const entry of monthBalanceObject[0]) {
-      let convertedEntry = Number(entry);
+    for (const entry of monthBalanceObject) {
+      let convertedEntry = Number(entry[0]);
 
       if (convertedEntry < mappedTransfers[0].valutaYearMonth) {
         previousEntry = saldoByYearMonth[accountID][convertedEntry];
@@ -681,7 +726,7 @@ const updateSaldo = async (
     }
     try {
       const existingData = await accountDB.get("Cache", accountID);
-
+      console.log("CURRENT SALDO", saldoByYearMonth[accountID]);
       if (existingData) {
         existingData.saldoData = saldoByYearMonth[accountID];
         existingData.lastModified = new Date().getTime();
@@ -694,6 +739,7 @@ const updateSaldo = async (
           saldoData: saldoByYearMonth[accountID],
         });
       }
+      createCurrentBalance(accountID);
       return Promise.resolve(true);
     } catch (err) {
       throw new Error("Failed to update saldo");
@@ -707,69 +753,51 @@ const updateSaldo = async (
  * MESSAGE CENTER
  */
 self.addEventListener("message", async (event: MessageEvent) => {
-  if (!accountDB) {
-    try {
-      await openAccountDB();
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  if (!transferDB) {
-    try {
-      await openTransferDB();
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
   if (event.data && event.data.type) {
     const message = event.data as IncomingMessages;
 
     if (message.type === AAW_MessageTypes.INIT) {
       switch (message.messageData.target) {
-        case InitMessageTargets.INIT_APP:
+        case InitMessageTargets.INIT_MODE_DEMO:
+          demoDataBases = true;
+          return;
+        case InitMessageTargets.INIT_MODE_APP:
+          demoDataBases = false;
+          return;
+        case InitMessageTargets.INIT_DB:
+          console.time("Account calculation measurement");
           await openAccountDB();
           await openTransferDB();
           await createPagination();
-          postPaginationMessage();
-          const accounts = await accountDB.getAll("accounts");
-          for (const account of accounts) {
+          const accounts1 = await accountDB.getAll("accounts");
+          for (const account of accounts1) {
             await calculateInitialMonthlyBalance(account._internalID._value);
+          }
+
+          postInitReadyMessage();
+          console.timeEnd("Account calculation measurement");
+          return;
+        case InitMessageTargets.INIT_APP:
+          postPaginationMessage();
+          const accounts2 = await accountDB.getAll("accounts");
+          for (const account of accounts2) {
             postCurrentBalanceMessage(account._internalID._value);
           }
-          break;
-        // case InitMessageTargets.ACCOUNT_DB:
-        // await openAccountDB();
-        // break;
-        // case InitMessageTargets.TRANSFER_DB:
-        // await openTransferDB();
-        // await createPagination();
-        // postPaginationMessage();
-        // const accounts = await accountDB.getAll("accounts");
-        // for (const account of accounts) {
-        //   await calculateInitialMonthlyBalance(account._internalID._value);
-        // }
-        // break;
-        default:
-          throw new Error("Message target not found");
-          break;
-      }
-    }
 
-    if (message.type !== AAW_MessageTypes.INIT) {
+          return;
+        default:
+          throw new Error(`Message target not found -INIT-: ${message}`);
+          return;
+      }
+    } else {
+      //TODO: approve messages
       switch (message.type) {
         case AAW_MessageTypes.REQUEST_CALC:
-          if (Object.keys(monthlyAccountBalance).length === 0) {
-            await calculateInitialMonthlyBalance(message.messageData.accountID);
-          }
           postCurrentBalanceMessage(message.messageData.accountID);
-          break;
+          return;
         case AAW_MessageTypes.REQUEST_PAGINATION:
-          if (Object.keys(pages).length === 0) {
-            await createPagination();
-          }
           postPaginationMessage();
-          break;
+          return;
         case AAW_MessageTypes.ADD_TRANSFER:
           if (!Array.isArray(message.messageData)) {
             await updatePagination(message.messageData);
@@ -781,14 +809,14 @@ self.addEventListener("message", async (event: MessageEvent) => {
             postCurrentBalanceMessage(message.messageData._accountID._value);
           }
           //TODO multiple updates
-          break;
+          return;
         // case AAW_MessageTypes.DELETE_FROM_PAGINATION:
         //   await deleteFromPagination(message.messageData);
         //   postPaginationMessage();
         //   break;
         default:
-          throw new Error("Unknown message type");
-          break;
+          throw new Error(`Unknown message type: ${message}`);
+          return;
       }
     }
   }
@@ -796,8 +824,14 @@ self.addEventListener("message", async (event: MessageEvent) => {
 /**
  * POST MESSAGES
  */
+const postInitReadyMessage = () => {
+  self.postMessage({
+    type: AAW_MessageTypes.RESPONSE_INIT_READY,
+  });
+};
 const postCurrentBalanceMessage = (accountID: string) => {
-  const { lastModified, ...balanceMessage } = currentBalanceCache;
+  const { lastModified, ...balanceMessage } = currentBalanceCache[accountID];
+
   self.postMessage({
     type: AAW_MessageTypes.RESPONSE_CALC,
     messageData: {

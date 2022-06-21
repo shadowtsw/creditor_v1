@@ -1,3 +1,4 @@
+import { LogMe } from "@/logging/logger-function";
 import {
   Module,
   VuexModule,
@@ -116,4 +117,5 @@ class SubData extends VuexModule {
   //App dist keys
 }
 
+LogMe.store("Sub-Data-Store");
 export const SubDataStore = getModule(SubData);

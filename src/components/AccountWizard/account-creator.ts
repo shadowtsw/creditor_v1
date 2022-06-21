@@ -8,10 +8,9 @@ import {
 } from "@/interfaces/accounts/accounts";
 import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import { useValidator } from "@/utils/validator";
-import { computed, reactive, ref } from "vue";
+import { reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";
 import ErrorMessages from "@/utils/error-messages";
-import IndexedDBAccountStoreManager from "@/indexedDB/account-database";
 
 export const useAccountCreator = () => {
   const { validString, validNumber, validDate } = useValidator();

@@ -23,8 +23,9 @@ import { openDB } from "idb";
 import { upgradeAccountDB } from "@/indexedDB/upgrade-functions/account-db";
 import { upgradeTransferDB } from "@/indexedDB/upgrade-functions/transfer-db";
 import { Pages } from "@/interfaces/transfers/page-types";
+import { LogMe } from "@/logging/logger-function";
 
-// console.log("HERE IS DEMO WORKER");
+LogMe.worker("Demo-Worker");
 
 const randomNumberGenerator = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min)) + min;
@@ -164,7 +165,7 @@ const generateExampleData = async (
   await saveTransfers();
   await savePagination();
 
-  console.log("Examples generated");
+  LogMe.success("Demo-Worker: Examples generated");
 
   return Promise.resolve(true);
 };
@@ -186,7 +187,6 @@ const saveAccounts = async (): Promise<boolean> => {
     });
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
-    // console.log("STORED ACCOUNT EXAMPLES IN DB", result);
     return Promise.resolve(true);
   } else {
     throw new Error("Failed to add account demo data");
@@ -210,7 +210,6 @@ const saveTransfers = async (): Promise<boolean> => {
     });
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
-    // console.log("STORED TRANSFER EXAMPLES IN DB", result);
     return Promise.resolve(true);
   } else {
     throw new Error("Failed to add transfer demo data");
@@ -243,7 +242,6 @@ const savePagination = async (): Promise<boolean> => {
 
     promiseArray.push(tx.done);
     const result = await Promise.all(promiseArray);
-    // console.log("STORED PAGINATION EXAMPLES IN DB", result);
     //Clean up memory
     cachedPagination = {};
     accountDB = [];
@@ -255,32 +253,8 @@ const savePagination = async (): Promise<boolean> => {
   }
 };
 
-// const getTransfersFromAccount = (accountID: string) => {
-//   // console.log("TRANSFER DB", transferDB, accountID);
-//   return (
-//     transferDB.filter((entry) => {
-//       return entry._accountID._value === accountID;
-//     }) || []
-//   );
-// };
-
-// const addTransfer = (payload: IBasicTransferClass) => {
-//   const relatedAccount = accountDB.find((entry) => {
-//     return entry._internalID._value === payload._accountID._value;
-//   });
-//   if (relatedAccount) {
-//     transferDB.push(payload);
-//     relatedAccount.transfers._value.push(payload._internalID._value);
-//   }
-// };
-
 const ExampleWorkerObject = {
   generateExampleData: generateExampleData,
-  // getTags: tags,
-  // getAccounts: accountDB,
-  // getTransfers: transferDB,
-  // getTransfersFromAccount: getTransfersFromAccount,
-  // addTransfer: addTransfer,
 };
 
 Comlink.expose(ExampleWorkerObject);

@@ -1,5 +1,7 @@
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
+import { IndexedDBAppStateManager } from "@/indexedDB/app-state-database";
+import { LogMe } from "@/logging/logger-function";
 import { ExampleWorker } from "@/store/account-transfer/demo-worker-types";
+import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 import {
   InitMessageTargets,
   AAW_MessageTypes,
@@ -30,14 +32,17 @@ export class AccountAssistantWorker {
       }
     );
     if (this.worker) {
-      this.init();
+      LogMe.success("Account-Assist-Worker created");
     }
   }
 
   public static get WorkerProvider(): AccountAssistantWorker {
+    console.log("Get Worker", AccountAssistantWorker.singleton);
     if (!AccountAssistantWorker.singleton) {
+      console.log("Create nwe Worker");
       AccountAssistantWorker.singleton = new AccountAssistantWorker();
     }
+    LogMe.worker("Worker-Provider");
     return AccountAssistantWorker.singleton;
   }
 
@@ -46,34 +51,46 @@ export class AccountAssistantWorker {
     this.worker.postMessage(message);
   }
 
-  private init() {
-    const initAccountDBMessage: AAWInit = {
-      type: AAW_MessageTypes.INIT,
-      messageData: {
-        target: InitMessageTargets.ACCOUNT_DB,
-      },
-    };
+  public init(): Promise<boolean> {
+    if (this.worker) {
+      this.worker.addEventListener("message", this.publishWorkerResponse);
 
-    this.postMessage(initAccountDBMessage);
+      const mode = ApplicationEnvironmentStore.Demo
+        ? InitMessageTargets.INIT_MODE_DEMO
+        : InitMessageTargets.INIT_MODE_APP;
 
-    const initTransferDBMessage: AAWInit = {
-      type: AAW_MessageTypes.INIT,
-      messageData: {
-        target: InitMessageTargets.TRANSFER_DB,
-      },
-    };
+      const initModeMessage: AAWInit = {
+        type: AAW_MessageTypes.INIT,
+        messageData: {
+          target: mode,
+        },
+      };
 
-    this.postMessage(initTransferDBMessage);
+      this.postMessage(initModeMessage);
 
-    this.worker.addEventListener("message", this.publishWorkerResponse);
+      const initDBMessage: AAWInit = {
+        type: AAW_MessageTypes.INIT,
+        messageData: {
+          target: InitMessageTargets.INIT_DB,
+        },
+      };
+
+      this.postMessage(initDBMessage);
+
+      return Promise.resolve(true);
+    }
+    throw new Error("AccountAssistantWorker not initialized");
   }
 
   private publishWorkerResponse = (event: MessageEvent) => {
+    console.log("Message from Worker Provider", event.data);
     if (event.data && event.data.type) {
       const message = event.data as OutgoingMessages;
-      console.log("Message from Worker Provider", message);
 
       switch (message.type) {
+        case AAW_MessageTypes.RESPONSE_INIT_READY:
+          ApplicationEnvironmentStore.setWorkerReady();
+          break;
         case AAW_MessageTypes.RESPONSE_CALC:
           const calcSubs = this.subscribers.RESPONSE_CALC;
 
@@ -103,6 +120,7 @@ export class AccountAssistantWorker {
 
   public terminateWorker() {
     this.worker.removeEventListener("message", this.publishWorkerResponse);
+    console.log("Worker terminates");
     this.worker.terminate();
   }
 
@@ -137,36 +155,41 @@ export class AccountAssistantWorker {
     }
   }
 }
-export const accountAssistantWorker = AccountAssistantWorker.WorkerProvider;
 
 export class DemoWorker {
   private static singleton: DemoWorker | null;
-  private _worker: ExampleWorker;
+  private _originalWorkerThread: Worker | null;
+  private _worker: (ExampleWorker & { terminate: () => void }) | null;
 
   private constructor() {
-    const comlinkWorker = new Worker(
+    console.log("CREATE: DemoWorker");
+    this._originalWorkerThread = new Worker(
       new URL("../store/account-transfer/demo-worker.ts", import.meta.url),
       {
         type: "module",
       }
     );
 
-    this._worker = Comlink.wrap(comlinkWorker);
+    this._worker = Comlink.wrap(this._originalWorkerThread);
 
     if (this._worker) {
-      this.init();
+      // this.init();
+      LogMe.info("Demo-Worker ready");
     } else {
-      console.log("NO WORKER FOUND");
+      LogMe.error("NO WORKER FOUND");
     }
   }
 
-  private async init() {
+  public async init(): Promise<boolean> {
+    console.log("INIT: DemoWorker");
     if (this._worker) {
-      const savedValues = await IndexedDBAppStateStoreManager.getDemoState();
+      const savedValues =
+        await IndexedDBAppStateManager.AppStateManager.getDemoState();
       if (!savedValues) {
-        await this._worker.generateExampleData(2, 2);
-        await IndexedDBAppStateStoreManager.setDemoInitialState();
+        await this._worker.generateExampleData(3, 2);
+        await IndexedDBAppStateManager.AppStateManager.setDemoInitialState();
       }
+      return Promise.resolve(true);
     } else {
       throw new Error("DemoWorker not running");
     }
@@ -178,9 +201,13 @@ export class DemoWorker {
     }
     return DemoWorker.singleton;
   }
-  public get demoWorker(): ExampleWorker {
+  public get demoWorker(): ExampleWorker | null {
     return this._worker;
   }
+  public closeWorker() {
+    if (this._originalWorkerThread) {
+      this._originalWorkerThread.terminate();
+      this._originalWorkerThread = null;
+    }
+  }
 }
-
-// export const DemoWorkerWorker = DemoWorker.WorkerProvider;

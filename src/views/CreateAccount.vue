@@ -29,12 +29,17 @@ import { defineComponent, onMounted, reactive, ref } from "vue";
 import AccountCreator from "@/components/AccountWizard/AccountCreator.vue";
 import { BasicAccountTypes } from "@/interfaces/accounts/accounts";
 
+//Logger
+import { LogMe } from "@/logging/logger-function";
+
 export default defineComponent({
   components: {
     AccountCreator,
   },
   setup() {
-    onMounted(async () => {});
+    onMounted(async () => {
+      LogMe.mount("CreateAccount");
+    });
     const accountTypes = reactive([
       {
         displayName: "Cash",

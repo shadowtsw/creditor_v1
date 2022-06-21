@@ -1,4 +1,5 @@
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
+import { IndexedDBAppStateManager } from "@/indexedDB/app-state-database";
+import { LogMe } from "@/logging/logger-function";
 import {
   Module,
   VuexModule,
@@ -18,39 +19,22 @@ class UserData extends VuexModule {
   private _firstStart: boolean = true;
   private _isTutorial: boolean = true;
 
-  public get firstStart() {
-    return this._firstStart;
-  }
+  // private _showWelcomeScreen: boolean = true;
 
-  @Mutation
-  private setFirstStart(payload: boolean) {
-    this._firstStart = payload;
-  }
+  // public get showWelcomeScreen() {
+  //   return this._showWelcomeScreen;
+  // }
 
-  @Action
-  showAppStartWelcome(payload: boolean) {
-    this.setFirstStart(payload);
-  }
+  // @Mutation
+  // private setFirstStart(payload: boolean) {
+  //   this._showWelcomeScreen = payload;
+  // }
 
-  //INIT
-  @Action
-  async initAppStateData(): Promise<boolean> {
-    try {
-      const requestState = await IndexedDBAppStateStoreManager.getState(
-        "showAppStartWelcome"
-      );
-      if (
-        requestState &&
-        "value" in requestState &&
-        typeof requestState.value === "boolean"
-      ) {
-        this.showAppStartWelcome(requestState.value);
-      }
-      return Promise.resolve(true);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
+  // @Action
+  // commitShowWelcomeScreen(payload: boolean) {
+  //   this.setFirstStart(payload);
+  // }
 }
 //TODO: rename store ?
+LogMe.store("User-Data-Store");
 export const UserDataStore = getModule(UserData);

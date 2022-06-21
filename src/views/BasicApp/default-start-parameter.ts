@@ -1,13 +1,15 @@
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
+import { IndexedDBAppStateManager } from "@/indexedDB/app-state-database";
 
-const currentPage = await IndexedDBAppStateStoreManager.getState("currentPage");
+const currentPage = await IndexedDBAppStateManager.AppStateManager.getState(
+  "currentPage"
+);
 
 export const defaultStartPage: string =
   typeof currentPage?.value === "string"
     ? currentPage.value
     : null || "Get Started";
 
-const currentPlugin = await IndexedDBAppStateStoreManager.getState(
+const currentPlugin = await IndexedDBAppStateManager.AppStateManager.getState(
   "currentPlugin"
 );
 

@@ -13,6 +13,7 @@ export enum AAW_MessageTypes {
   DELETE_FROM_PAGINATION = "DELETE_FROM_PAGINATION",
   ADD_TRANSFER = "ADD_TRANSFER",
   DELETE_TRANSFER = "DELETE_TRANSFER",
+  RESPONSE_INIT_READY = "RESPONSE_INIT_READY",
 }
 
 export interface GlobalWorkerMessage {
@@ -22,7 +23,15 @@ export interface GlobalWorkerMessage {
 export enum InitMessageTargets {
   // TRANSFER_DB = "transferDB",
   // ACCOUNT_DB = "accountDB",
-  INIT_APP = "initApp",
+  INIT_DB = "INIT_DB",
+  INIT_APP = "INIT_APP",
+  INIT_MODE_APP = "INIT_MODE_APP",
+  INIT_MODE_DEMO = "INIT_MODE_DEMO",
+}
+
+export enum InitModes {
+  APP = "APP",
+  DEMO = "DEMO",
 }
 
 //INCOMING - messages the worker can receive
@@ -81,6 +90,9 @@ export type IncomingMessages =
 //INCOMING - messages the worker can receive
 
 //OUTGOING - messages the worker can send to subscribers
+export interface ResponseInit extends GlobalWorkerMessage {
+  type: AAW_MessageTypes.RESPONSE_INIT_READY;
+}
 export interface ResponseBalanceMessage extends GlobalWorkerMessage {
   type: AAW_MessageTypes.RESPONSE_CALC;
   messageData: {
@@ -94,9 +106,13 @@ export interface ResponsePaginationMessage extends GlobalWorkerMessage {
   messageData: Pagination;
 }
 
+export type AAWResInitReady = ResponseInit;
 export type AAWResBalance = ResponseBalanceMessage;
 export type AAWResPagination = ResponsePaginationMessage;
-export type OutgoingMessages = AAWResBalance | AAWResPagination;
+export type OutgoingMessages =
+  | AAWResInitReady
+  | AAWResBalance
+  | AAWResPagination;
 //OUTGOING - messages the worker can send to subscribers
 
 //Misc types

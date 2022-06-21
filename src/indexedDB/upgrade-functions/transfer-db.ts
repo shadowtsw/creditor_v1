@@ -1,9 +1,11 @@
-import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
+import { LogMe } from "@/logging/logger-function";
+import { IDBPDatabase } from "idb";
 import { IDBTransfers } from "../transfer-database";
 
 export type transferDBSchema = IDBPDatabase<IDBTransfers>;
 
 export const upgradeTransferDB = (db: transferDBSchema) => {
+  LogMe.indexedDB("Upgrade transfer DB");
   if (!db.objectStoreNames.contains("transfers")) {
     const store = db.createObjectStore("transfers", {
       keyPath: "_internalID._value",

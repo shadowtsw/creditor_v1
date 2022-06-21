@@ -1,19 +1,20 @@
 <template>
   <div id="creditor_app" class="container">
+    <AppStateManager />
     <div class="app_menue">
-      <AppMenue />
+      <AppMenue v-if="appIsReady" />
     </div>
     <div class="version_info">
-      <VersionInfo />
+      <VersionInfo v-if="appIsReady" />
     </div>
     <div class="nav_bar">
       <!-- <transition name="fade-classic" mode="out-in"> -->
-      <NavBar v-if="!showWelcomePage" />
+      <NavBar v-if="appIsReady" />
       <!-- </transition> -->
     </div>
     <div class="account_window">
-      <AccountList v-if="!showWelcomePage" />
-      <div v-else>creditor_v1</div>
+      <AccountList v-if="appIsReady" />
+      <div v-else>creditor_v1 account-window</div>
     </div>
     <div v-if="loadedComponent" class="main_window">
       <component
@@ -21,30 +22,24 @@
         :key="loadedComponent.displayText"
       />
     </div>
+    <div v-else>
+      <p>creditor_v1 main-window</p>
+    </div>
     <div class="history_list">
       <!-- <transition name="fade-classic" mode="out-in"> -->
-      <HistoryList v-if="!showWelcomePage" />
+      <HistoryList v-if="appIsReady" />
       <!-- </transition> -->
     </div>
     <div class="status_window">
       <!-- <transition name="fade-classic" mode="out-in"> -->
-      <StatusWindow v-if="!showWelcomePage" />
+      <StatusWindow v-if="appIsReady" />
       <!-- </transition> -->
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  ref,
-  reactive,
-  computed,
-  defineAsyncComponent,
-  onMounted,
-  onBeforeUnmount,
-  watch,
-} from "vue";
+import { defineComponent, computed, onMounted } from "vue";
 
 //Main modules
 import VersionInfo from "@/components/Layout/VersionInfo.vue";
@@ -53,22 +48,15 @@ import HistoryList from "@/components/Layout/HistoryList.vue";
 import NavBar from "@/components/Layout/NavBar.vue";
 import AccountList from "@/components/Layout/AccountList.vue";
 import StatusWindow from "@/components/Layout/StatusWindow.vue";
-
-//Views
 //Utilities
 import { usePageNavigator, usePluginNavigator } from "@/components/navigator";
 import { importPages } from "@/components/component-registration";
 import Welcome from "@/views/Welcome.vue";
-
 //Start store
-import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
-// import { workerProvider } from "@/worker/worker-provider";
-import { UserDataStore } from "@/store/user-data/user-data-store";
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
-
-// import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
-
-// const importPage = importPages();
+import AppStateManager from "./AppStateManager.vue";
+//Logger
+import { LogMe } from "@/logging/logger-function";
 
 export default defineComponent({
   components: {
@@ -80,67 +68,23 @@ export default defineComponent({
     StatusWindow,
     //Pages
     Welcome,
+    //StateManager
+    AppStateManager,
     ...importPages(),
   },
   setup() {
     onMounted(async () => {
-      try {
-        //TODO: start order app init
-        //Init User & App states
-        await UserDataStore.initAppStateData();
-        //Init Account data
-        if (ApplicationEnvironmentStore.Demo) {
-          // activateDemoTabs();
-          // activateDemoPlugins();
-        }
-        // await AccountTransferStore.initMetaState();
-        // await AccountTransferStore.initAccounts();
-        // await AccountTransferStore.initTransfers();
-      } catch (err) {
-        console.info("WARNING: ERROR during Init()", err);
-      }
+      LogMe.mount("MainApp");
     });
-    const {
-      activateDemoTabs,
-      activateCreateTransfers,
-      hideCreateTransfers,
-      activateTransferList,
-      hideTransferList,
-      currentPage,
-      pages,
-      settings,
-    } = usePageNavigator();
-    const { activateDemoPlugins } = usePluginNavigator();
-
-    // Watch accounts
-    const accountsLength = computed(() => {
-      return AccountTransferStore.allAccounts.length;
-    });
-    watch(accountsLength, (newVal, oldVal) => {
-      if (newVal > 0) {
-        activateCreateTransfers();
-      } else {
-        hideCreateTransfers();
-      }
-    });
-    //Watch transfers
-    const transfersLength = computed(() => {
-      return AccountTransferStore.allTransfers.length;
-    });
-    watch(transfersLength, (newVal, oldVal) => {
-      if (newVal > 0) {
-        activateTransferList();
-      } else {
-        hideTransferList();
-      }
-    });
-    //
+    const { currentPage, pages, settings } = usePageNavigator();
 
     //Main view management
-
+    const appIsReady = computed(() => {
+      return ApplicationEnvironmentStore.appReady;
+    });
     //Show welcome page
     const showWelcomePage = computed(() => {
-      return UserDataStore.firstStart;
+      return ApplicationEnvironmentStore.showWelcomeScreen;
     });
     //Load view
     const loadedComponent = computed(() => {
@@ -166,6 +110,7 @@ export default defineComponent({
     return {
       showWelcomePage,
       loadedComponent,
+      appIsReady,
     };
   },
 });

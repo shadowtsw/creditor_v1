@@ -24,6 +24,7 @@ import {
 } from "vue";
 import TransferLine from "./ListPlugin/TransferLine.vue";
 import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
+import { LogMe } from "@/logging/logger-function";
 
 export default defineComponent({
   components: {
@@ -39,8 +40,7 @@ export default defineComponent({
   },
   setup(props) {
     onMounted(async () => {
-      //TODO
-      console.info("List-Plugin mounted");
+      LogMe.mount("List-Plugin");
     });
     const transfers = computed(
       () => AccountTransferStore.transfersFromActiveAccounts

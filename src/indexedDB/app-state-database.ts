@@ -1,5 +1,9 @@
 import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
+import { LogMe } from "@/logging/logger-function";
+
+import { DBProvider as AccountDBProvider } from "@/indexedDB/account-database";
+import { DBProvider as TransferDBProvider } from "@/indexedDB/transfer-database";
 
 export interface IDBAppStateData extends DBSchema {
   appState: {
@@ -39,12 +43,13 @@ const DBProvider = {
   },
 };
 
-class IndexedDBAppStateManager {
+export class IndexedDBAppStateManager {
   private static _storeManager: null | IndexedDBAppStateManager = null;
 
   private _app_state_data: null | IDBPDatabase<IDBAppStateData> = null;
 
   private constructor() {
+    LogMe.indexedDB("IndexedDBAppStateManager | app-state-database created");
     this._app_state_data;
   }
 
@@ -53,6 +58,7 @@ class IndexedDBAppStateManager {
     if (!IndexedDBAppStateManager._storeManager) {
       IndexedDBAppStateManager._storeManager = new IndexedDBAppStateManager();
     }
+    LogMe.info("IndexedDBAppStateManager used");
     return IndexedDBAppStateManager._storeManager;
   }
 
@@ -98,11 +104,18 @@ class IndexedDBAppStateManager {
     }
   }
 
+  private allowOperation(): boolean {
+    //TODO
+    return (
+      !ApplicationEnvironmentStore.Demo && ApplicationEnvironmentStore.appReady
+    );
+  }
+
   public async setState(payload: {
     property: string;
     value: string | boolean;
   }): Promise<boolean> {
-    if (!ApplicationEnvironmentStore.Demo) {
+    if (this.allowOperation()) {
       if (!this._app_state_data) {
         try {
           await this.initDB();
@@ -135,6 +148,74 @@ class IndexedDBAppStateManager {
     }
   }
 
+  //Specials used before app ready
+  public async setDemoState(payload: boolean): Promise<boolean> {
+    if (!this._app_state_data) {
+      try {
+        await this.initDB();
+      } catch (err) {
+        throw new Error(`Failed to init DB:${err}`);
+      }
+    }
+
+    if (this._app_state_data) {
+      const appState = this._app_state_data;
+      try {
+        const originalResult = await appState.get("appState", "useDemo");
+        if (originalResult) {
+          originalResult.value = payload;
+          await appState.put("appState", originalResult);
+        } else {
+          const newState = {
+            property: "useDemo",
+            value: payload,
+          };
+          await appState.add("appState", newState);
+        }
+        return Promise.resolve(true);
+      } catch (err) {
+        throw new Error(`Failed to add state: ${err}`);
+      }
+    } else {
+      throw new Error("Database not found");
+    }
+  }
+  public async setWelcomeState(payload: boolean): Promise<boolean> {
+    if (!this._app_state_data) {
+      try {
+        await this.initDB();
+      } catch (err) {
+        throw new Error(`Failed to init DB:${err}`);
+      }
+    }
+
+    if (this._app_state_data) {
+      const appState = this._app_state_data;
+      try {
+        const originalResult = await appState.get(
+          "appState",
+          "showWelcomeScreen"
+        );
+        if (originalResult) {
+          originalResult.value = payload;
+          await appState.put("appState", originalResult);
+        } else {
+          const newState = {
+            property: "showWelcomeScreen",
+            value: payload,
+          };
+          await appState.add("appState", newState);
+        }
+        return Promise.resolve(true);
+      } catch (err) {
+        throw new Error(`Failed to add state: ${err}`);
+      }
+    } else {
+      throw new Error("Database not found");
+    }
+  }
+  //Specials used before app ready
+
   public async getState(property: string) {
     if (!this._app_state_data) {
       try {
@@ -165,7 +246,7 @@ class IndexedDBAppStateManager {
     pageName: string;
     value: boolean;
   }): Promise<boolean> {
-    if (!ApplicationEnvironmentStore.Demo) {
+    if (this.allowOperation()) {
       if (!this._app_state_data) {
         try {
           await this.initDB();
@@ -228,7 +309,7 @@ class IndexedDBAppStateManager {
     pluginName: string;
     value: boolean;
   }): Promise<boolean> {
-    if (!ApplicationEnvironmentStore.Demo) {
+    if (this.allowOperation()) {
       if (!this._app_state_data) {
         try {
           await this.initDB();
@@ -287,6 +368,7 @@ class IndexedDBAppStateManager {
     }
   }
 
+  //prevents duplicated example generation
   public async setDemoInitialState() {
     if (!this._app_state_data) {
       try {
@@ -319,7 +401,6 @@ class IndexedDBAppStateManager {
       throw new Error("Database not found");
     }
   }
-
   public async getDemoState() {
     if (!this._app_state_data) {
       try {
@@ -345,7 +426,31 @@ class IndexedDBAppStateManager {
       throw new Error("Database not found");
     }
   }
-}
+  public async deleteDemo(): Promise<boolean> {
+    if (!this._app_state_data) {
+      try {
+        await this.initDB();
+      } catch (err) {
+        throw new Error(`Failed to init DB:${err}`);
+      }
+    }
 
-const IndexedDBAppStateStoreManager = IndexedDBAppStateManager.AppStateManager;
-export default IndexedDBAppStateStoreManager;
+    if (this._app_state_data) {
+      const appState = this._app_state_data;
+      try {
+        await appState.delete("appState", "demoInUse");
+        await window.indexedDB.deleteDatabase(
+          AccountDBProvider.accountsDB.dbDemoName
+        );
+        await window.indexedDB.deleteDatabase(
+          TransferDBProvider.transferDB.dbDemoName
+        );
+        return Promise.resolve(true);
+      } catch (err) {
+        throw new Error(`Failed to get property: demoInUse ${err}`);
+      }
+    } else {
+      throw new Error("Database not found");
+    }
+  }
+}

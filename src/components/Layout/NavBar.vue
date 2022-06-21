@@ -27,11 +27,22 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, computed, watch } from "vue";
+import { LogMe } from "@/logging/logger-function";
+import {
+  defineComponent,
+  ref,
+  reactive,
+  computed,
+  watch,
+  onMounted,
+} from "vue";
 import { usePageNavigator } from "../navigator";
 
 export default defineComponent({
   setup() {
+    onMounted(async () => {
+      LogMe.mount("NavBar");
+    });
     const { pages, settings, setTabVisibility, setActivePage, currentPage } =
       usePageNavigator();
 

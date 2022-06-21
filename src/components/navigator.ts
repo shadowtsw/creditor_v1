@@ -5,7 +5,7 @@ import {
   defaultStartPage,
   defaultStartPlugin,
 } from "@/views/BasicApp/default-start-parameter";
-import IndexedDBAppStateStoreManager from "@/indexedDB/app-state-database";
+import { IndexedDBAppStateManager } from "@/indexedDB/app-state-database";
 
 //Converts dictionary for use in vue components
 const pluginMap = ref<Array<DictionaryEntryObject>>([]);
@@ -15,7 +15,7 @@ const pageMap = ref<Array<DictionaryEntryObject>>([]);
 async function convertComponentsRegistration() {
   for (const entry in componentDictionary) {
     const dbVisibleState =
-      (await IndexedDBAppStateStoreManager.getPage(
+      (await IndexedDBAppStateManager.AppStateManager.getPage(
         componentDictionary[entry].component
       )) || null;
 
@@ -72,7 +72,7 @@ const currentPlugin = ref<string>(defaultStartPlugin);
 export const usePageNavigator = () => {
   //Load view
   const setActivePage = (pageName: string) => {
-    IndexedDBAppStateStoreManager.setState({
+    IndexedDBAppStateManager.AppStateManager.setState({
       property: "currentPage",
       value: pageName,
     })
@@ -102,7 +102,7 @@ export const usePageNavigator = () => {
       return entry.component === "ImportCSV";
     });
     if (target) {
-      IndexedDBAppStateStoreManager.setPage({
+      IndexedDBAppStateManager.AppStateManager.setPage({
         pageName: "ImportCSV",
         value: true,
       })
@@ -120,7 +120,7 @@ export const usePageNavigator = () => {
       return entry.component === "CreateAccount";
     });
     if (target) {
-      IndexedDBAppStateStoreManager.setPage({
+      IndexedDBAppStateManager.AppStateManager.setPage({
         pageName: "CreateAccount",
         value: true,
       })
@@ -138,7 +138,7 @@ export const usePageNavigator = () => {
       return entry.component === "CreateTransfer";
     });
     if (target) {
-      IndexedDBAppStateStoreManager.setPage({
+      IndexedDBAppStateManager.AppStateManager.setPage({
         pageName: "CreateTransfer",
         value: true,
       })
@@ -156,7 +156,7 @@ export const usePageNavigator = () => {
       return entry.component === "Transfers";
     });
     if (target) {
-      IndexedDBAppStateStoreManager.setPage({
+      IndexedDBAppStateManager.AppStateManager.setPage({
         pageName: "Transfers",
         value: true,
       })
@@ -174,7 +174,7 @@ export const usePageNavigator = () => {
       return entry.component === "Transfers";
     });
     if (target) {
-      IndexedDBAppStateStoreManager.setPage({
+      IndexedDBAppStateManager.AppStateManager.setPage({
         pageName: "Transfers",
         value: false,
       })
@@ -192,7 +192,7 @@ export const usePageNavigator = () => {
       return entry.component === "CreateTransfer";
     });
     if (target) {
-      IndexedDBAppStateStoreManager.setPage({
+      IndexedDBAppStateManager.AppStateManager.setPage({
         pageName: "CreateTransfer",
         value: false,
       })
@@ -243,7 +243,7 @@ export const usePageNavigator = () => {
 export const usePluginNavigator = () => {
   //Load view
   const setActivePlugin = (pageName: string) => {
-    IndexedDBAppStateStoreManager.setState({
+    IndexedDBAppStateManager.AppStateManager.setState({
       property: "currentPlugin",
       value: pageName,
     })
@@ -260,7 +260,7 @@ export const usePluginNavigator = () => {
       return entry.displayText === entryDisplayName;
     });
     if (target) {
-      IndexedDBAppStateStoreManager.setPlugin({
+      IndexedDBAppStateManager.AppStateManager.setPlugin({
         pluginName: target.component,
         value: value,
       })

@@ -3,6 +3,7 @@ import {
   DistKeyObject,
   TagsObject,
 } from "@/interfaces/transfers/sub-data-types";
+import { LogMe } from "@/logging/logger-function";
 
 export interface IDBCustomData extends DBSchema {
   tags: {
@@ -34,6 +35,9 @@ export class IndexedDBCustomDataManager {
   private _custom_data: null | IDBPDatabase<IDBCustomData> = null;
 
   private constructor() {
+    LogMe.indexedDB(
+      "IndexedDBCustomDataManager | custom-data-database created"
+    );
     this._custom_data;
   }
 
@@ -42,6 +46,7 @@ export class IndexedDBCustomDataManager {
       IndexedDBCustomDataManager._storeManager =
         new IndexedDBCustomDataManager();
     }
+    LogMe.indexedDB("IndexedDBCustomDataManager");
     return IndexedDBCustomDataManager._storeManager;
   }
 

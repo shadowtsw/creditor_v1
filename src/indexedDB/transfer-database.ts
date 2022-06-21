@@ -1,9 +1,11 @@
 import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
-import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
-import IndexedDBAccountStoreManager from "./account-database";
+import { openDB, IDBPDatabase, DBSchema } from "idb";
+import { IndexedDBAccountManager } from "./account-database";
 
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 import { PageCache, Page } from "@/interfaces/transfers/page-types";
+import { LogMe } from "@/logging/logger-function";
+import { upgradeTransferDB } from "./upgrade-functions/transfer-db";
 
 export interface IDBTransfers extends DBSchema {
   transfers: {
@@ -12,7 +14,7 @@ export interface IDBTransfers extends DBSchema {
     indexes: {
       isSelected: number;
       accountID: string;
-      "valuta-yearMonth": string;
+      "valuta-yearMonth": number;
     };
   };
   pages: {
@@ -42,12 +44,13 @@ export const DBProvider = {
   },
 };
 
-class IndexedDBTransferManager {
+export class IndexedDBTransferManager {
   private static _storeManager: null | IndexedDBTransferManager = null;
 
   private _transfer_data: null | IDBPDatabase<IDBTransfers> = null;
 
   private constructor() {
+    LogMe.indexedDB("IndexedDBTransferManager | transfer-database created");
     this._transfer_data;
   }
 
@@ -56,16 +59,13 @@ class IndexedDBTransferManager {
     if (!IndexedDBTransferManager._storeManager) {
       IndexedDBTransferManager._storeManager = new IndexedDBTransferManager();
     }
+    LogMe.info("IndexedDBTransferManager used");
     return IndexedDBTransferManager._storeManager;
   }
 
   public async initDB(useRegularDB: boolean = true): Promise<boolean> {
     const appDatabase = DBProvider.transferDB;
     let relatedDB = appDatabase.dbname;
-    console.log(
-      "ApplicationEnvironmentStore.Demo",
-      ApplicationEnvironmentStore.Demo
-    );
     if (!useRegularDB || ApplicationEnvironmentStore.Demo) {
       relatedDB = appDatabase.dbDemoName;
     }
@@ -74,13 +74,7 @@ class IndexedDBTransferManager {
       appDatabase.currentVersion,
       {
         upgrade(db) {
-          if (!db.objectStoreNames.contains("transfers")) {
-            const store = db.createObjectStore("transfers", {
-              keyPath: "_internalID._value",
-            });
-            store.createIndex("isSelected", "isSelected._valueMeta");
-            store.createIndex("accountID", "_accountID._value");
-          }
+          upgradeTransferDB(db);
         },
       }
     );
@@ -91,6 +85,17 @@ class IndexedDBTransferManager {
       return Promise.reject(false);
     }
   }
+  //Later used when switch between demo and app
+  public async switchToDemoTransfers(): Promise<boolean> {
+    try {
+      this._transfer_data?.close();
+      this._transfer_data = null;
+      await this.initDB(false);
+      return Promise.resolve(true);
+    } catch (err) {
+      throw new Error(`Failed to init demo transfers: ${err}`);
+    }
+  }
 
   public get DB(): null | IDBPDatabase<IDBTransfers> {
     if (!this._transfer_data) {
@@ -99,8 +104,9 @@ class IndexedDBTransferManager {
       return this._transfer_data;
     }
   }
-  //TODO
-  public async getAllTransfers() {
+
+  //Returns to store
+  public async getTransfersFromPage(yearMonth: number) {
     if (!this._transfer_data) {
       try {
         await this.initDB();
@@ -112,7 +118,11 @@ class IndexedDBTransferManager {
     if (this._transfer_data) {
       const appState = this._transfer_data;
       try {
-        return appState.getAll("transfers");
+        return appState.getAllFromIndex(
+          "transfers",
+          "valuta-yearMonth",
+          yearMonth
+        );
       } catch (err) {
         throw new Error(`Failed to get all transfers ${err}`);
       }
@@ -120,6 +130,7 @@ class IndexedDBTransferManager {
       throw new Error("Database not found");
     }
   }
+  //Managed by AccountDBManager
   public async addTransfer(payload: IBasicTransferClass): Promise<boolean> {
     if (!this._transfer_data) {
       try {
@@ -143,7 +154,6 @@ class IndexedDBTransferManager {
             "transfers",
             JSON.parse(JSON.stringify(payload))
           );
-          // console.log("INDEX promise", test);
           return Promise.resolve(true);
         }
       } catch (err) {
@@ -153,7 +163,6 @@ class IndexedDBTransferManager {
       throw new Error("Database not found");
     }
   }
-
   public async deleteTransfer(transferID: string): Promise<boolean> {
     if (!this._transfer_data) {
       try {
@@ -168,17 +177,8 @@ class IndexedDBTransferManager {
       try {
         const getTransfer = await appState.get("transfers", transferID);
         if (getTransfer) {
-          return IndexedDBAccountStoreManager.removeTransferFromAccount({
-            accountID: getTransfer._accountID._value,
-            transferID: transferID,
-          })
-            .then(async (_) => {
-              await appState.delete("transfers", transferID);
-              return Promise.resolve(true);
-            })
-            .catch((err) => {
-              throw new Error(`Failed to delete transfer: ${transferID}`);
-            });
+          await appState.delete("transfers", transferID);
+          return Promise.resolve(true);
         } else {
           throw new Error(`Failed to get transfer: ${transferID}`);
         }
@@ -189,8 +189,7 @@ class IndexedDBTransferManager {
       throw new Error("Failed to init DB");
     }
   }
-
-  public async deleteManyTransfers(
+  public async deleteAllTransfersFromAccountID(
     transferList: Array<string>
   ): Promise<boolean> {
     if (!this._transfer_data) {
@@ -202,7 +201,6 @@ class IndexedDBTransferManager {
     }
 
     if (this._transfer_data) {
-      //TODO
       const appState = this._transfer_data;
       try {
         const tx = appState.transaction("transfers", "readwrite");
@@ -219,17 +217,4 @@ class IndexedDBTransferManager {
       throw new Error("Failed to init DB");
     }
   }
-
-  public async useDemoTransfers() {
-    try {
-      this._transfer_data?.close();
-      await this.initDB(false);
-      return Promise.resolve(true);
-    } catch (err) {
-      throw new Error(`Failed to init demo transfers: ${err}`);
-    }
-  }
 }
-
-const IndexedDBTransferStoreManager = IndexedDBTransferManager.AppStateManager;
-export default IndexedDBTransferStoreManager;

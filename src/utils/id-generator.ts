@@ -43,35 +43,27 @@ export const generateCreditorTransferID = (
     userName.trim().length > 10
       ? userName.trim().slice(0, 10)
       : userName.trim();
-  let firstPart;
-  let secondPart;
-  const thirdPart = payload._internalType;
-  const fourthPart = payload.value.toString();
-  let fifthPart;
 
-  if (payload.valutaDate) {
-    firstPart = payload.valutaDate.getTime().toString().trim();
-  } else {
-    firstPart = payload.shortName.trim();
-  }
+  // const firstPart = payload.valutaDate.getTime().toString().trim();
+  // const secondPart = payload.accountNumber.trim();
+  // const thirdPart = payload._internalType;
+  // const fourthPart = payload.value.toString();
+  // const fifthPart =
+  //   payload.purpose.trim().length > 20
+  //     ? payload.purpose.trim().slice(0, 20)
+  //     : payload.purpose.trim();
+  // const sixthPart = payload._accountID;
 
-  if (payload.accountNumber && payload.accountNumber !== "") {
-    secondPart = payload.accountNumber.trim();
-  } else {
-    secondPart = payload.shortName.trim();
-  }
+  // const transferID =
+  //   prefix +
+  //   firstPart +
+  //   secondPart +
+  //   thirdPart +
+  //   fourthPart +
+  //   fifthPart +
+  //   sixthPart;
 
-  if (payload.purpose && payload.purpose !== "") {
-    secondPart =
-      payload.purpose.trim().length > 10
-        ? payload.purpose.trim().slice(0, 10)
-        : payload.purpose.trim();
-  } else {
-    secondPart = payload.shortName.trim();
-  }
-
-  const transferID =
-    prefix + firstPart + secondPart + thirdPart + fourthPart + fifthPart;
+  const transferID = prefix + JSON.stringify(payload);
 
   const newInternalID = btoa(transferID);
 

@@ -3,10 +3,19 @@ import {
   MonthBalanceObject,
   SaldoObject,
 } from "@/interfaces/accounts/saldo-balance-types";
-import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from "idb";
+import { openDB, IDBPDatabase, DBSchema } from "idb";
 import { upgradeAccountDB } from "./upgrade-functions/account-db";
 
 import { ApplicationEnvironmentStore } from "@/store/application/application-store";
+import { LogMe } from "@/logging/logger-function";
+import {
+  AAWAddTransfer,
+  AAW_MessageTypes,
+  RequestBalanceMessage,
+} from "@/worker/message-interfaces/account-assist-interface";
+import { AccountAssistantWorker } from "@/worker/worker-provider";
+import { IndexedDBTransferManager } from "./transfer-database";
+import { IBasicTransferClass } from "@/interfaces/transfers/transfers";
 
 export interface IDBAccounts extends DBSchema {
   accounts: {
@@ -14,14 +23,12 @@ export interface IDBAccounts extends DBSchema {
     key: string;
     indexes: { isSelected: number };
   };
-  //TODO
-  accountMetaData: {
-    value: any;
-    key: string;
-    indexes: {};
-  };
+  // accountMetaData: {
+  //   value: any;
+  //   key: string;
+  //   indexes: {};
+  // };
   Cache: {
-    // value: MonthlyBalanceCache | SaldoCache;
     value: {
       accountID: string;
       lastModified: number;
@@ -41,12 +48,12 @@ export const DBProvider = {
   },
 };
 
-class IndexedDBAccountManager {
+export class IndexedDBAccountManager {
   private static _storeManager: null | IndexedDBAccountManager = null;
-
   private _account_data: null | IDBPDatabase<IDBAccounts> = null;
 
   private constructor() {
+    LogMe.indexedDB("IndexedDBAccountManager | account-database created");
     this._account_data;
   }
 
@@ -55,6 +62,7 @@ class IndexedDBAccountManager {
     if (!IndexedDBAccountManager._storeManager) {
       IndexedDBAccountManager._storeManager = new IndexedDBAccountManager();
     }
+    LogMe.info("IndexedDBAccountManager used");
     return IndexedDBAccountManager._storeManager;
   }
 
@@ -80,6 +88,17 @@ class IndexedDBAccountManager {
       return Promise.reject(false);
     }
   }
+  //Later used when switch between demo and app
+  // public async switchToDemoAccounts() {
+  //   try {
+  //     this._account_data?.close();
+  //     this._account_data = null;
+  //     await this.initDB(false);
+  //     return Promise.resolve(true);
+  //   } catch (err) {
+  //     throw new Error(`Failed to init demo accounts: ${err}`);
+  //   }
+  // }
 
   //ADD & DELETE
   public async addAccount(payload: IBasicAccountClass): Promise<boolean> {
@@ -111,6 +130,15 @@ class IndexedDBAccountManager {
       throw new Error("Database not found");
     }
   }
+  private updateBalance(
+    payload: IBasicTransferClass | Array<IBasicTransferClass>
+  ) {
+    const addTransferMessage: AAWAddTransfer = {
+      type: AAW_MessageTypes.ADD_TRANSFER,
+      messageData: JSON.parse(JSON.stringify(payload)),
+    };
+    AccountAssistantWorker.WorkerProvider.postMessage(addTransferMessage);
+  }
   public async deleteAccount(accountID: string): Promise<boolean> {
     if (!this._account_data) {
       try {
@@ -125,6 +153,9 @@ class IndexedDBAccountManager {
       try {
         const originalResult = await appState.get("accounts", accountID);
         if (originalResult) {
+          await IndexedDBTransferManager.AppStateManager.deleteAllTransfersFromAccountID(
+            originalResult.transfers._value
+          );
           appState.delete("accounts", accountID);
           return Promise.resolve(true);
         } else {
@@ -137,9 +168,94 @@ class IndexedDBAccountManager {
       throw new Error("Database not found");
     }
   }
-  //ADD & DELETE
+  public async removeTransferFromAccount(payload: {
+    accountID: string;
+    transferID: string;
+  }): Promise<boolean> {
+    if (!this._account_data) {
+      try {
+        await this.initDB();
+      } catch (err) {
+        throw new Error(`Failed to init DB:${err}`);
+      }
+    }
 
-  public async getAllAccounts() {
+    if (this._account_data) {
+      const appState = this._account_data;
+      try {
+        const originalResult = await appState.get(
+          "accounts",
+          payload.accountID
+        );
+        if (originalResult) {
+          await IndexedDBTransferManager.AppStateManager.deleteTransfer(
+            payload.transferID
+          );
+          const newTransferArray = originalResult.transfers._value.filter(
+            (entry) => {
+              return payload.transferID !== entry;
+            }
+          );
+          originalResult.transfers._value = newTransferArray;
+          appState.put("accounts", originalResult);
+          return Promise.resolve(true);
+        } else {
+          throw new Error("Account not found");
+        }
+      } catch (err) {
+        throw new Error(`Failed to delete transfer: ${err}`);
+      }
+    } else {
+      throw new Error("Database not found");
+    }
+  }
+  public async addTransferToAccount(
+    payload: IBasicTransferClass
+  ): Promise<boolean> {
+    if (!this._account_data) {
+      try {
+        await this.initDB();
+      } catch (err) {
+        throw new Error(`Failed to init DB:${err}`);
+      }
+    }
+
+    if (this._account_data) {
+      const appState = this._account_data;
+      try {
+        const originalResult = await appState.get(
+          "accounts",
+          payload._accountID._value
+        );
+        if (originalResult) {
+          await IndexedDBTransferManager.AppStateManager.addTransfer(payload);
+          originalResult.transfers._value.push(payload._internalID._value);
+          appState.put("accounts", originalResult);
+          this.updateBalance(payload);
+          return Promise.resolve(true);
+        } else {
+          throw new Error("Account not found");
+        }
+      } catch (err) {
+        throw new Error(`Failed to delete transfer: ${err}`);
+      }
+    } else {
+      throw new Error("Database not found");
+    }
+  }
+  //ADD & DELETE
+  //CHANGE
+  public async updateSimpleProperty(payload: {
+    accountID: string;
+    property: string;
+    value: number | string | boolean;
+  }): Promise<boolean> {
+    //TODO
+    return Promise.resolve(true);
+  }
+  //CHANGE
+
+  public async getAllAccounts(): Promise<Array<IBasicAccountClass | never>> {
     if (!this._account_data) {
       try {
         await this.initDB();
@@ -160,80 +276,67 @@ class IndexedDBAccountManager {
     }
   }
 
-  public async addTransferToAccount(payload: {
-    accountID: string;
-    transferID: string;
-  }) {
-    if (!this._account_data) {
-      try {
-        await this.initDB();
-      } catch (err) {
-        throw new Error(`Failed to init DB:${err}`);
-      }
-    }
+  // public async addTransferToAccount(payload: {
+  //   accountID: string;
+  //   transferID: string;
+  // }) {
+  //   if (!this._account_data) {
+  //     try {
+  //       await this.initDB();
+  //     } catch (err) {
+  //       throw new Error(`Failed to init DB:${err}`);
+  //     }
+  //   }
 
-    if (this._account_data) {
-      const appState = this._account_data;
-      try {
-        const targetAccount = await appState.get("accounts", payload.accountID);
-        if (targetAccount) {
-          targetAccount.transfers._value.push(payload.transferID);
-          appState.put("accounts", targetAccount);
-        } else {
-          throw new Error("Account not found");
-        }
-      } catch (err) {
-        throw new Error(`Failed to add account: ${err}`);
-      }
-    } else {
-      throw new Error("Database not found");
-    }
-  }
+  //   if (this._account_data) {
+  //     const appState = this._account_data;
+  //     try {
+  //       const targetAccount = await appState.get("accounts", payload.accountID);
+  //       if (targetAccount) {
+  //         targetAccount.transfers._value.push(payload.transferID);
+  //         appState.put("accounts", targetAccount);
+  //       } else {
+  //         throw new Error("Account not found");
+  //       }
+  //     } catch (err) {
+  //       throw new Error(`Failed to add account: ${err}`);
+  //     }
+  //   } else {
+  //     throw new Error("Database not found");
+  //   }
+  // }
 
-  public async removeTransferFromAccount(payload: {
-    accountID: string;
-    transferID: string;
-  }): Promise<boolean> {
-    if (!this._account_data) {
-      try {
-        await this.initDB();
-      } catch (err) {
-        throw new Error(`Failed to init DB:${err}`);
-      }
-    }
+  // public async removeTransferFromAccount(payload: {
+  //   accountID: string;
+  //   transferID: string;
+  // }): Promise<boolean> {
+  //   if (!this._account_data) {
+  //     try {
+  //       await this.initDB();
+  //     } catch (err) {
+  //       throw new Error(`Failed to init DB:${err}`);
+  //     }
+  //   }
 
-    if (this._account_data) {
-      const appState = this._account_data;
-      try {
-        const targetAccount = await appState.get("accounts", payload.accountID);
-        if (targetAccount) {
-          const newTransferList = targetAccount.transfers._value.filter(
-            (tag) => tag !== payload.transferID
-          );
-          targetAccount.transfers._value = newTransferList;
-          appState.put("accounts", targetAccount);
-          return Promise.resolve(true);
-        } else {
-          throw new Error("Account not found");
-        }
-      } catch (err) {
-        throw new Error(`Failed to add account: ${err}`);
-      }
-    } else {
-      throw new Error("Database not found");
-    }
-  }
-
-  public async useDemoAccounts() {
-    try {
-      this._account_data?.close();
-      await this.initDB(false);
-      return Promise.resolve(true);
-    } catch (err) {
-      throw new Error(`Failed to init demo accounts: ${err}`);
-    }
-  }
+  //   if (this._account_data) {
+  //     const appState = this._account_data;
+  //     try {
+  //       const targetAccount = await appState.get("accounts", payload.accountID);
+  //       if (targetAccount) {
+  //         const newTransferList = targetAccount.transfers._value.filter(
+  //           (tag) => tag !== payload.transferID
+  //         );
+  //         targetAccount.transfers._value = newTransferList;
+  //         appState.put("accounts", targetAccount);
+  //         return Promise.resolve(true);
+  //       } else {
+  //         throw new Error("Account not found");
+  //       }
+  //     } catch (err) {
+  //       throw new Error(`Failed to add account: ${err}`);
+  //     }
+  //   } else {
+  //     throw new Error("Database not found");
+  //   }
+  // }
 }
-
-const IndexedDBAccountStoreManager = IndexedDBAccountManager.AppStateManager;
-export default IndexedDBAccountStoreManager;

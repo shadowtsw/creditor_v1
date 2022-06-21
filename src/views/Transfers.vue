@@ -77,6 +77,9 @@ import { AccountTransferStore } from "../store/account-transfer/account-transfer
 import DistMenu from "@/components/Transfers/SubMenu/DistMenu.vue";
 import TagMenu from "@/components/Transfers/SubMenu/TagMenu.vue";
 
+//Logger
+import { LogMe } from "@/logging/logger-function";
+
 export default defineComponent({
   components: {
     TransfersToolbar,
@@ -85,6 +88,9 @@ export default defineComponent({
     ...importPlugins(),
   },
   setup() {
+    onMounted(async () => {
+      LogMe.mount("Transfers");
+    });
     //PluginLoader
     const { currentPlugin, plugins, settings } = usePluginNavigator();
     const loadedComponent = computed(() => {

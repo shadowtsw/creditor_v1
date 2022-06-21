@@ -9,11 +9,10 @@ import {
   TransferValidationResultObject,
 } from "@/interfaces/transfers/transfers";
 import { useValidator } from "@/utils/validator";
-import { computed, reactive, ref } from "vue";
+import { reactive, ref } from "vue";
 import { convertDate } from "@/utils/date-converter";
 import { AccountTransferStore } from "@/store/account-transfer/account-transfer-store";
 import ErrorMessages from "@/utils/error-messages";
-import IndexedDBTransferStoreManager from "@/indexedDB/transfer-database";
 
 export const useTransferCreator = () => {
   const { validString, validNumber, validDate } = useValidator();
@@ -206,9 +205,8 @@ export const useTransferCreator = () => {
 
     if (newTransfer._internalID._value !== "") {
       try {
-        const issueResult = await AccountTransferStore.commitAddTransfer(
-          newTransfer
-        );
+        const issueResult =
+          await AccountTransferStore.commitAddTransferToAccount(newTransfer);
         if (issueResult) {
           reset();
           return Promise.resolve(true);

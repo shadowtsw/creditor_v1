@@ -3,30 +3,26 @@
   <p @click="activateCreateAccount">Create first account</p>
   <p @click="activateImportCSV">Import CSV</p>
   <p>Create Map</p>
-  <p @click="activateDemoMode">Start Demo</p>
 </template>
 
 <script lang="ts">
 import { usePageNavigator } from "@/components/navigator";
-import { ApplicationEnvironmentStore } from "@/store/application/application-store";
 import { defineComponent, onMounted } from "vue";
+
+//Logger
+import { LogMe } from "@/logging/logger-function";
 
 export default defineComponent({
   setup() {
     onMounted(async () => {
-      // await AccountTransferStore.initializeSampleStore();
-      // AccountTransferStore.createPagination();
+      LogMe.mount("Get Started");
     });
-    const { activateImportCSV, activateCreateAccount } = usePageNavigator();
 
-    const activateDemoMode = async () => {
-      ApplicationEnvironmentStore.commitUseDemo();
-    };
+    const { activateImportCSV, activateCreateAccount } = usePageNavigator();
 
     return {
       activateImportCSV,
       activateCreateAccount,
-      activateDemoMode,
     };
   },
 });

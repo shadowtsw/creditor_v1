@@ -8,11 +8,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref, watch } from "vue";
+import { defineComponent, computed, ref, watch, onMounted } from "vue";
 import { LoadingManager, useDummyLoader } from "@/store/history/loading";
+import { LogMe } from "@/logging/logger-function";
 
 export default defineComponent({
   setup() {
+    onMounted(async () => {
+      LogMe.mount("CreateAccount");
+    });
     const percentage = computed(() => {
       return LoadingManager.percentage;
     });

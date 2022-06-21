@@ -7,13 +7,10 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from "vue";
-import { ApplicationEnvironmentStore } from "./store/application/application-store";
 import Login from "./views/Login.vue";
 import MainApp from "./views/BasicApp/MainApp.vue";
-
-import { AccountTransferStore } from "./store/account-transfer/account-transfer-store";
-import { usePageNavigator } from "./components/navigator";
-import IndexedDBAppStateStoreManager from "./indexedDB/app-state-database";
+import { IndexedDBAppStateManager } from "./indexedDB/app-state-database";
+import { LogMe } from "./logging/logger-function";
 
 export default defineComponent({
   components: {
@@ -22,9 +19,11 @@ export default defineComponent({
   },
   setup() {
     onMounted(async () => {
-      console.info("App mounted");
-      const getTheme = await IndexedDBAppStateStoreManager.getState("theme");
-      if (getTheme && typeof getTheme.value === "string") {
+      LogMe.mount("App");
+      const getTheme = await IndexedDBAppStateManager.AppStateManager.getState(
+        "theme"
+      );
+      if (getTheme && getTheme.value && typeof getTheme.value === "string") {
         theme.value = getTheme.value;
       }
     });

@@ -8,6 +8,7 @@ import {
 import store from "..";
 
 import { ref, reactive, computed } from "vue";
+import { LogMe } from "@/logging/logger-function";
 
 type ProcessStates = "Loading" | "Idle" | "Finished";
 
@@ -97,6 +98,7 @@ class Loader extends VuexModule {
   }
 }
 
+LogMe.store("History-Store");
 export const LoadingManager = getModule(Loader);
 
 export const useDummyLoader = () => {
